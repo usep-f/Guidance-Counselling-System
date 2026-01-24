@@ -1,0 +1,548 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Guidance Homepage</title>
+    <link rel="stylesheet" href="style.css" />
+    <script src="script.js"></script>
+  </head>
+  <body>
+    <!-- NAVBAR -->
+    <header class="site-header" id="top">
+      <nav class="navbar">
+        <a class="brand" href="#top" aria-label="Guidance System Home">
+          <!-- Placeholder logo -->
+          <span class="brand__logo" aria-hidden="true"></span>
+          <span class="brand__text">Guidance System</span>
+        </a>
+
+        <button
+          class="nav-toggle"
+          type="button"
+          aria-label="Toggle navigation"
+          aria-expanded="false"
+        >
+          <span class="nav-toggle__bar"></span>
+          <span class="nav-toggle__bar"></span>
+          <span class="nav-toggle__bar"></span>
+        </button>
+
+        <div class="nav-links" data-nav>
+          <a class="nav-link" href="#home">Home</a>
+          <a class="nav-link" href="#about">About Us</a>
+          <a class="nav-link" href="#services">Services</a>
+          <a class="nav-link" href="#how">How it Works</a>
+          <a class="nav-link" href="#contact">Contact</a>
+        </div>
+
+        <a class="btn btn--pill btn--primary nav-cta" href="#login">
+          Login / Register
+          <span class="btn__icon" aria-hidden="true">→</span>
+        </a>
+      </nav>
+    </header>
+
+    <!-- HERO -->
+    <main id="home">
+      <section class="hero">
+        <div class="hero__inner">
+          <div class="hero__left">
+            <h1 class="hero__title">
+              Your Mental<br />
+              Wellness<br />
+              Matters
+            </h1>
+
+            <p class="hero__desc">
+              Securely schedule appointments and track your counseling history
+              in a safe, supportive environment.
+            </p>
+
+            <div class="hero__actions">
+              <a class="btn btn--pill btn--primary" href="#services">
+                <span class="btn__icon" aria-hidden="true">🗓</span>
+                Book Appointment
+                <span class="btn__icon" aria-hidden="true">→</span>
+              </a>
+            </div>
+
+            <div class="hero__meta">
+              <div class="meta-item">
+                <span class="meta-item__icon" aria-hidden="true">🛡</span>
+                <span class="meta-item__text">100% Confidential</span>
+              </div>
+              <div class="meta-item">
+                <span class="meta-item__icon" aria-hidden="true">🕒</span>
+                <span class="meta-item__text">24/7 Support</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="hero__right">
+            <div class="hero-card">
+              <!-- Placeholder image (replace src later) -->
+              <img
+                class="hero-card__img"
+                src="assets\hero-page-image.webp"
+                alt="Hero placeholder"
+              />
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="about" class="about">
+        <div class="about__inner">
+          <!-- Image (LEFT) -->
+          <div class="about__media">
+            <div class="about__image-card">
+              <!-- Placeholder image for now -->
+              <img
+                class="about__img"
+                src="assets\student-devt.webp"
+                alt="About us placeholder"
+              />
+            </div>
+          </div>
+
+          <!-- Text (RIGHT) -->
+          <div class="about__content">
+            <p class="about__eyebrow">ABOUT US</p>
+
+            <h2 class="about__title">
+              Supporting Holistic<br />
+              Student Development
+            </h2>
+
+            <div class="about__text">
+              <p>
+                Our School Guidance Counseling Management System is designed to
+                make mental health support accessible, organized, and
+                stress-free for every student.
+              </p>
+              <p>
+                We believe that every student deserves a safe space to express
+                their concerns, track their progress, and receive professional
+                guidance without barriers.
+              </p>
+              <p>
+                Through our platform, students can easily schedule appointments,
+                submit private inquiries, and maintain a comprehensive history
+                of their counseling journey all in one secure place.
+              </p>
+            </div>
+
+            <div class="about__stats">
+              <div class="about-stat">
+                <p class="about-stat__num">500+</p>
+                <p class="about-stat__label">Students Helped</p>
+              </div>
+
+              <span class="about__divider" aria-hidden="true"></span>
+
+              <div class="about-stat">
+                <p class="about-stat__num">98%</p>
+                <p class="about-stat__label">Satisfaction Rate</p>
+              </div>
+
+              <span class="about__divider" aria-hidden="true"></span>
+
+              <div class="about-stat">
+                <p class="about-stat__num">24/7</p>
+                <p class="about-stat__label">Availability</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="services" class="services">
+        <div class="services__inner">
+          <header class="services__header">
+            <h2 class="services__title">Our Services</h2>
+            <p class="services__subtitle">
+              Comprehensive support designed to make your mental wellness
+              journey smooth<br />
+              and accessible
+            </p>
+          </header>
+
+          <div class="services__grid">
+            <article class="service-card">
+              <div
+                class="service-card__icon"
+                data-variant="teal"
+                aria-hidden="true"
+              >
+                📅
+              </div>
+              <h3 class="service-card__title">Easy Scheduling</h3>
+              <p class="service-card__desc">
+                Book your counseling appointments with just a few clicks. Choose
+                your preferred time slot and receive instant confirmation.
+              </p>
+              <a class="service-card__link" href="#services">
+                Learn more <span aria-hidden="true">→</span>
+              </a>
+            </article>
+
+            <article class="service-card">
+              <div
+                class="service-card__icon"
+                data-variant="green"
+                aria-hidden="true"
+              >
+                💬
+              </div>
+              <h3 class="service-card__title">Private Inquiries</h3>
+              <p class="service-card__desc">
+                Submit confidential questions or concerns anytime. Your privacy
+                is our top priority with end-to-end encryption.
+              </p>
+              <a class="service-card__link" href="#services">
+                Learn more <span aria-hidden="true">→</span>
+              </a>
+            </article>
+
+            <article class="service-card">
+              <div
+                class="service-card__icon"
+                data-variant="blue"
+                aria-hidden="true"
+              >
+                🗂
+              </div>
+              <h3 class="service-card__title">History Monitoring</h3>
+              <p class="service-card__desc">
+                Track your counseling journey with detailed session history,
+                progress notes, and personalized recommendations.
+              </p>
+              <a class="service-card__link" href="#services">
+                Learn more <span aria-hidden="true">→</span>
+              </a>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <section id="how" class="how">
+        <div class="how__inner">
+          <header class="how__header">
+            <h2 class="how__title">How It Works</h2>
+            <p class="how__subtitle">
+              Getting started is simple. Follow these four easy steps to begin
+              your counseling<br />
+              journey
+            </p>
+          </header>
+
+          <!-- Desktop stepper -->
+          <div class="how-stepper" aria-label="How it works steps">
+            <div class="how-stepper__line" aria-hidden="true"></div>
+
+            <div class="how-stepper__grid">
+              <div class="how-step is-active">
+                <div class="how-step__circle">1</div>
+                <h3 class="how-step__title">Create Account</h3>
+                <p class="how-step__desc">
+                  Sign up with your school credentials in less than a minute
+                </p>
+              </div>
+
+              <div class="how-step">
+                <div class="how-step__circle">2</div>
+                <h3 class="how-step__title">Choose Schedule</h3>
+                <p class="how-step__desc">
+                  Select your preferred date and time from available slots
+                </p>
+              </div>
+
+              <div class="how-step">
+                <div class="how-step__circle">3</div>
+                <h3 class="how-step__title">Intake Form</h3>
+                <p class="how-step__desc">
+                  Fill out a brief form to help us understand your needs
+                </p>
+              </div>
+
+              <div class="how-step">
+                <div class="how-step__circle">4</div>
+                <h3 class="how-step__title">Attend Session</h3>
+                <p class="how-step__desc">
+                  Meet with your counselor and begin your wellness journey
+                </p>
+              </div>
+            </div>
+
+            <div class="how-stepper__arrows" aria-hidden="true">
+              <span class="how-stepper__arrow">→</span>
+              <span class="how-stepper__arrow">→</span>
+              <span class="how-stepper__arrow">→</span>
+            </div>
+          </div>
+
+          <!-- Mobile vertical stepper -->
+          <div class="how-vertical" aria-label="How it works steps (mobile)">
+            <div class="how-vertical__item is-active">
+              <div class="how-vertical__left">
+                <div class="how-vertical__circle">1</div>
+                <span class="how-vertical__line" aria-hidden="true"></span>
+              </div>
+              <div class="how-vertical__right">
+                <h3 class="how-vertical__title">Create Account</h3>
+                <p class="how-vertical__desc">
+                  Sign up with your school credentials in less than a minute
+                </p>
+              </div>
+            </div>
+
+            <div class="how-vertical__item">
+              <div class="how-vertical__left">
+                <div class="how-vertical__circle">2</div>
+                <span class="how-vertical__line" aria-hidden="true"></span>
+              </div>
+              <div class="how-vertical__right">
+                <h3 class="how-vertical__title">Choose Schedule</h3>
+                <p class="how-vertical__desc">
+                  Select your preferred date and time from available slots
+                </p>
+              </div>
+            </div>
+
+            <div class="how-vertical__item">
+              <div class="how-vertical__left">
+                <div class="how-vertical__circle">3</div>
+                <span class="how-vertical__line" aria-hidden="true"></span>
+              </div>
+              <div class="how-vertical__right">
+                <h3 class="how-vertical__title">Intake Form</h3>
+                <p class="how-vertical__desc">
+                  Fill out a brief form to help us understand your needs
+                </p>
+              </div>
+            </div>
+
+            <div class="how-vertical__item">
+              <div class="how-vertical__left">
+                <div class="how-vertical__circle">4</div>
+              </div>
+              <div class="how-vertical__right">
+                <h3 class="how-vertical__title">Attend Session</h3>
+                <p class="how-vertical__desc">
+                  Meet with your counselor and begin your wellness journey
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div class="how__cta">
+            <a class="btn btn--pill btn--primary" href="#login"
+              >Get Started Now</a
+            >
+          </div>
+        </div>
+      </section>
+
+      <section id="contact" class="contact">
+        <div class="contact__inner">
+          <header class="contact__header">
+            <h2 class="contact__title">Meet the Counselor</h2>
+            <p class="contact__subtitle">
+              Reach out for guidance, support, and counseling. Your privacy and
+              wellbeing come first.
+            </p>
+          </header>
+
+          <div class="contact__grid">
+            <!-- LEFT: Counselor profile -->
+            <article class="counselor-card">
+              <div class="counselor-card__media">
+                <!-- Placeholder image -->
+                <img
+                  class="counselor-card__img"
+                  src="assets\sample-profile.jpg"
+                  alt="Counselor placeholder"
+                />
+              </div>
+
+              <div class="counselor-card__body">
+                <h3 class="counselor-card__name">Guidance Counselor Name</h3>
+                <p class="counselor-card__role">Guidance Counselor</p>
+
+                <p class="counselor-card__bio">
+                  A brief background about the counselor goes here. Keep it
+                  short, friendly, and reassuring. Mention how students can
+                  approach and what support is available.
+                </p>
+
+                <div class="counselor-card__tags" aria-label="Areas of support">
+                  <span class="tag">Academic</span>
+                  <span class="tag">Personal</span>
+                  <span class="tag">Career</span>
+                  <span class="tag">Wellness</span>
+                </div>
+
+                <div class="counselor-card__actions">
+                  <a class="btn btn--pill btn--primary" href="#login"
+                    >Book Appointment</a
+                  >
+                  <a class="btn btn--pill btn--ghost" href="#services"
+                    >Send Inquiry</a
+                  >
+                </div>
+
+                <p class="counselor-card__note">
+                  <span aria-hidden="true">🛡</span> Confidential support. For
+                  emergencies, contact local hotlines or school authorities.
+                </p>
+              </div>
+            </article>
+
+            <!-- RIGHT: Contact + Office info -->
+            <aside class="office-card" aria-label="Office contact details">
+              <div class="office-card__section">
+                <h3 class="office-card__title">Contact</h3>
+                <div class="office-row">
+                  <span class="office-row__label">Email</span>
+                  <a
+                    class="office-row__value"
+                    href="mailto:guidance@example.com"
+                    >guidance@example.com</a
+                  >
+                </div>
+                <div class="office-row">
+                  <span class="office-row__label">Phone</span>
+                  <a class="office-row__value" href="tel:+630000000000"
+                    >+63 000 000 0000</a
+                  >
+                </div>
+                <div class="office-row">
+                  <span class="office-row__label">Response</span>
+                  <span class="office-row__value">Within 1–2 school days</span>
+                </div>
+              </div>
+
+              <div class="office-card__divider" aria-hidden="true"></div>
+
+              <div class="office-card__section">
+                <h3 class="office-card__title">Office Hours</h3>
+                <div class="office-row">
+                  <span class="office-row__label">Mon–Fri</span>
+                  <span class="office-row__value">8:00 AM – 5:00 PM</span>
+                </div>
+                <div class="office-row">
+                  <span class="office-row__label">Sat–Sun</span>
+                  <span class="office-row__value">Closed</span>
+                </div>
+              </div>
+
+              <div class="office-card__divider" aria-hidden="true"></div>
+
+              <div class="office-card__section">
+                <h3 class="office-card__title">Location</h3>
+                <p class="office-card__text">
+                  Building Name, Room 000<br />
+                  School Address Line 1<br />
+                  City, Province
+                </p>
+
+                <div class="map-preview">
+                  <div class="map-preview__box" aria-hidden="true">
+                    Map Preview (placeholder)
+                  </div>
+                  <a
+                    class="map-preview__link"
+                    href="#"
+                    target="_blank"
+                    rel="noopener"
+                  >
+                    View on Google Maps <span aria-hidden="true">→</span>
+                  </a>
+                </div>
+              </div>
+            </aside>
+          </div>
+        </div>
+      </section>
+
+      <section id="login" class="section-placeholder"></section>
+
+      <footer class="footer" aria-label="Site footer">
+        <div class="footer__inner">
+          <div class="footer__top">
+            <!-- Brand + short description -->
+            <div class="footer__col footer__brand">
+              <a
+                class="footer-brand"
+                href="#top"
+                aria-label="Guidance System Home"
+              >
+                <!-- Placeholder logo -->
+                <span class="footer-brand__logo" aria-hidden="true"></span>
+                <span class="footer-brand__text">Guidance System</span>
+              </a>
+
+              <p class="footer__desc">
+                Supporting student mental wellness through accessible,
+                confidential counseling services.
+              </p>
+            </div>
+
+            <!-- Quick links -->
+            <div class="footer__col">
+              <h3 class="footer__title">Quick Links</h3>
+              <ul class="footer__list">
+                <li><a class="footer__link" href="#home">Home</a></li>
+                <li><a class="footer__link" href="#services">Services</a></li>
+                <li><a class="footer__link" href="#about">About Us</a></li>
+                <li><a class="footer__link" href="#contact">Contact</a></li>
+              </ul>
+            </div>
+
+            <!-- Resources -->
+            <div class="footer__col">
+              <h3 class="footer__title">Resources</h3>
+              <ul class="footer__list">
+                <li>
+                  <a class="footer__link" href="#privacy">Privacy Policy</a>
+                </li>
+                <li><a class="footer__link" href="#terms">Terms of Use</a></li>
+                <li><a class="footer__link" href="#faq">FAQ</a></li>
+                <li><a class="footer__link" href="#support">Support</a></li>
+              </ul>
+            </div>
+
+            <!-- Social -->
+            <div class="footer__col">
+              <h3 class="footer__title">Connect With Us</h3>
+              <div class="footer__social">
+                <a class="social-btn" href="#" aria-label="Facebook">
+                  <span aria-hidden="true">f</span>
+                </a>
+                <a class="social-btn" href="#" aria-label="Twitter / X">
+                  <span aria-hidden="true">x</span>
+                </a>
+                <a class="social-btn" href="#" aria-label="Instagram">
+                  <span aria-hidden="true">⌁</span>
+                </a>
+                <a class="social-btn" href="#" aria-label="LinkedIn">
+                  <span aria-hidden="true">in</span>
+                </a>
+              </div>
+            </div>
+          </div>
+
+          <div class="footer__divider" aria-hidden="true"></div>
+
+          <div class="footer__bottom">
+            <p class="footer__copyright">
+              © 2025 School Guidance System. All rights reserved.
+            </p>
+            <p class="footer__credit">Powered by Readdy</p>
+          </div>
+        </div>
+      </footer>
+    </main>
+  </body>
+</html>
