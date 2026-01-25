@@ -16,3 +16,15 @@ if (toggleBtn && nav) {
     toggleBtn.setAttribute("aria-expanded", "false");
   });
 }
+
+document.addEventListener("click", (e) => {
+  const nav = document.querySelector("[data-nav]");
+  const btn = document.querySelector(".nav-toggle");
+  const navbar = document.querySelector(".navbar");
+  if (!nav || !btn || !navbar) return;
+
+  if (!navbar.contains(e.target)) {
+    nav.classList.remove("is-open");
+    btn.setAttribute("aria-expanded", "false");
+  }
+});

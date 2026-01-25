@@ -241,31 +241,80 @@ section[id]{
 }
 
 @media (max-width: 780px){
+  @media (max-width: 780px){
+  /* keep top row layout: logo left, hamburger right */
   .navbar{
-    border-radius: 18px;
-    height: auto;
-    padding: 12px 14px;
-    gap: 10px;
+    position: relative;       /* anchor dropdown */
+    align-items: center;
   }
 
-  .brand{ min-width: unset; }
-
-  .nav-toggle{ display: inline-block; margin-left: auto; }
-
-  .nav-links{
-    display: none;
-    width: 100%;
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 6px;
-    padding: 10px 4px 6px;
+  .brand{
+    flex: 1;                  /* pushes hamburger to the right */
+    min-width: 0;
   }
 
-  .nav-links.is-open{ display: flex; }
+  .nav-toggle{
+    display: inline-flex;     /* show hamburger */
+    flex-direction: column;   /* keep 3 bars stacked */
+    justify-content: center;
+    gap: 5px;
+    margin-left: 0;           /* important: don't auto-push weirdly */
+  }
 
+  .nav-toggle__bar{
+    margin: 0;                /* gap controls spacing */
+  }
+
+  /* Hide desktop CTA on mobile (keep your current behavior) */
   .nav-cta{
-    display: none; /* keep clean on mobile like many minimalist headers */
+    display: none;
   }
+
+  /* Dropdown menu (W3Schools-style: vertical list under top bar) */
+  .nav-links{
+    display: none;            /* hidden by default */
+    position: absolute;
+    top: calc(100% + 10px);   /* dropdown below navbar */
+    left: 0;
+    right: 0;
+    z-index: 99;
+    
+
+    flex-direction: column;
+    align-items: stretch;     /* full-width clickable items */
+    gap: 6px;
+
+    padding: 10px;
+    border-radius: 16px;
+
+    /* match your navbar "floating" look */
+    background: rgba(255,255,255,0.92);
+    border: 1px solid var(--border);
+    box-shadow: var(--shadow-nav);
+    backdrop-filter: blur(10px);
+
+    transform: translateY(-6px);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 160ms ease, transform 160ms ease;
+  }
+
+  .nav-links.is-open{
+    display: flex;
+     opacity: 1;
+    transform: translateY(0);
+    pointer-events: auto;
+  }
+
+  /* Make items look like stacked menu entries */
+  .nav-link{
+    width: 100%;
+    text-align: left;         /* like W3Schools */
+    padding: 12px 12px;
+    border-radius: 12px;
+  }
+}
+
 
   .hero__inner{
     grid-template-columns: 1fr;
