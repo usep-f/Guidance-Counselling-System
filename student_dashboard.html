@@ -5,13 +5,18 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Book Appointment | Guidance System</title>
     <link rel="stylesheet" href="style.css" />
-    <script src="script.js" defer></script>
+    <link rel="stylesheet" href="student_dashboard_style.css" />
+    <script src="student_dashboard.js" defer></script>
   </head>
   <body>
     <!-- NAVBAR (same style/classes, but links point back to sections on index.html) -->
     <header class="site-header" id="top">
       <nav class="navbar">
-        <a class="brand" href="index.html#top" aria-label="Guidance System Home">
+        <a
+          class="brand"
+          href="index.html#top"
+          aria-label="Guidance System Home"
+        >
           <span class="brand__logo" aria-hidden="true"></span>
           <span class="brand__text">Guidance System</span>
         </a>
@@ -82,18 +87,39 @@
 
               <div class="bgrid">
                 <div class="field">
-                  <label class="field__label" for="studentName">Full Name</label>
-                  <input class="field__input" id="studentName" name="studentName" type="text" required />
+                  <label class="field__label" for="studentName"
+                    >Full Name</label
+                  >
+                  <input
+                    class="field__input"
+                    id="studentName"
+                    name="studentName"
+                    type="text"
+                    required
+                  />
                 </div>
 
                 <div class="field">
                   <label class="field__label" for="studentId">Student ID</label>
-                  <input class="field__input" id="studentId" name="studentId" type="text" required />
+                  <input
+                    class="field__input"
+                    id="studentId"
+                    name="studentId"
+                    type="text"
+                    required
+                  />
                 </div>
 
                 <div class="field">
-                  <label class="field__label" for="gradeLevel">Grade/Year Level</label>
-                  <select class="field__input" id="gradeLevel" name="gradeLevel" required>
+                  <label class="field__label" for="gradeLevel"
+                    >Grade/Year Level</label
+                  >
+                  <select
+                    class="field__input"
+                    id="gradeLevel"
+                    name="gradeLevel"
+                    required
+                  >
                     <option value="" selected disabled>Select</option>
                     <option>Grade 7</option>
                     <option>Grade 8</option>
@@ -109,24 +135,51 @@
                 </div>
 
                 <div class="field">
-                  <label class="field__label" for="contactNo">Contact Number</label>
-                  <input class="field__input" id="contactNo" name="contactNo" type="tel" required />
+                  <label class="field__label" for="contactNo"
+                    >Contact Number</label
+                  >
+                  <input
+                    class="field__input"
+                    id="contactNo"
+                    name="contactNo"
+                    type="tel"
+                    required
+                  />
                 </div>
 
                 <div class="field">
                   <label class="field__label" for="email">Email</label>
-                  <input class="field__input" id="email" name="email" type="email" required />
+                  <input
+                    class="field__input"
+                    id="email"
+                    name="email"
+                    type="email"
+                    required
+                  />
                 </div>
 
                 <div class="field">
-                  <label class="field__label" for="section">Section / Program</label>
-                  <input class="field__input" id="section" name="section" type="text" placeholder="e.g., STEM / BSIT" required />
+                  <label class="field__label" for="section"
+                    >Section / Program</label
+                  >
+                  <input
+                    class="field__input"
+                    id="section"
+                    name="section"
+                    type="text"
+                    placeholder="e.g., STEM / BSIT"
+                    required
+                  />
                 </div>
               </div>
 
               <div class="bactions">
                 <span></span>
-                <button class="btn btn--pill btn--primary" type="button" data-next>
+                <button
+                  class="btn btn--pill btn--primary"
+                  type="button"
+                  data-next
+                >
                   Next <span class="btn__icon" aria-hidden="true">→</span>
                 </button>
               </div>
@@ -138,7 +191,9 @@
 
               <div class="bgrid">
                 <div class="field">
-                  <label class="field__label" for="topic">Reason / Concern</label>
+                  <label class="field__label" for="topic"
+                    >Reason / Concern</label
+                  >
                   <select class="field__input" id="topic" name="topic" required>
                     <option value="" selected disabled>Select</option>
                     <option>Academic Concern</option>
@@ -159,16 +214,32 @@
                 </div>
 
                 <div class="field field--full">
-                  <label class="field__label" for="notes">Brief Description (optional)</label>
-                  <textarea class="field__input field__textarea" id="notes" name="notes" rows="4" placeholder="Share a short summary so the counselor can prepare."></textarea>
+                  <label class="field__label" for="notes"
+                    >Brief Description (optional)</label
+                  >
+                  <textarea
+                    class="field__input field__textarea"
+                    id="notes"
+                    name="notes"
+                    rows="4"
+                    placeholder="Share a short summary so the counselor can prepare."
+                  ></textarea>
                 </div>
               </div>
 
               <div class="bactions">
-                <button class="btn btn--pill btn--ghost" type="button" data-prev>
+                <button
+                  class="btn btn--pill btn--ghost"
+                  type="button"
+                  data-prev
+                >
                   <span class="btn__icon" aria-hidden="true">←</span> Back
                 </button>
-                <button class="btn btn--pill btn--primary" type="button" data-next>
+                <button
+                  class="btn btn--pill btn--primary"
+                  type="button"
+                  data-next
+                >
                   Next <span class="btn__icon" aria-hidden="true">→</span>
                 </button>
               </div>
@@ -179,35 +250,79 @@
               <h2 class="bpanel__title">Select Date & Time</h2>
 
               <!-- Hidden values to submit -->
-              <input type="hidden" name="appointmentDate" id="appointmentDate" required />
-              <input type="hidden" name="appointmentTime" id="appointmentTime" required />
+              <input
+                type="hidden"
+                name="appointmentDate"
+                id="appointmentDate"
+                required
+              />
+              <input
+                type="hidden"
+                name="appointmentTime"
+                id="appointmentTime"
+                required
+              />
 
               <div class="calendar-wrap">
                 <div class="cal-head">
-                  <button class="cal-btn" type="button" data-cal-prev aria-label="Previous month">←</button>
+                  <button
+                    class="cal-btn"
+                    type="button"
+                    data-cal-prev
+                    aria-label="Previous month"
+                  >
+                    ←
+                  </button>
                   <div class="cal-title" id="calTitle">Month YYYY</div>
-                  <button class="cal-btn" type="button" data-cal-next aria-label="Next month">→</button>
+                  <button
+                    class="cal-btn"
+                    type="button"
+                    data-cal-next
+                    aria-label="Next month"
+                  >
+                    →
+                  </button>
                 </div>
 
                 <div class="cal-grid cal-week" aria-hidden="true">
-                  <div>Sun</div><div>Mon</div><div>Tue</div><div>Wed</div><div>Thu</div><div>Fri</div><div>Sat</div>
+                  <div>Sun</div>
+                  <div>Mon</div>
+                  <div>Tue</div>
+                  <div>Wed</div>
+                  <div>Thu</div>
+                  <div>Fri</div>
+                  <div>Sat</div>
                 </div>
 
-                <div class="cal-grid cal-days" id="calDays" aria-label="Calendar days"></div>
+                <div
+                  class="cal-grid cal-days"
+                  id="calDays"
+                  aria-label="Calendar days"
+                ></div>
 
                 <div class="slot-wrap">
                   <p class="slot-title">Available Time Slots</p>
                   <div class="slot-grid" id="slotGrid" aria-label="Time slots">
-                    <p class="slot-hint">Select an available date to view time slots.</p>
+                    <p class="slot-hint">
+                      Select an available date to view time slots.
+                    </p>
                   </div>
                 </div>
               </div>
 
               <div class="bactions">
-                <button class="btn btn--pill btn--ghost" type="button" data-prev>
+                <button
+                  class="btn btn--pill btn--ghost"
+                  type="button"
+                  data-prev
+                >
                   <span class="btn__icon" aria-hidden="true">←</span> Back
                 </button>
-                <button class="btn btn--pill btn--primary" type="button" data-next>
+                <button
+                  class="btn btn--pill btn--primary"
+                  type="button"
+                  data-next
+                >
                   Next <span class="btn__icon" aria-hidden="true">→</span>
                 </button>
               </div>
@@ -222,16 +337,23 @@
               </div>
 
               <div class="bactions">
-                <button class="btn btn--pill btn--ghost" type="button" data-prev>
+                <button
+                  class="btn btn--pill btn--ghost"
+                  type="button"
+                  data-prev
+                >
                   <span class="btn__icon" aria-hidden="true">←</span> Back
                 </button>
                 <button class="btn btn--pill btn--primary" type="submit">
-                  Submit Request <span class="btn__icon" aria-hidden="true">→</span>
+                  Submit Request
+                  <span class="btn__icon" aria-hidden="true">→</span>
                 </button>
               </div>
 
               <p class="review-note">
-                <span aria-hidden="true">🛡</span> Your information is confidential and will only be used for scheduling and guidance support.
+                <span aria-hidden="true">🛡</span> Your information is
+                confidential and will only be used for scheduling and guidance
+                support.
               </p>
             </section>
           </div>
@@ -267,7 +389,8 @@
             <div class="office-card__section">
               <h3 class="office-card__title">Notes</h3>
               <p class="office-card__text">
-                Available dates and times shown are sample slots (front-end only).
+                Available dates and times shown are sample slots (front-end
+                only).
               </p>
             </div>
           </div>
@@ -280,7 +403,11 @@
       <div class="footer__inner">
         <div class="footer__top">
           <div class="footer__col footer__brand">
-            <a class="footer-brand" href="index.html#top" aria-label="Guidance System Home">
+            <a
+              class="footer-brand"
+              href="index.html#top"
+              aria-label="Guidance System Home"
+            >
               <span class="footer-brand__logo" aria-hidden="true"></span>
               <span class="footer-brand__text">Guidance System</span>
             </a>
@@ -295,16 +422,24 @@
             <h3 class="footer__title">Quick Links</h3>
             <ul class="footer__list">
               <li><a class="footer__link" href="index.html#home">Home</a></li>
-              <li><a class="footer__link" href="index.html#services">Services</a></li>
-              <li><a class="footer__link" href="index.html#about">About Us</a></li>
-              <li><a class="footer__link" href="index.html#contact">Contact</a></li>
+              <li>
+                <a class="footer__link" href="index.html#services">Services</a>
+              </li>
+              <li>
+                <a class="footer__link" href="index.html#about">About Us</a>
+              </li>
+              <li>
+                <a class="footer__link" href="index.html#contact">Contact</a>
+              </li>
             </ul>
           </div>
 
           <div class="footer__col">
             <h3 class="footer__title">Resources</h3>
             <ul class="footer__list">
-              <li><a class="footer__link" href="privacy.html">Privacy Policy</a></li>
+              <li>
+                <a class="footer__link" href="privacy.html">Privacy Policy</a>
+              </li>
               <a class="footer__link" href="terms.html">Terms of Use</a>
               <a class="footer__link" href="faq.html">FAQ</a>
               <a class="footer__link" href="support.html">Support</a>
@@ -314,10 +449,18 @@
           <div class="footer__col">
             <h3 class="footer__title">Connect With Us</h3>
             <div class="footer__social">
-              <a class="social-btn" href="#" aria-label="Facebook"><span aria-hidden="true">f</span></a>
-              <a class="social-btn" href="#" aria-label="Twitter / X"><span aria-hidden="true">x</span></a>
-              <a class="social-btn" href="#" aria-label="Instagram"><span aria-hidden="true">⌁</span></a>
-              <a class="social-btn" href="#" aria-label="LinkedIn"><span aria-hidden="true">in</span></a>
+              <a class="social-btn" href="#" aria-label="Facebook"
+                ><span aria-hidden="true">f</span></a
+              >
+              <a class="social-btn" href="#" aria-label="Twitter / X"
+                ><span aria-hidden="true">x</span></a
+              >
+              <a class="social-btn" href="#" aria-label="Instagram"
+                ><span aria-hidden="true">⌁</span></a
+              >
+              <a class="social-btn" href="#" aria-label="LinkedIn"
+                ><span aria-hidden="true">in</span></a
+              >
             </div>
           </div>
         </div>
@@ -325,7 +468,9 @@
         <div class="footer__divider" aria-hidden="true"></div>
 
         <div class="footer__bottom">
-          <p class="footer__copyright">© 2025 School Guidance System. All rights reserved.</p>
+          <p class="footer__copyright">
+            © 2025 School Guidance System. All rights reserved.
+          </p>
           <p class="footer__credit">Powered by Readdy</p>
         </div>
       </div>
