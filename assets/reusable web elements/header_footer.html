@@ -124,5 +124,173 @@
         </div>
       </div>
     </footer>
+
+    <!-- AUTH MODAL -->
+    <div class="auth-modal" id="authModal" aria-hidden="true">
+      <div class="auth-modal__overlay" data-auth-close></div>
+
+      <div
+        class="auth-modal__dialog"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="authTitle"
+      >
+        <div class="auth-modal__head">
+          <div class="auth-modal__titles">
+            <p class="auth-modal__eyebrow">GUIDANCE SYSTEM</p>
+            <h2 class="auth-modal__title" id="authTitle">Login</h2>
+            <p class="auth-modal__subtitle" id="authSubtitle">
+              Choose your account type and enter your credentials.
+            </p>
+          </div>
+
+          <button
+            class="auth-modal__close"
+            type="button"
+            aria-label="Close"
+            data-auth-close
+          >
+            ✕
+          </button>
+        </div>
+
+        <!-- LOGIN VIEW -->
+        <div class="auth-view is-active" data-auth-view="login">
+          <div class="auth-role">
+            <button
+              class="auth-role__btn is-active"
+              type="button"
+              data-role="student"
+            >
+              Student
+            </button>
+            <button class="auth-role__btn" type="button" data-role="admin">
+              Admin
+            </button>
+          </div>
+
+          <form class="auth-form" id="loginForm">
+            <input type="hidden" name="role" id="loginRole" value="student" />
+
+            <div class="auth-field">
+              <label class="auth-label" for="loginEmail">Email Address</label>
+              <input
+                class="auth-input"
+                id="loginEmail"
+                name="email"
+                type="email"
+                placeholder="you@school.edu"
+                required
+              />
+            </div>
+
+            <div class="auth-field">
+              <label class="auth-label" for="loginPassword">Password</label>
+              <input
+                class="auth-input"
+                id="loginPassword"
+                name="password"
+                type="password"
+                placeholder="••••••••"
+                required
+              />
+            </div>
+
+            <button
+              class="btn btn--pill btn--primary auth-submit"
+              type="submit"
+            >
+              Login <span class="btn__icon" aria-hidden="true">→</span>
+            </button>
+
+            <p class="auth-switch">
+              No account?
+              <button
+                class="auth-link"
+                type="button"
+                data-auth-switch="register"
+              >
+                Register here
+              </button>
+            </p>
+          </form>
+        </div>
+
+        <!-- REGISTER VIEW -->
+        <div class="auth-view" data-auth-view="register">
+          <form class="auth-form" id="registerForm">
+            <div class="auth-field">
+              <label class="auth-label" for="regEmail">Email Address</label>
+              <input
+                class="auth-input"
+                id="regEmail"
+                name="email"
+                type="email"
+                placeholder="you@school.edu"
+                required
+              />
+            </div>
+
+            <div class="auth-field">
+              <label class="auth-label" for="regName">Full Name</label>
+              <input
+                class="auth-input"
+                id="regName"
+                name="name"
+                type="text"
+                placeholder="Juan Dela Cruz"
+                required
+              />
+            </div>
+
+            <div class="auth-field">
+              <label class="auth-label" for="regStudentNo">Student No.</label>
+              <input
+                class="auth-input"
+                id="regStudentNo"
+                name="studentNo"
+                type="text"
+                placeholder="2023-00000"
+                required
+              />
+            </div>
+
+            <div class="auth-field">
+              <label class="auth-label" for="regPassword">Password</label>
+              <input
+                class="auth-input"
+                id="regPassword"
+                name="password"
+                type="password"
+                placeholder="Create a password"
+                required
+              />
+            </div>
+
+            <button
+              class="btn btn--pill btn--primary auth-submit"
+              type="submit"
+            >
+              Create Account <span class="btn__icon" aria-hidden="true">→</span>
+            </button>
+
+            <p class="auth-switch">
+              Already have an account?
+              <button class="auth-link" type="button" data-auth-switch="login">
+                Login here
+              </button>
+            </p>
+
+            <p class="auth-note">
+              Note: Student registration only. Admin accounts will be provided
+              by the Guidance Office.
+            </p>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- IMPORTANT: script.js is a module because it uses imports -->
+    <script type="module" src="script.js"></script>
   </body>
 </html>

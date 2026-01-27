@@ -1374,3 +1374,14 @@ body.is-modal-open{ overflow: hidden; }
   .auth-modal__dialog{ padding: 16px; }
   .auth-modal__title{ font-size: 22px; }
 }
+
+/* Hide auth UI until Firebase auth state is resolved (prevents flicker) */
+html.auth-pending .nav-cta,
+html.auth-pending #logoutBtn {
+  visibility: hidden;
+}
+
+/* Hide protected admin page until access check finishes */
+html.guard-pending body {
+  visibility: hidden;
+}

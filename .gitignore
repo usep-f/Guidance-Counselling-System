@@ -1,0 +1,10 @@
+# Dependencies
+node_modules/
+
+# Firebase Admin secret keys (NEVER commit)
+admin-tools/*.json
+admin-tools/serviceAccountKey.json
+
+# Local env files (if you use them)
+.env
+.env.*

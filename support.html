@@ -5,14 +5,17 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Support | Guidance System</title>
     <link rel="stylesheet" href="style.css" />
-    <script src="script.js" defer></script>
   </head>
+
   <body>
     <!-- NAVBAR -->
     <header class="site-header" id="top">
       <nav class="navbar">
-        <a class="brand" href="#top" aria-label="Guidance System Home">
-          <!-- Placeholder logo -->
+        <a
+          class="brand"
+          href="index.html#top"
+          aria-label="Guidance System Home"
+        >
           <span class="brand__logo" aria-hidden="true"></span>
           <span class="brand__text">Guidance System</span>
         </a>
@@ -36,10 +39,19 @@
           <a class="nav-link" href="index.html#contact">Contact</a>
         </div>
 
-        <a class="btn btn--pill btn--primary nav-cta" href="#login">
+        <a class="btn btn--pill btn--primary nav-cta" href="index.html#login">
           Login / Register
           <span class="btn__icon" aria-hidden="true">→</span>
         </a>
+
+        <button
+          class="btn btn--pill btn--ghost"
+          id="logoutBtn"
+          type="button"
+          style="display: none"
+        >
+          Logout
+        </button>
       </nav>
     </header>
 
@@ -89,14 +101,12 @@
     <footer class="footer" aria-label="Site footer">
       <div class="footer__inner">
         <div class="footer__top">
-          <!-- Brand + short description -->
           <div class="footer__col footer__brand">
             <a
               class="footer-brand"
-              href="#top"
+              href="index.html#top"
               aria-label="Guidance System Home"
             >
-              <!-- Placeholder logo -->
               <span class="footer-brand__logo" aria-hidden="true"></span>
               <span class="footer-brand__text">Guidance System</span>
             </a>
@@ -107,7 +117,6 @@
             </p>
           </div>
 
-          <!-- Quick links -->
           <div class="footer__col">
             <h3 class="footer__title">Quick Links</h3>
             <ul class="footer__list">
@@ -124,35 +133,35 @@
             </ul>
           </div>
 
-          <!-- Resources -->
           <div class="footer__col">
             <h3 class="footer__title">Resources</h3>
             <ul class="footer__list">
               <li>
                 <a class="footer__link" href="privacy.html">Privacy Policy</a>
               </li>
-              <a class="footer__link" href="terms.html">Terms of Use</a>
-              <a class="footer__link" href="faq.html">FAQ</a>
-              <a class="footer__link" href="support.html">Support</a>
+              <li>
+                <a class="footer__link" href="terms.html">Terms of Use</a>
+              </li>
+              <li><a class="footer__link" href="faq.html">FAQ</a></li>
+              <li><a class="footer__link" href="support.html">Support</a></li>
             </ul>
           </div>
 
-          <!-- Social -->
           <div class="footer__col">
             <h3 class="footer__title">Connect With Us</h3>
             <div class="footer__social">
-              <a class="social-btn" href="#" aria-label="Facebook">
-                <span aria-hidden="true">f</span>
-              </a>
-              <a class="social-btn" href="#" aria-label="Twitter / X">
-                <span aria-hidden="true">x</span>
-              </a>
-              <a class="social-btn" href="#" aria-label="Instagram">
-                <span aria-hidden="true">⌁</span>
-              </a>
-              <a class="social-btn" href="#" aria-label="LinkedIn">
-                <span aria-hidden="true">in</span>
-              </a>
+              <a class="social-btn" href="#" aria-label="Facebook"
+                ><span aria-hidden="true">f</span></a
+              >
+              <a class="social-btn" href="#" aria-label="Twitter / X"
+                ><span aria-hidden="true">x</span></a
+              >
+              <a class="social-btn" href="#" aria-label="Instagram"
+                ><span aria-hidden="true">⌁</span></a
+              >
+              <a class="social-btn" href="#" aria-label="LinkedIn"
+                ><span aria-hidden="true">in</span></a
+              >
             </div>
           </div>
         </div>
@@ -167,5 +176,7 @@
         </div>
       </div>
     </footer>
+
+    <script type="module" src="site-auth-ui.js"></script>
   </body>
 </html>

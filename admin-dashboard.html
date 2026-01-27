@@ -4,6 +4,14 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Admin Dashboard | Guidance System</title>
+
+    <!-- INSTANT GUARD: prevents any flash before external CSS loads -->
+    <style>
+      html.guard-pending body {
+        visibility: hidden;
+      }
+    </style>
+
     <link rel="stylesheet" href="style.css" />
   </head>
 
@@ -74,21 +82,19 @@
       import { watchAuthState, isAdminUser } from "./auth-backend.js";
 
       watchAuthState(async (user) => {
-        // If not logged in, redirect to login and come back here after auth
         if (!user) {
           sessionStorage.setItem("postAuthRedirect", "admin-dashboard.html");
           window.location.href = "index.html#login";
           return;
         }
 
-        // If logged in but not admin, kick out
         const ok = await isAdminUser(user);
         if (!ok) {
           window.location.href = "dashboard.html";
           return;
         }
 
-        // ✅ Admin confirmed, show page
+        // ✅ Admin confirmed: allow page to show
         document.documentElement.classList.remove("guard-pending");
       });
     </script>

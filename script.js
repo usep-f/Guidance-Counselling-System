@@ -1,35 +1,12 @@
-// Mobile nav toggle + close on link click
-const toggleBtn = document.querySelector(".nav-toggle");
-const nav = document.querySelector("[data-nav]");
+import "./site-auth-ui.js";
 
-if (toggleBtn && nav) {
-  toggleBtn.addEventListener("click", () => {
-    const isOpen = nav.classList.toggle("is-open");
-    toggleBtn.setAttribute("aria-expanded", String(isOpen));
-  });
+import {
+  loginWithEmail,
+  registerStudent,
+  getLandingPageForUser
+} from "./auth-backend.js";
 
-  nav.addEventListener("click", (e) => {
-    const link = e.target.closest("a");
-    if (!link) return;
-
-    nav.classList.remove("is-open");
-    toggleBtn.setAttribute("aria-expanded", "false");
-  });
-}
-
-document.addEventListener("click", (e) => {
-  const nav = document.querySelector("[data-nav]");
-  const btn = document.querySelector(".nav-toggle");
-  const navbar = document.querySelector(".navbar");
-  if (!nav || !btn || !navbar) return;
-
-  if (!navbar.contains(e.target)) {
-    nav.classList.remove("is-open");
-    btn.setAttribute("aria-expanded", "false");
-  }
-});
-
-// Auth modal (front-end only)
+// Auth modal elements
 const authModal = document.getElementById("authModal");
 const openAuthBtns = document.querySelectorAll("[data-auth-open], a[href='#login']");
 const closeAuthBtns = document.querySelectorAll("[data-auth-close]");
@@ -46,6 +23,9 @@ const views = {
 const roleBtns = document.querySelectorAll(".auth-role__btn");
 const switchBtns = document.querySelectorAll("[data-auth-switch]");
 
+const loginForm = document.getElementById("loginForm");
+const registerForm = document.getElementById("registerForm");
+
 function openAuthModal(defaultView = "login") {
   if (!authModal) return;
 
@@ -55,7 +35,6 @@ function openAuthModal(defaultView = "login") {
 
   setAuthView(defaultView);
 
-  // Focus first input
   const firstInput = authModal.querySelector(".auth-view.is-active .auth-input");
   if (firstInput) firstInput.focus();
 }
@@ -66,6 +45,11 @@ function closeAuthModal() {
   authModal.classList.remove("is-open");
   authModal.setAttribute("aria-hidden", "true");
   document.body.classList.remove("is-modal-open");
+
+  // Remove #login so refresh doesn't reopen the modal
+  if (window.location.hash === "#login") {
+    history.replaceState(null, "", window.location.pathname + window.location.search);
+  }
 }
 
 function setAuthView(viewName) {
@@ -87,9 +71,11 @@ function setRole(role) {
   if (loginRoleInput) loginRoleInput.value = role;
 }
 
+// Expose modal opener so other pages can redirect to index.html#login and open it
+window.__openAuthModal = openAuthModal;
+
 openAuthBtns.forEach((btn) => {
   btn.addEventListener("click", (e) => {
-    // Only intercept #login or explicit data-auth-open
     const isLoginAnchor = btn.getAttribute("href") === "#login";
     if (btn.hasAttribute("data-auth-open") || isLoginAnchor) {
       e.preventDefault();
@@ -98,9 +84,7 @@ openAuthBtns.forEach((btn) => {
   });
 });
 
-closeAuthBtns.forEach((btn) => {
-  btn.addEventListener("click", closeAuthModal);
-});
+closeAuthBtns.forEach((btn) => btn.addEventListener("click", closeAuthModal));
 
 document.addEventListener("keydown", (e) => {
   if (e.key === "Escape" && authModal?.classList.contains("is-open")) {
@@ -108,9 +92,7 @@ document.addEventListener("keydown", (e) => {
   }
 });
 
-roleBtns.forEach((btn) => {
-  btn.addEventListener("click", () => setRole(btn.dataset.role));
-});
+roleBtns.forEach((btn) => btn.addEventListener("click", () => setRole(btn.dataset.role)));
 
 switchBtns.forEach((btn) => {
   btn.addEventListener("click", () => {
@@ -119,26 +101,56 @@ switchBtns.forEach((btn) => {
   });
 });
 
-// Front-end only submit handlers (placeholder)
-const loginForm = document.getElementById("loginForm");
-const registerForm = document.getElementById("registerForm");
+function goAfterAuth(defaultUrl) {
+  const redirect = sessionStorage.getItem("postAuthRedirect");
+  if (redirect) sessionStorage.removeItem("postAuthRedirect");
+  window.location.href = redirect || defaultUrl;
+}
 
+// Login submit
 if (loginForm) {
-  loginForm.addEventListener("submit", (e) => {
+  loginForm.addEventListener("submit", async (e) => {
     e.preventDefault();
-    const role = loginRoleInput?.value || "student";
-    // backend later
-    alert(`Login submitted (${role}). Backend to be added.`);
-    closeAuthModal();
+
+    const email = document.getElementById("loginEmail").value.trim();
+    const password = document.getElementById("loginPassword").value;
+
+    try {
+      const user = await loginWithEmail(email, password);
+      const landing = await getLandingPageForUser(user);
+
+      closeAuthModal();
+      goAfterAuth(landing);
+    } catch (err) {
+      alert(err.message);
+    }
   });
 }
 
+// Register submit (student only)
 if (registerForm) {
-  registerForm.addEventListener("submit", (e) => {
+  registerForm.addEventListener("submit", async (e) => {
     e.preventDefault();
-    // backend later
-    alert("Register submitted (student). Backend to be added.");
-    setAuthView("login");
+
+    const email = document.getElementById("regEmail").value.trim();
+    const name = document.getElementById("regName").value.trim();
+    const password = document.getElementById("regPassword").value;
+
+    try {
+      const user = await registerStudent({ email, password, name });
+      const landing = await getLandingPageForUser(user);
+
+      closeAuthModal();
+      goAfterAuth(landing);
+    } catch (err) {
+      alert(err.message);
+    }
   });
 }
 
+// Auto-open modal when arriving from other pages (index.html#login)
+window.addEventListener("load", () => {
+  if (window.location.hash === "#login") {
+    openAuthModal("login");
+  }
+});

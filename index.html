@@ -5,14 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Guidance Homepage</title>
     <link rel="stylesheet" href="style.css" />
-    <script src="script.js" defer></script>
   </head>
+
   <body>
     <!-- NAVBAR -->
     <header class="site-header" id="top">
       <nav class="navbar">
         <a class="brand" href="#top" aria-label="Guidance System Home">
-          <!-- Placeholder logo -->
           <span class="brand__logo" aria-hidden="true"></span>
           <span class="brand__text">Guidance System</span>
         </a>
@@ -40,6 +39,15 @@
           Login / Register
           <span class="btn__icon" aria-hidden="true">→</span>
         </a>
+
+        <button
+          class="btn btn--pill btn--ghost"
+          id="logoutBtn"
+          type="button"
+          style="display: none"
+        >
+          Logout
+        </button>
       </nav>
     </header>
 
@@ -79,7 +87,6 @@
 
           <div class="hero__right">
             <div class="hero-card">
-              <!-- Placeholder image (replace src later) -->
               <img
                 class="hero-card__img"
                 src="assets\hero-page-image.webp"
@@ -92,10 +99,8 @@
 
       <section id="about" class="about">
         <div class="about__inner">
-          <!-- Image (LEFT) -->
           <div class="about__media">
             <div class="about__image-card">
-              <!-- Placeholder image for now -->
               <img
                 class="about__img"
                 src="assets\student-devt.webp"
@@ -104,7 +109,6 @@
             </div>
           </div>
 
-          <!-- Text (RIGHT) -->
           <div class="about__content">
             <p class="about__eyebrow">ABOUT US</p>
 
@@ -235,7 +239,6 @@
             </p>
           </header>
 
-          <!-- Desktop stepper -->
           <div class="how-stepper" aria-label="How it works steps">
             <div class="how-stepper__line" aria-hidden="true"></div>
 
@@ -280,60 +283,6 @@
             </div>
           </div>
 
-          <!-- Mobile vertical stepper -->
-          <div class="how-vertical" aria-label="How it works steps (mobile)">
-            <div class="how-vertical__item is-active">
-              <div class="how-vertical__left">
-                <div class="how-vertical__circle">1</div>
-                <span class="how-vertical__line" aria-hidden="true"></span>
-              </div>
-              <div class="how-vertical__right">
-                <h3 class="how-vertical__title">Create Account</h3>
-                <p class="how-vertical__desc">
-                  Sign up with your school credentials in less than a minute
-                </p>
-              </div>
-            </div>
-
-            <div class="how-vertical__item">
-              <div class="how-vertical__left">
-                <div class="how-vertical__circle">2</div>
-                <span class="how-vertical__line" aria-hidden="true"></span>
-              </div>
-              <div class="how-vertical__right">
-                <h3 class="how-vertical__title">Choose Schedule</h3>
-                <p class="how-vertical__desc">
-                  Select your preferred date and time from available slots
-                </p>
-              </div>
-            </div>
-
-            <div class="how-vertical__item">
-              <div class="how-vertical__left">
-                <div class="how-vertical__circle">3</div>
-                <span class="how-vertical__line" aria-hidden="true"></span>
-              </div>
-              <div class="how-vertical__right">
-                <h3 class="how-vertical__title">Intake Form</h3>
-                <p class="how-vertical__desc">
-                  Fill out a brief form to help us understand your needs
-                </p>
-              </div>
-            </div>
-
-            <div class="how-vertical__item">
-              <div class="how-vertical__left">
-                <div class="how-vertical__circle">4</div>
-              </div>
-              <div class="how-vertical__right">
-                <h3 class="how-vertical__title">Attend Session</h3>
-                <p class="how-vertical__desc">
-                  Meet with your counselor and begin your wellness journey
-                </p>
-              </div>
-            </div>
-          </div>
-
           <div class="how__cta">
             <a class="btn btn--pill btn--primary" href="#login"
               >Get Started Now</a
@@ -353,10 +302,8 @@
           </header>
 
           <div class="contact__grid">
-            <!-- LEFT: Counselor profile -->
             <article class="counselor-card">
               <div class="counselor-card__media">
-                <!-- Placeholder image -->
                 <img
                   class="counselor-card__img"
                   src="assets\sample-profile.jpg"
@@ -395,7 +342,6 @@
               </div>
             </article>
 
-            <!-- RIGHT: Contact + Office info -->
             <aside class="office-card" aria-label="Office contact details">
               <div class="office-card__section">
                 <h3 class="office-card__title">Contact</h3>
@@ -467,14 +413,12 @@
       <footer class="footer" aria-label="Site footer">
         <div class="footer__inner">
           <div class="footer__top">
-            <!-- Brand + short description -->
             <div class="footer__col footer__brand">
               <a
                 class="footer-brand"
                 href="#top"
                 aria-label="Guidance System Home"
               >
-                <!-- Placeholder logo -->
                 <span class="footer-brand__logo" aria-hidden="true"></span>
                 <span class="footer-brand__text">Guidance System</span>
               </a>
@@ -485,7 +429,6 @@
               </p>
             </div>
 
-            <!-- Quick links -->
             <div class="footer__col">
               <h3 class="footer__title">Quick Links</h3>
               <ul class="footer__list">
@@ -496,35 +439,35 @@
               </ul>
             </div>
 
-            <!-- Resources -->
             <div class="footer__col">
               <h3 class="footer__title">Resources</h3>
               <ul class="footer__list">
                 <li>
                   <a class="footer__link" href="privacy.html">Privacy Policy</a>
                 </li>
-                <a class="footer__link" href="terms.html">Terms of Use</a>
-                <a class="footer__link" href="faq.html">FAQ</a>
-                <a class="footer__link" href="support.html">Support</a>
+                <li>
+                  <a class="footer__link" href="terms.html">Terms of Use</a>
+                </li>
+                <li><a class="footer__link" href="faq.html">FAQ</a></li>
+                <li><a class="footer__link" href="support.html">Support</a></li>
               </ul>
             </div>
 
-            <!-- Social -->
             <div class="footer__col">
               <h3 class="footer__title">Connect With Us</h3>
               <div class="footer__social">
-                <a class="social-btn" href="#" aria-label="Facebook">
-                  <span aria-hidden="true">f</span>
-                </a>
-                <a class="social-btn" href="#" aria-label="Twitter / X">
-                  <span aria-hidden="true">x</span>
-                </a>
-                <a class="social-btn" href="#" aria-label="Instagram">
-                  <span aria-hidden="true">⌁</span>
-                </a>
-                <a class="social-btn" href="#" aria-label="LinkedIn">
-                  <span aria-hidden="true">in</span>
-                </a>
+                <a class="social-btn" href="#" aria-label="Facebook"
+                  ><span aria-hidden="true">f</span></a
+                >
+                <a class="social-btn" href="#" aria-label="Twitter / X"
+                  ><span aria-hidden="true">x</span></a
+                >
+                <a class="social-btn" href="#" aria-label="Instagram"
+                  ><span aria-hidden="true">⌁</span></a
+                >
+                <a class="social-btn" href="#" aria-label="LinkedIn"
+                  ><span aria-hidden="true">in</span></a
+                >
               </div>
             </div>
           </div>
@@ -705,5 +648,8 @@
         </div>
       </div>
     </div>
+
+    <!-- IMPORTANT: script.js is a module because it uses imports -->
+    <script type="module" src="script.js"></script>
   </body>
 </html>
