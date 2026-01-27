@@ -49,5 +49,5 @@ export async function isAdminUser(user) {
 
 export async function getLandingPageForUser(user) {
   const admin = await isAdminUser(user);
-  return admin ? "admin-dashboard.html" : "dashboard.html";
+  return admin ? "admin-dashboard.html" : "profile-dashboard.html";
 }
