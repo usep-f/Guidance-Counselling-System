@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" class="guard-pending">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -8,6 +8,11 @@
     <link rel="stylesheet" href="profile-dashboard.css" />
     <link rel="stylesheet" href="student_dashboard_style.css" />
     <link rel="stylesheet" href="student-dashboard.css" />
+    <style>
+      html.guard-pending body {
+        visibility: hidden;
+      }
+    </style>
     <script src="student-dashboard.js" defer></script>
     <script type="module" src="site-auth-ui.js"></script>
   </head>
@@ -996,5 +1001,18 @@
         </div>
       </div>
     </footer>
+    <script type="module">
+      import { watchAuthState } from "./auth-backend.js";
+
+      watchAuthState((user) => {
+        if (!user) {
+          sessionStorage.setItem("postAuthRedirect", "student-dashboard.html");
+          window.location.href = "index.html#login";
+          return;
+        }
+
+        document.documentElement.classList.remove("guard-pending");
+      });
+    </script>
   </body>
 </html>
