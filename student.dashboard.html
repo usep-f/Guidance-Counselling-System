@@ -1,0 +1,995 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Student Dashboard | Guidance System</title>
+    <link rel="stylesheet" href="style.css" />
+    <link rel="stylesheet" href="profile-dashboard.css" />
+    <link rel="stylesheet" href="student_dashboard_style.css" />
+    <link rel="stylesheet" href="student-dashboard.css" />
+    <script src="student-dashboard.js" defer></script>
+  </head>
+
+  <body>
+    <!-- NAVBAR (same structure/style as your other pages) -->
+    <header class="site-header" id="top">
+      <nav class="navbar">
+        <a
+          class="brand"
+          href="index.html#top"
+          aria-label="Guidance System Home"
+        >
+          <span class="brand__logo" aria-hidden="true"></span>
+          <span class="brand__text">Guidance System</span>
+        </a>
+
+        <button
+          class="nav-toggle"
+          type="button"
+          aria-label="Toggle navigation"
+          aria-expanded="false"
+        >
+          <span class="nav-toggle__bar"></span>
+          <span class="nav-toggle__bar"></span>
+          <span class="nav-toggle__bar"></span>
+        </button>
+
+        <div class="nav-links" data-nav>
+          <a class="nav-link" href="index.html#home">Home</a>
+          <a class="nav-link" href="index.html#about">About Us</a>
+          <a class="nav-link" href="index.html#services">Services</a>
+          <a class="nav-link" href="index.html#how">How it Works</a>
+          <a class="nav-link" href="index.html#contact">Contact</a>
+        </div>
+
+        <a class="btn btn--pill btn--primary nav-cta" href="index.html#login">
+          Logout <span class="btn__icon" aria-hidden="true">→</span>
+        </a>
+      </nav>
+    </header>
+
+    <main class="student-dashboard">
+      <header class="page-hero">
+        <h1 class="page-title">Student Dashboard</h1>
+        <p class="page-subtitle">
+          View your profile, book counseling appointments, send inquiries, and
+          track your progress.
+        </p>
+      </header>
+
+      <nav
+        class="dashboard-tabs"
+        role="tablist"
+        aria-label="Student dashboard sections"
+      >
+        <a
+          class="dashboard-tab is-active"
+          href="#dashboard-profile"
+          data-dashboard-tab
+          >Profile</a
+        >
+        <a class="dashboard-tab" href="#dashboard-booking" data-dashboard-tab
+          >Book Appointment</a
+        >
+        <a class="dashboard-tab" href="#dashboard-inquiry" data-dashboard-tab
+          >Send Inquiry</a
+        >
+        <a class="dashboard-tab" href="#dashboard-history" data-dashboard-tab
+          >History</a
+        >
+      </nav>
+
+      <section class="page dashboard-section" id="dashboard-profile">
+        <div class="page-card">
+          <div class="dash-stack">
+            <!-- Row 1: Profile + Current Status -->
+            <div class="dash-row">
+              <!-- Profile -->
+              <aside
+                class="support-box dash-profile"
+                aria-label="Student profile"
+              >
+                <div class="dash-profile__top">
+                  <div class="dash-avatar" aria-hidden="true">
+                    <span class="dash-avatar__initials" id="dashInitials"
+                      >JD</span
+                    >
+                  </div>
+
+                  <div class="dash-profile__meta">
+                    <h2 class="dash-profile__name" id="dashName">
+                      Juan Dela Cruz
+                    </h2>
+                    <p class="dash-profile__sub" id="dashSub">
+                      Student ID: <strong>2024-00123</strong> · Grade 11 · STEM
+                    </p>
+                  </div>
+                </div>
+
+                <div class="dash-info">
+                  <div class="dash-info__row">
+                    <span class="dash-info__label">Email</span>
+                    <span class="dash-info__value" id="dashEmail"
+                      >juan.delacruz@example.com</span
+                    >
+                  </div>
+                  <div class="dash-info__row">
+                    <span class="dash-info__label">Contact</span>
+                    <span class="dash-info__value" id="dashContact"
+                      >+63 9XX XXX XXXX</span
+                    >
+                  </div>
+                  <div class="dash-info__row">
+                    <span class="dash-info__label">Counselor</span>
+                    <span class="dash-info__value">Campus Guidance Office</span>
+                  </div>
+                </div>
+
+                <div class="dash-actions">
+                  <a
+                    class="btn btn--pill btn--primary"
+                    href="#dashboard-booking"
+                  >
+                    Book Appointment
+                    <span class="btn__icon" aria-hidden="true">→</span>
+                  </a>
+                  <a class="btn btn--pill btn--ghost" href="#dashboard-inquiry"
+                    >Send Inquiry</a
+                  >
+                </div>
+
+                <p class="support-note">
+                  🛡 Confidential support. For emergencies, contact local
+                  hotlines or school authorities.
+                </p>
+              </aside>
+
+              <!-- Current Status -->
+              <section class="support-box" aria-label="Progress monitoring">
+                <div class="dash-cardhead">
+                  <h2>Progress Monitoring</h2>
+                  <a class="dash-link" href="#dashboard-history"
+                    >Open full history →</a
+                  >
+                </div>
+
+                <div class="pm-grid">
+                  <!-- Progress Trend -->
+                  <div class="pm-panel">
+                    <h3 class="dash-mini-title">Progress Trend</h3>
+
+                    <div
+                      class="pm-trend"
+                      id="trendBox"
+                      aria-label="Progress trend bars"
+                    >
+                      <!-- JS injects rows -->
+                    </div>
+
+                    <p class="pm-note">
+                      Based on post-session check-ins (demo). Percentages
+                      represent overall improvement after each session.
+                    </p>
+                  </div>
+
+                  <!-- Session History -->
+                  <div class="pm-panel">
+                    <h3 class="dash-mini-title">Session History</h3>
+
+                    <div class="session-list pm-session" id="sessionList">
+                      <!-- JS injects items -->
+                    </div>
+                  </div>
+                </div>
+              </section>
+
+              <!-- Row 2: Pending Appointments (full width) -->
+              <section class="support-box" aria-label="Pending appointments">
+                <div class="dash-cardhead">
+                  <h2>Pending Appointments</h2>
+                  <a class="dash-link" href="#dashboard-booking"
+                    >New booking →</a
+                  >
+                </div>
+
+                <div class="dash-list" id="pendingList">
+                  <!-- JS injects items -->
+                </div>
+
+                <div class="dash-foot">
+                  <a class="btn btn--pill btn--ghost" href="#dashboard-history"
+                    >View History Monitoring</a
+                  >
+                </div>
+              </section>
+
+              <!-- Row 3: Progress (full width) -->
+              <section class="support-box" aria-label="Progress monitoring">
+                <div class="dash-cardhead">
+                  <h2>Progress Monitoring</h2>
+                  <a class="dash-link" href="#dashboard-history"
+                    >Open full history →</a
+                  >
+                </div>
+
+                <h3 class="dash-mini-title">Progress Trend</h3>
+                <div class="trend" id="trendBox">
+                  <!-- JS injects rows -->
+                </div>
+
+                <div class="dash-divider" aria-hidden="true"></div>
+
+                <h3 class="dash-mini-title">Session History</h3>
+                <div class="session-list" id="sessionList">
+                  <!-- JS injects items -->
+                </div>
+              </section>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section
+        class="booking page dashboard-section"
+        id="dashboard-booking"
+        aria-label="Book Appointment"
+      >
+        <header class="page-hero">
+          <h2 class="page-title">Book an Appointment</h2>
+          <p class="page-subtitle">
+            Complete the steps below to request a counseling appointment with
+            the campus guidance office.
+          </p>
+        </header>
+
+        <section class="booking-wrap">
+          <!-- LEFT: Form -->
+          <form class="booking-card" id="bookingForm">
+            <!-- Stepper -->
+            <div class="booking-steps" aria-label="Booking progress">
+              <button class="bstep is-active" type="button" data-step="0">
+                <span class="bstep__dot">1</span>
+                <span class="bstep__label">Student Info</span>
+              </button>
+              <button class="bstep" type="button" data-step="1">
+                <span class="bstep__dot">2</span>
+                <span class="bstep__label">Appointment Details</span>
+              </button>
+              <button class="bstep" type="button" data-step="2">
+                <span class="bstep__dot">3</span>
+                <span class="bstep__label">Date & Time</span>
+              </button>
+              <button class="bstep" type="button" data-step="3">
+                <span class="bstep__dot">4</span>
+                <span class="bstep__label">Review</span>
+              </button>
+            </div>
+
+            <!-- Panels -->
+            <div class="booking-panels">
+              <!-- Step 1 -->
+              <section class="bpanel is-active" data-panel="0">
+                <h2 class="bpanel__title">Student Information</h2>
+
+                <div class="bgrid">
+                  <div class="field">
+                    <label class="field__label" for="studentName"
+                      >Full Name</label
+                    >
+                    <input
+                      class="field__input"
+                      id="studentName"
+                      name="studentName"
+                      type="text"
+                      required
+                    />
+                  </div>
+
+                  <div class="field">
+                    <label class="field__label" for="studentId"
+                      >Student ID</label
+                    >
+                    <input
+                      class="field__input"
+                      id="studentId"
+                      name="studentId"
+                      type="text"
+                      required
+                    />
+                  </div>
+
+                  <div class="field">
+                    <label class="field__label" for="gradeLevel"
+                      >Grade/Year Level</label
+                    >
+                    <select
+                      class="field__input"
+                      id="gradeLevel"
+                      name="gradeLevel"
+                      required
+                    >
+                      <option value="" selected disabled>Select</option>
+                      <option>Grade 7</option>
+                      <option>Grade 8</option>
+                      <option>Grade 9</option>
+                      <option>Grade 10</option>
+                      <option>Grade 11</option>
+                      <option>Grade 12</option>
+                      <option>1st Year</option>
+                      <option>2nd Year</option>
+                      <option>3rd Year</option>
+                      <option>4th Year</option>
+                    </select>
+                  </div>
+
+                  <div class="field">
+                    <label class="field__label" for="contactNo"
+                      >Contact Number</label
+                    >
+                    <input
+                      class="field__input"
+                      id="contactNo"
+                      name="contactNo"
+                      type="tel"
+                      required
+                    />
+                  </div>
+
+                  <div class="field">
+                    <label class="field__label" for="email">Email</label>
+                    <input
+                      class="field__input"
+                      id="email"
+                      name="email"
+                      type="email"
+                      required
+                    />
+                  </div>
+
+                  <div class="field">
+                    <label class="field__label" for="section"
+                      >Section / Program</label
+                    >
+                    <input
+                      class="field__input"
+                      id="section"
+                      name="section"
+                      type="text"
+                      placeholder="e.g., STEM / BSIT"
+                      required
+                    />
+                  </div>
+                </div>
+
+                <div class="bactions">
+                  <span></span>
+                  <button
+                    class="btn btn--pill btn--primary"
+                    type="button"
+                    data-next
+                  >
+                    Next <span class="btn__icon" aria-hidden="true">→</span>
+                  </button>
+                </div>
+              </section>
+
+              <!-- Step 2 -->
+              <section class="bpanel" data-panel="1">
+                <h2 class="bpanel__title">Appointment Details</h2>
+
+                <div class="bgrid">
+                  <div class="field">
+                    <label class="field__label" for="topic"
+                      >Reason / Concern</label
+                    >
+                    <select
+                      class="field__input"
+                      id="topic"
+                      name="topic"
+                      required
+                    >
+                      <option value="" selected disabled>Select</option>
+                      <option>Academic Concern</option>
+                      <option>Personal Concern</option>
+                      <option>Career Guidance</option>
+                      <option>Mental Wellness</option>
+                      <option>Other</option>
+                    </select>
+                  </div>
+
+                  <div class="field">
+                    <label class="field__label" for="mode">Session Type</label>
+                    <select class="field__input" id="mode" name="mode" required>
+                      <option value="" selected disabled>Select</option>
+                      <option>In-Person</option>
+                      <option>Online</option>
+                    </select>
+                  </div>
+
+                  <div class="field field--full">
+                    <label class="field__label" for="notes"
+                      >Brief Description (optional)</label
+                    >
+                    <textarea
+                      class="field__input field__textarea"
+                      id="notes"
+                      name="notes"
+                      rows="4"
+                      placeholder="Share a short summary so the counselor can prepare."
+                    ></textarea>
+                  </div>
+                </div>
+
+                <div class="bactions">
+                  <button
+                    class="btn btn--pill btn--ghost"
+                    type="button"
+                    data-prev
+                  >
+                    <span class="btn__icon" aria-hidden="true">←</span> Back
+                  </button>
+                  <button
+                    class="btn btn--pill btn--primary"
+                    type="button"
+                    data-next
+                  >
+                    Next <span class="btn__icon" aria-hidden="true">→</span>
+                  </button>
+                </div>
+              </section>
+
+              <!-- Step 3 -->
+              <section class="bpanel" data-panel="2">
+                <h2 class="bpanel__title">Select Date & Time</h2>
+
+                <!-- Hidden values to submit -->
+                <input
+                  type="hidden"
+                  name="appointmentDate"
+                  id="appointmentDate"
+                  required
+                />
+                <input
+                  type="hidden"
+                  name="appointmentTime"
+                  id="appointmentTime"
+                  required
+                />
+
+                <div class="calendar-wrap">
+                  <div class="cal-head">
+                    <button
+                      class="cal-btn"
+                      type="button"
+                      data-cal-prev
+                      aria-label="Previous month"
+                    >
+                      ←
+                    </button>
+                    <div class="cal-title" id="calTitle">Month YYYY</div>
+                    <button
+                      class="cal-btn"
+                      type="button"
+                      data-cal-next
+                      aria-label="Next month"
+                    >
+                      →
+                    </button>
+                  </div>
+
+                  <div class="cal-grid cal-week" aria-hidden="true">
+                    <div>Sun</div>
+                    <div>Mon</div>
+                    <div>Tue</div>
+                    <div>Wed</div>
+                    <div>Thu</div>
+                    <div>Fri</div>
+                    <div>Sat</div>
+                  </div>
+
+                  <div
+                    class="cal-grid cal-days"
+                    id="calDays"
+                    aria-label="Calendar days"
+                  ></div>
+
+                  <div class="slot-wrap">
+                    <p class="slot-title">Available Time Slots</p>
+                    <div
+                      class="slot-grid"
+                      id="slotGrid"
+                      aria-label="Time slots"
+                    >
+                      <p class="slot-hint">
+                        Select an available date to view time slots.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="bactions">
+                  <button
+                    class="btn btn--pill btn--ghost"
+                    type="button"
+                    data-prev
+                  >
+                    <span class="btn__icon" aria-hidden="true">←</span> Back
+                  </button>
+                  <button
+                    class="btn btn--pill btn--primary"
+                    type="button"
+                    data-next
+                  >
+                    Next <span class="btn__icon" aria-hidden="true">→</span>
+                  </button>
+                </div>
+              </section>
+
+              <!-- Step 4 -->
+              <section class="bpanel" data-panel="3">
+                <h2 class="bpanel__title">Review & Submit</h2>
+
+                <div class="review" id="reviewBox">
+                  <!-- JS fills this -->
+                </div>
+
+                <div class="bactions">
+                  <button
+                    class="btn btn--pill btn--ghost"
+                    type="button"
+                    data-prev
+                  >
+                    <span class="btn__icon" aria-hidden="true">←</span> Back
+                  </button>
+                  <button class="btn btn--pill btn--primary" type="submit">
+                    Submit Request
+                    <span class="btn__icon" aria-hidden="true">→</span>
+                  </button>
+                </div>
+
+                <p class="review-note">
+                  <span aria-hidden="true">🛡</span> Your information is
+                  confidential and will only be used for scheduling and guidance
+                  support.
+                </p>
+              </section>
+            </div>
+          </form>
+
+          <!-- RIGHT: Counselor summary (only one counselor) -->
+          <aside class="booking-side">
+            <div class="office-card">
+              <div class="office-card__section">
+                <h3 class="office-card__title">Counselor</h3>
+                <p class="office-card__text">
+                  Campus Guidance Office<br />
+                  <strong>Guidance Counselor</strong>
+                </p>
+              </div>
+
+              <div class="office-card__divider" aria-hidden="true"></div>
+
+              <div class="office-card__section">
+                <h3 class="office-card__title">Office Hours</h3>
+                <div class="office-row">
+                  <span class="office-row__label">Mon–Fri</span>
+                  <span class="office-row__value">8:00 AM – 5:00 PM</span>
+                </div>
+                <div class="office-row">
+                  <span class="office-row__label">Sat–Sun</span>
+                  <span class="office-row__value">Closed</span>
+                </div>
+              </div>
+
+              <div class="office-card__divider" aria-hidden="true"></div>
+
+              <div class="office-card__section">
+                <h3 class="office-card__title">Notes</h3>
+                <p class="office-card__text">
+                  Available dates and times shown are sample slots (front-end
+                  only).
+                </p>
+              </div>
+            </div>
+          </aside>
+        </section>
+      </section>
+
+      <section class="page dashboard-section" id="dashboard-inquiry">
+        <header class="page-hero">
+          <h2 class="page-title">Private Inquiries</h2>
+          <p class="page-subtitle">
+            Leave a confidential message for the campus guidance counselor. For
+            emergencies, contact local hotlines or school authorities
+            immediately.
+          </p>
+        </header>
+
+        <div class="page-card">
+          <div class="inquiry-grid">
+            <!-- Left info box -->
+            <aside class="support-box">
+              <h2>Before You Send</h2>
+              <ul>
+                <li>Your message is treated as confidential.</li>
+                <li>Response time is usually within 1–2 school days.</li>
+                <li>Do not include passwords or sensitive login info.</li>
+              </ul>
+
+              <div class="support-note" style="margin-top: 12px">
+                Tip: If your concern is about scheduling counseling, you can
+                book directly here:
+                <a
+                  class="footer__link"
+                  style="color: rgba(31, 185, 129, 1); font-weight: 800"
+                  href="#dashboard-booking"
+                  >Book Appointment →</a
+                >
+              </div>
+            </aside>
+
+            <!-- Inquiry form -->
+            <section class="support-box" aria-label="Inquiry form">
+              <h2>Send an Inquiry</h2>
+
+              <form id="inquiryForm" class="inq-form">
+                <div class="inq-grid">
+                  <div class="inq-field">
+                    <label class="inq-label" for="inquiryStudentName"
+                      >Full Name</label
+                    >
+                    <input
+                      class="inq-control"
+                      id="inquiryStudentName"
+                      name="studentName"
+                      type="text"
+                      placeholder="Juan Dela Cruz"
+                      required
+                    />
+                  </div>
+
+                  <div class="inq-field">
+                    <label class="inq-label" for="inquiryStudentId"
+                      >Student ID</label
+                    >
+                    <input
+                      class="inq-control"
+                      id="inquiryStudentId"
+                      name="studentId"
+                      type="text"
+                      placeholder="20XX-XXXX"
+                      required
+                    />
+                  </div>
+
+                  <div class="inq-field">
+                    <label class="inq-label" for="inquiryYearLevel"
+                      >Year Level</label
+                    >
+                    <select
+                      class="inq-control"
+                      id="inquiryYearLevel"
+                      name="yearLevel"
+                      required
+                    >
+                      <option value="" selected disabled>
+                        Select year level
+                      </option>
+                      <option>Grade 11</option>
+                      <option>Grade 12</option>
+                      <option>1st Year</option>
+                      <option>2nd Year</option>
+                      <option>3rd Year</option>
+                      <option>4th Year</option>
+                    </select>
+                  </div>
+
+                  <div class="inq-field">
+                    <label class="inq-label" for="inquiryTopic"
+                      >Concern Type</label
+                    >
+                    <select
+                      class="inq-control"
+                      id="inquiryTopic"
+                      name="topic"
+                      required
+                    >
+                      <option value="" selected disabled>Select concern</option>
+                      <option>Personal / Wellness</option>
+                      <option>Academic Concern</option>
+                      <option>Career Guidance</option>
+                      <option>Other</option>
+                    </select>
+                  </div>
+
+                  <div class="inq-field inq-field--full">
+                    <label class="inq-label" for="inquiryMessage"
+                      >Message</label
+                    >
+                    <textarea
+                      class="inq-control inq-textarea"
+                      id="inquiryMessage"
+                      name="message"
+                      rows="7"
+                      placeholder="Write your message here..."
+                      required
+                    ></textarea>
+                    <p class="inq-help">
+                      Keep it brief and clear so the counselor can respond
+                      faster.
+                    </p>
+                  </div>
+                </div>
+
+                <div class="inq-actions">
+                  <button class="btn btn--pill btn--primary" type="submit">
+                    Submit Inquiry
+                    <span class="btn__icon" aria-hidden="true">→</span>
+                  </button>
+
+                  <a class="btn btn--pill btn--ghost" href="#dashboard-profile"
+                    >Back to Dashboard</a
+                  >
+                </div>
+
+                <p class="inq-hint" id="inquiryHint" aria-live="polite"></p>
+              </form>
+            </section>
+          </div>
+        </div>
+      </section>
+
+      <section class="page dashboard-section" id="dashboard-history">
+        <header class="page-hero">
+          <h2 class="page-title">History Monitoring</h2>
+          <p class="page-subtitle">
+            View your counseling session history and a simple progress overview.
+            This is a demo layout for your system UI (analytics can later be
+            powered by real session data).
+          </p>
+        </header>
+
+        <div class="page-card">
+          <!-- KPI row (reusing your existing support-grid look) -->
+          <div class="support-grid">
+            <div class="support-box">
+              <h2>Sessions Completed</h2>
+              <p
+                style="
+                  margin: 0;
+                  font-size: 28px;
+                  font-weight: 900;
+                  color: rgba(15, 47, 42, 0.95);
+                "
+              >
+                4
+              </p>
+              <p
+                style="
+                  margin: 6px 0 0;
+                  font-size: 12px;
+                  color: rgba(15, 47, 42, 0.6);
+                "
+              >
+                Last session: Jan 18, 2026
+              </p>
+            </div>
+
+            <div class="support-box">
+              <h2>Overall Improvement</h2>
+              <div class="bar">
+                <div class="bar__fill" style="width: 72%"></div>
+              </div>
+              <p
+                style="
+                  margin: 8px 0 0;
+                  font-size: 12px;
+                  color: rgba(15, 47, 42, 0.6);
+                "
+              >
+                Based on post-session check-ins (demo)
+              </p>
+            </div>
+
+            <div class="support-box">
+              <h2>Current Status</h2>
+              <p
+                style="
+                  margin: 0;
+                  font-size: 14px;
+                  line-height: 1.7;
+                  color: rgba(15, 47, 42, 0.68);
+                "
+              >
+                Trending upward. Keep following your action steps and attend
+                scheduled sessions.
+              </p>
+              <p class="support-note" style="margin-top: 10px">
+                Need a follow-up?
+                <a
+                  class="footer__link"
+                  style="color: rgba(31, 185, 129, 1); font-weight: 800"
+                  href="#dashboard-booking"
+                  >Book Appointment →</a
+                >
+              </p>
+            </div>
+
+            <!-- Mini trend list -->
+            <div class="support-box" style="grid-column: 1 / -1">
+              <h2>Progress Trend (Demo)</h2>
+
+              <div class="trend">
+                <div class="trend__row">
+                  <span class="trend__label">Session 1</span>
+                  <div class="trend__bar"><span style="width: 35%"></span></div>
+                  <span class="trend__value">35%</span>
+                </div>
+                <div class="trend__row">
+                  <span class="trend__label">Session 2</span>
+                  <div class="trend__bar"><span style="width: 50%"></span></div>
+                  <span class="trend__value">50%</span>
+                </div>
+                <div class="trend__row">
+                  <span class="trend__label">Session 3</span>
+                  <div class="trend__bar"><span style="width: 64%"></span></div>
+                  <span class="trend__value">64%</span>
+                </div>
+                <div class="trend__row">
+                  <span class="trend__label">Session 4</span>
+                  <div class="trend__bar"><span style="width: 72%"></span></div>
+                  <span class="trend__value">72%</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Session history list -->
+          <div style="margin-top: 16px" class="support-box">
+            <h2>Session History</h2>
+
+            <div class="session-list">
+              <article class="session-item">
+                <div>
+                  <p class="session-item__title">Session #4</p>
+                  <p class="session-item__meta">
+                    Jan 18, 2026 · Wellness Check-in
+                  </p>
+                </div>
+                <span class="tag">Improving</span>
+              </article>
+
+              <article class="session-item">
+                <div>
+                  <p class="session-item__title">Session #3</p>
+                  <p class="session-item__meta">
+                    Jan 04, 2026 · Academic Stress
+                  </p>
+                </div>
+                <span class="tag">Stable</span>
+              </article>
+
+              <article class="session-item">
+                <div>
+                  <p class="session-item__title">Session #2</p>
+                  <p class="session-item__meta">
+                    Dec 15, 2025 · Time Management
+                  </p>
+                </div>
+                <span class="tag">Stable</span>
+              </article>
+
+              <article class="session-item">
+                <div>
+                  <p class="session-item__title">Session #1</p>
+                  <p class="session-item__meta">
+                    Dec 01, 2025 · Intake & Goals
+                  </p>
+                </div>
+                <span class="tag">Starting</span>
+              </article>
+            </div>
+
+            <div
+              style="
+                margin-top: 14px;
+                display: flex;
+                gap: 10px;
+                flex-wrap: wrap;
+              "
+            >
+              <a class="btn btn--pill btn--ghost" href="#dashboard-profile"
+                >Back to Dashboard</a
+              >
+              <a class="btn btn--pill btn--primary" href="#dashboard-booking">
+                Book Follow-up
+                <span class="btn__icon" aria-hidden="true">→</span>
+              </a>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <!-- FOOTER (same structure/style as your other pages) -->
+    <footer class="footer" aria-label="Site footer">
+      <div class="footer__inner">
+        <div class="footer__top">
+          <div class="footer__col footer__brand">
+            <a
+              class="footer-brand"
+              href="index.html#top"
+              aria-label="Guidance System Home"
+            >
+              <span class="footer-brand__logo" aria-hidden="true"></span>
+              <span class="footer-brand__text">Guidance System</span>
+            </a>
+
+            <p class="footer__desc">
+              Supporting student mental wellness through accessible,
+              confidential counseling services.
+            </p>
+          </div>
+
+          <div class="footer__col">
+            <h3 class="footer__title">Quick Links</h3>
+            <ul class="footer__list">
+              <li><a class="footer__link" href="index.html#home">Home</a></li>
+              <li>
+                <a class="footer__link" href="index.html#services">Services</a>
+              </li>
+              <li>
+                <a class="footer__link" href="index.html#about">About Us</a>
+              </li>
+              <li>
+                <a class="footer__link" href="index.html#contact">Contact</a>
+              </li>
+            </ul>
+          </div>
+
+          <div class="footer__col">
+            <h3 class="footer__title">Resources</h3>
+            <ul class="footer__list">
+              <li>
+                <a class="footer__link" href="privacy.html">Privacy Policy</a>
+              </li>
+              <li>
+                <a class="footer__link" href="terms.html">Terms of Use</a>
+              </li>
+              <li><a class="footer__link" href="faq.html">FAQ</a></li>
+              <li><a class="footer__link" href="support.html">Support</a></li>
+            </ul>
+          </div>
+
+          <div class="footer__col">
+            <h3 class="footer__title">Connect With Us</h3>
+            <div class="footer__social">
+              <a class="social-btn" href="#" aria-label="Facebook"
+                ><span aria-hidden="true">f</span></a
+              >
+              <a class="social-btn" href="#" aria-label="Twitter / X"
+                ><span aria-hidden="true">x</span></a
+              >
+              <a class="social-btn" href="#" aria-label="Instagram"
+                ><span aria-hidden="true">⌁</span></a
+              >
+              <a class="social-btn" href="#" aria-label="LinkedIn"
+                ><span aria-hidden="true">in</span></a
+              >
+            </div>
+          </div>
+        </div>
+
+        <div class="footer__divider" aria-hidden="true"></div>
+
+        <div class="footer__bottom">
+          <p class="footer__copyright">
+            © 2025 School Guidance System. All rights reserved.
+          </p>
+          <p class="footer__credit">Powered by Readdy</p>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>

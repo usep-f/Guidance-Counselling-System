@@ -13,17 +13,15 @@
     </style>
 
     <link rel="stylesheet" href="style.css" />
+    <link rel="stylesheet" href="admin.css" />
   </head>
 
   <body>
-    <!-- NAVBAR -->
+    <body>
+    <!-- NAVBAR (same structure as index.html) -->
     <header class="site-header" id="top">
       <nav class="navbar">
-        <a
-          class="brand"
-          href="index.html#top"
-          aria-label="Guidance System Home"
-        >
+        <a class="brand" href="index.html#top" aria-label="Guidance System Home">
           <span class="brand__logo" aria-hidden="true"></span>
           <span class="brand__text">Guidance System</span>
         </a>
@@ -41,41 +39,210 @@
 
         <div class="nav-links" data-nav>
           <a class="nav-link" href="index.html#home">Home</a>
+          <a class="nav-link" href="index.html#about">About Us</a>
           <a class="nav-link" href="index.html#services">Services</a>
+          <a class="nav-link" href="index.html#how">How it Works</a>
           <a class="nav-link" href="index.html#contact">Contact</a>
+          <a class="nav-link is-current" href="admin.html" aria-current="page">Admin</a>
         </div>
 
         <a class="btn btn--pill btn--primary nav-cta" href="index.html#login">
-          Login / Register
+          Logout
           <span class="btn__icon" aria-hidden="true">→</span>
         </a>
-
-        <button
-          class="btn btn--pill btn--ghost"
-          id="logoutBtn"
-          type="button"
-          style="display: none"
-        >
-          Logout
-        </button>
       </nav>
     </header>
 
     <main class="page">
-      <section class="page-hero">
-        <h1 class="page-title">Admin Dashboard (Placeholder)</h1>
+      <header class="page-hero">
+        <h1 class="page-title">Admin Dashboard</h1>
         <p class="page-subtitle">
-          This page should only be accessible by the admin account.
+          Analytics summary of student concerns categorized by emotional states (stress, anxiety,
+          depression) and possible environmental triggers (family, financial, academic, peer).
         </p>
-      </section>
+      </header>
 
-      <section class="page-card">
-        <p>
-          Later we will put analytics, student concerns summaries, and session
-          reports here.
-        </p>
+      <section class="admin-wrap">
+        <!-- Filters -->
+        <div class="admin-filters" aria-label="Dashboard filters">
+          <div class="admin-filter">
+            <label class="admin-label" for="timeRange">Time Range</label>
+            <select class="admin-control" id="timeRange" name="timeRange">
+              <option value="7">Last 7 days</option>
+              <option value="30" selected>Last 30 days</option>
+              <option value="90">Last 90 days</option>
+              <option value="all">All time</option>
+            </select>
+          </div>
+
+          <div class="admin-filter">
+            <label class="admin-label" for="gradeLevel">Grade Level</label>
+            <select class="admin-control" id="gradeLevel" name="gradeLevel">
+              <option value="all" selected>All students</option>
+              <option value="g7">Grade 7</option>
+              <option value="g8">Grade 8</option>
+              <option value="g9">Grade 9</option>
+              <option value="g10">Grade 10</option>
+              <option value="g11">Grade 11</option>
+              <option value="g12">Grade 12</option>
+            </select>
+          </div>
+
+          <div class="admin-filter admin-filter--stretch">
+            <label class="admin-label" for="searchStudent">Search (Student ID / Name)</label>
+            <input
+              class="admin-control"
+              id="searchStudent"
+              name="searchStudent"
+              type="text"
+              placeholder="e.g., 2024-00123 or Juan Dela Cruz"
+              autocomplete="off"
+            />
+          </div>
+
+          <div class="admin-filter admin-filter--actions">
+            <button class="btn btn--pill btn--ghost" type="button" id="btnReset">
+              Reset
+            </button>
+            <button class="btn btn--pill btn--primary" type="button" id="btnExport">
+              Export Summary
+              <span class="btn__icon" aria-hidden="true">→</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- KPI cards -->
+        <div class="admin-kpis" aria-label="Key metrics">
+          <article class="admin-kpi">
+            <p class="admin-kpi__label">Total Concerns Logged</p>
+            <h3 class="admin-kpi__value" id="kpiTotalConcerns">0</h3>
+            <p class="admin-kpi__hint" id="kpiTotalConcernsHint">Across selected range</p>
+          </article>
+
+          <article class="admin-kpi">
+            <p class="admin-kpi__label">Most Common Emotion</p>
+            <h3 class="admin-kpi__value" id="kpiTopEmotion">-</h3>
+            <p class="admin-kpi__hint" id="kpiTopEmotionHint">Based on emotional states</p>
+          </article>
+
+          <article class="admin-kpi">
+            <p class="admin-kpi__label">Most Common Trigger</p>
+            <h3 class="admin-kpi__value" id="kpiTopTrigger">-</h3>
+            <p class="admin-kpi__hint" id="kpiTopTriggerHint">Based on triggers</p>
+          </article>
+
+          <article class="admin-kpi">
+            <p class="admin-kpi__label">Pending Items</p>
+            <h3 class="admin-kpi__value" id="kpiPending">0</h3>
+            <p class="admin-kpi__hint">Appointments and inquiries</p>
+          </article>
+        </div>
+
+        <!-- Charts -->
+        <div class="admin-grid">
+          <section class="admin-card" aria-label="Emotional states chart">
+            <div class="admin-card__head">
+              <h2 class="admin-card__title">Emotional States</h2>
+              <p class="admin-card__sub">Stress, Anxiety, Depression</p>
+            </div>
+
+            <div class="barlist" id="chartEmotions" role="list"></div>
+          </section>
+
+          <section class="admin-card" aria-label="Environmental triggers chart">
+            <div class="admin-card__head">
+              <h2 class="admin-card__title">Environmental Triggers</h2>
+              <p class="admin-card__sub">Family, Financial, Academic, Peer</p>
+            </div>
+
+            <div class="barlist" id="chartTriggers" role="list"></div>
+          </section>
+
+          <section class="admin-card admin-card--wide" aria-label="Summary table">
+            <div class="admin-card__head">
+              <h2 class="admin-card__title">Recent Summary</h2>
+              <p class="admin-card__sub">Sample rows (replace with real DB later)</p>
+            </div>
+
+            <div class="admin-tablewrap">
+              <table class="admin-table">
+                <thead>
+                  <tr>
+                    <th>Date</th>
+                    <th>Student</th>
+                    <th>Emotion</th>
+                    <th>Trigger</th>
+                    <th>Severity</th>
+                    <th>Status</th>
+                  </tr>
+                </thead>
+                <tbody id="recentTable"></tbody>
+              </table>
+            </div>
+
+            <div class="admin-note">
+              Tip: once you connect backend data, you can auto-generate these insights for the guidance
+              coordinator to approve schedules and review counseling summaries.
+            </div>
+          </section>
+        </div>
       </section>
     </main>
+
+    <!-- FOOTER (same structure as index.html) -->
+    <footer class="footer" aria-label="Site footer">
+      <div class="footer__inner">
+        <div class="footer__top">
+          <div class="footer__col footer__brand">
+            <a class="footer-brand" href="index.html#top" aria-label="Guidance System Home">
+              <span class="footer-brand__logo" aria-hidden="true"></span>
+              <span class="footer-brand__text">Guidance System</span>
+            </a>
+
+            <p class="footer__desc">
+              Supporting student mental wellness through accessible, confidential counseling
+              services.
+            </p>
+          </div>
+
+          <div class="footer__col">
+            <h3 class="footer__title">Quick Links</h3>
+            <ul class="footer__list">
+              <li><a class="footer__link" href="index.html#home">Home</a></li>
+              <li><a class="footer__link" href="index.html#services">Services</a></li>
+              <li><a class="footer__link" href="index.html#about">About Us</a></li>
+              <li><a class="footer__link" href="index.html#contact">Contact</a></li>
+            </ul>
+          </div>
+
+          <div class="footer__col">
+            <h3 class="footer__title">Resources</h3>
+            <ul class="footer__list">
+              <li><a class="footer__link" href="privacy.html">Privacy Policy</a></li>
+              <li><a class="footer__link" href="terms.html">Terms of Use</a></li>
+              <li><a class="footer__link" href="faq.html">FAQ</a></li>
+              <li><a class="footer__link" href="support.html">Support</a></li>
+            </ul>
+          </div>
+
+          <div class="footer__col">
+            <h3 class="footer__title">Connect With Us</h3>
+            <div class="footer__social">
+              <a class="social-btn" href="#" aria-label="Facebook">f</a>
+              <a class="social-btn" href="#" aria-label="Twitter">x</a>
+              <a class="social-btn" href="#" aria-label="Email">@</a>
+            </div>
+          </div>
+        </div>
+
+        <div class="footer__divider" aria-hidden="true"></div>
+
+        <div class="footer__bottom">
+          <p>© <span id="year"></span> Guidance System. All rights reserved.</p>
+          <p>Campus Guidance Office</p>
+        </div>
+      </div>
+
 
     <script type="module">
       import "./site-auth-ui.js";
