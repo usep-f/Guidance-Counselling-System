@@ -3,7 +3,9 @@ import "./site-auth-ui.js";
 import {
   loginWithEmail,
   registerStudent,
-  getLandingPageForUser
+  getLandingPageForUser,
+  isAdminUser,
+  logout
 } from "./auth-backend.js";
 
 // Auth modal elements
@@ -26,6 +28,20 @@ const switchBtns = document.querySelectorAll("[data-auth-switch]");
 const loginForm = document.getElementById("loginForm");
 const registerForm = document.getElementById("registerForm");
 
+const authError = document.getElementById("authError");
+
+function showAuthError(msg) {
+  if (!authError) return;
+  authError.textContent = msg;
+  authError.classList.add("is-active");
+}
+
+function clearAuthError() {
+  if (!authError) return;
+  authError.textContent = "";
+  authError.classList.remove("is-active");
+}
+
 function openAuthModal(defaultView = "login") {
   if (!authModal) return;
 
@@ -34,6 +50,7 @@ function openAuthModal(defaultView = "login") {
   document.body.classList.add("is-modal-open");
 
   setAuthView(defaultView);
+  clearAuthError();
 
   const firstInput = authModal.querySelector(".auth-view.is-active .auth-input");
   if (firstInput) firstInput.focus();
@@ -53,6 +70,8 @@ function closeAuthModal() {
 }
 
 function setAuthView(viewName) {
+  clearAuthError();
+
   const isLogin = viewName === "login";
 
   if (views.login) views.login.classList.toggle("is-active", isLogin);
@@ -69,6 +88,7 @@ function setAuthView(viewName) {
 function setRole(role) {
   roleBtns.forEach((btn) => btn.classList.toggle("is-active", btn.dataset.role === role));
   if (loginRoleInput) loginRoleInput.value = role;
+  clearAuthError();
 }
 
 // Expose modal opener so other pages can redirect to index.html#login and open it
@@ -107,22 +127,44 @@ function goAfterAuth(defaultUrl) {
   window.location.href = redirect || defaultUrl;
 }
 
-// Login submit
+// Login submit (role-enforced)
 if (loginForm) {
   loginForm.addEventListener("submit", async (e) => {
     e.preventDefault();
+
+    clearAuthError();
 
     const email = document.getElementById("loginEmail").value.trim();
     const password = document.getElementById("loginPassword").value;
 
     try {
       const user = await loginWithEmail(email, password);
-      const landing = await getLandingPageForUser(user);
 
+      // Selected role from the toggle (hidden input)
+      const selectedRole = (document.getElementById("loginRole")?.value || "student").toLowerCase();
+      const selectedIsAdmin = selectedRole === "admin";
+
+      // Real role from claims
+      const realIsAdmin = await isAdminUser(user);
+
+      // Block mismatches
+      if (selectedIsAdmin !== realIsAdmin) {
+        await logout();
+
+        if (selectedIsAdmin) {
+          showAuthError("This account is not an admin. Please switch to Student login.");
+        } else {
+          showAuthError("This account is an admin. Please switch to Admin login.");
+        }
+
+        return; // keep modal open
+      }
+
+      const landing = await getLandingPageForUser(user);
       closeAuthModal();
       goAfterAuth(landing);
     } catch (err) {
-      alert(err.message);
+      showAuthError(err.message);
     }
   });
 }
@@ -131,6 +173,8 @@ if (loginForm) {
 if (registerForm) {
   registerForm.addEventListener("submit", async (e) => {
     e.preventDefault();
+
+    clearAuthError();
 
     const email = document.getElementById("regEmail").value.trim();
     const name = document.getElementById("regName").value.trim();
@@ -143,7 +187,7 @@ if (registerForm) {
       closeAuthModal();
       goAfterAuth(landing);
     } catch (err) {
-      alert(err.message);
+      showAuthError(err.message);
     }
   });
 }

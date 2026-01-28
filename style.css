@@ -1386,6 +1386,19 @@ html.guard-pending body {
   visibility: hidden;
 }
 
+/* Auth modal inline error */
+.auth-error{
+  margin-top: 8px;
+  font-size: 0.95rem;
+  line-height: 1.3;
+  display: none;
+}
+
+.auth-error.is-active{
+  display: block;
+}
+
+
 /* =========================
    INQUIRY FORM (consistent UI)
    ========================= */
