@@ -75,62 +75,81 @@
             <section class="support-box" aria-label="Inquiry form">
               <h2>Send an Inquiry</h2>
 
-              <form class="form-grid" id="inquiryForm">
-                <div class="form-field">
-                  <label for="studentName">Full Name</label>
-                  <input id="studentName" name="studentName" type="text" placeholder="Juan Dela Cruz" required />
-                </div>
+              <form id="inquiryForm" class="inq-form">
+  <div class="inq-grid">
+    <div class="inq-field">
+      <label class="inq-label" for="studentName">Full Name</label>
+      <input
+        class="inq-control"
+        id="studentName"
+        name="studentName"
+        type="text"
+        placeholder="Juan Dela Cruz"
+        required
+      />
+    </div>
 
-                <div class="form-field">
-                  <label for="studentId">Student ID</label>
-                  <input id="studentId" name="studentId" type="text" placeholder="20XX-XXXX" required />
-                </div>
+    <div class="inq-field">
+      <label class="inq-label" for="studentId">Student ID</label>
+      <input
+        class="inq-control"
+        id="studentId"
+        name="studentId"
+        type="text"
+        placeholder="20XX-XXXX"
+        required
+      />
+    </div>
 
-                <div class="form-field">
-                  <label for="yearLevel">Year Level</label>
-                  <select id="yearLevel" name="yearLevel" required>
-                    <option value="" selected disabled>Select year level</option>
-                    <option>Grade 11</option>
-                    <option>Grade 12</option>
-                    <option>1st Year</option>
-                    <option>2nd Year</option>
-                    <option>3rd Year</option>
-                    <option>4th Year</option>
-                  </select>
-                </div>
+    <div class="inq-field">
+      <label class="inq-label" for="yearLevel">Year Level</label>
+      <select class="inq-control" id="yearLevel" name="yearLevel" required>
+        <option value="" selected disabled>Select year level</option>
+        <option>Grade 11</option>
+        <option>Grade 12</option>
+        <option>1st Year</option>
+        <option>2nd Year</option>
+        <option>3rd Year</option>
+        <option>4th Year</option>
+      </select>
+    </div>
 
-                <div class="form-field">
-                  <label for="topic">Concern Type</label>
-                  <select id="topic" name="topic" required>
-                    <option value="" selected disabled>Select concern</option>
-                    <option>Personal / Wellness</option>
-                    <option>Academic Concern</option>
-                    <option>Career Guidance</option>
-                    <option>Other</option>
-                  </select>
-                </div>
+    <div class="inq-field">
+      <label class="inq-label" for="topic">Concern Type</label>
+      <select class="inq-control" id="topic" name="topic" required>
+        <option value="" selected disabled>Select concern</option>
+        <option>Personal / Wellness</option>
+        <option>Academic Concern</option>
+        <option>Career Guidance</option>
+        <option>Other</option>
+      </select>
+    </div>
 
-                <div class="form-field form-field--full">
-                  <label for="message">Message</label>
-                  <textarea
-                    id="message"
-                    name="message"
-                    rows="6"
-                    placeholder="Write your message here..."
-                    required
-                  ></textarea>
-                </div>
+    <div class="inq-field inq-field--full">
+      <label class="inq-label" for="message">Message</label>
+      <textarea
+        class="inq-control inq-textarea"
+        id="message"
+        name="message"
+        rows="7"
+        placeholder="Write your message here..."
+        required
+      ></textarea>
+      <p class="inq-help">Keep it brief and clear so the counselor can respond faster.</p>
+    </div>
+  </div>
 
-                <div class="form-field form-field--full" style="display: flex; gap: 10px; flex-wrap: wrap">
-                  <button class="btn btn--pill btn--primary" type="submit">
-                    Submit Inquiry <span class="btn__icon" aria-hidden="true">→</span>
-                  </button>
+  <div class="inq-actions">
+    <button class="btn btn--pill btn--primary" type="submit">
+      Submit Inquiry <span class="btn__icon" aria-hidden="true">→</span>
+    </button>
 
-                  <a class="btn btn--pill btn--ghost" href="index.html#services">Back to Services</a>
-                </div>
+    <a class="btn btn--pill btn--ghost" href="index.html#services">Back to Services</a>
+  </div>
 
-                <p class="form-hint" id="inquiryHint" aria-live="polite"></p>
-              </form>
+  <p class="inq-hint" id="inquiryHint" aria-live="polite"></p>
+</form>
+
             </section>
           </div>
         </div>

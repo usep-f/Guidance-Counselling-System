@@ -92,32 +92,36 @@
     </aside>
 
     <!-- Current Status -->
-    <section class="support-box" aria-label="Student status">
-      <div class="dash-cardhead">
-        <h2>Current Status</h2>
-        <span class="dash-pill" id="statusPill" data-variant="good">Improving</span>
-      </div>
-
-      <p class="dash-status-text" id="statusText">
-        You’re trending upward. Keep following your action steps and attend scheduled sessions.
-      </p>
-
-      <div class="dash-metrics">
-        <div class="dash-metric">
-          <p class="dash-metric__label">Sessions Completed</p>
-          <p class="dash-metric__value" id="sessionsCompleted">4</p>
-        </div>
-
-        <div class="dash-metric">
-          <p class="dash-metric__label">Overall Improvement</p>
-          <div class="bar">
-            <div class="bar__fill" id="improvementBar" style="width: 72%"></div>
-          </div>
-          <p class="dash-metric__hint" id="improvementHint">72% (demo)</p>
-        </div>
-      </div>
-    </section>
+    <section class="support-box" aria-label="Progress monitoring">
+  <div class="dash-cardhead">
+    <h2>Progress Monitoring</h2>
+    <a class="dash-link" href="history.html">Open full history →</a>
   </div>
+
+  <div class="pm-grid">
+    <!-- Progress Trend -->
+    <div class="pm-panel">
+      <h3 class="dash-mini-title">Progress Trend</h3>
+
+      <div class="pm-trend" id="trendBox" aria-label="Progress trend bars">
+        <!-- JS injects rows -->
+      </div>
+
+      <p class="pm-note">
+        Based on post-session check-ins (demo). Percentages represent overall improvement after each session.
+      </p>
+    </div>
+
+    <!-- Session History -->
+    <div class="pm-panel">
+      <h3 class="dash-mini-title">Session History</h3>
+
+      <div class="session-list pm-session" id="sessionList">
+        <!-- JS injects items -->
+      </div>
+    </div>
+  </div>
+</section>
 
   <!-- Row 2: Pending Appointments (full width) -->
   <section class="support-box" aria-label="Pending appointments">

@@ -96,15 +96,18 @@
     statusPill.setAttribute("data-variant", progress.status.variant);
     statusText.textContent = progress.message;
 
-    trendBox.innerHTML = progress.trend.map(t => {
-      return `
-        <div class="trend__row">
-          <span class="trend__label">${t.label}</span>
-          <div class="trend__bar"><span style="width:${t.pct}%"></span></div>
-          <span class="trend__value">${t.pct}%</span>
-        </div>
-      `;
-    }).join("");
+trendBox.innerHTML = progress.trend.map(t => {
+  return `
+    <div class="pm-row">
+      <span class="pm-label">${t.label}</span>
+      <div class="pm-bar" aria-label="${t.label} ${t.pct}%">
+        <div class="pm-fill" style="width:${t.pct}%"></div>
+      </div>
+      <span class="pm-value">${t.pct}%</span>
+    </div>
+  `;
+}).join("");
+
 
     sessionList.innerHTML = progress.history.map(h => {
       return `
