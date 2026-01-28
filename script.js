@@ -1,6 +1,7 @@
 import "./site-auth-ui.js";
 
 import {
+  watchAuthState,
   loginWithEmail,
   registerStudent,
   getLandingPageForUser,
@@ -29,6 +30,9 @@ const loginForm = document.getElementById("loginForm");
 const registerForm = document.getElementById("registerForm");
 
 const authError = document.getElementById("authError");
+const dashboardLinks = document.querySelectorAll("[data-dashboard-link]");
+
+let currentUser = null;
 
 function showAuthError(msg) {
   if (!authError) return;
@@ -126,6 +130,31 @@ function goAfterAuth(defaultUrl) {
   if (redirect) sessionStorage.removeItem("postAuthRedirect");
   window.location.href = redirect || defaultUrl;
 }
+
+watchAuthState((user) => {
+  currentUser = user;
+});
+
+dashboardLinks.forEach((link) => {
+  link.addEventListener("click", (event) => {
+    const target = link.getAttribute("data-dashboard-target") || link.getAttribute("href");
+    if (!target) return;
+
+    const destination = target.startsWith("#") ? `student-dashboard.html${target}` : target;
+
+    if (!currentUser) {
+      event.preventDefault();
+      sessionStorage.setItem("postAuthRedirect", destination);
+      openAuthModal("login");
+      return;
+    }
+
+    if (destination) {
+      event.preventDefault();
+      window.location.href = destination;
+    }
+  });
+});
 
 // Login submit (role-enforced)
 if (loginForm) {
