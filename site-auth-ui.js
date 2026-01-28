@@ -58,7 +58,7 @@ function setPostAuthRedirect(href) {
 watchAuthState(async (user) => {
   currentUser = user || null;
 
-  if (navCta) {
+  if (navCta && navCta.id !== "logoutBtn") {
     if (!user) {
       navCta.innerHTML = `Login / Register <span class="btn__icon" aria-hidden="true">→</span>`;
       navCta.setAttribute("href", "index.html#login");

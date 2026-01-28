@@ -9,6 +9,7 @@
     <link rel="stylesheet" href="student_dashboard_style.css" />
     <link rel="stylesheet" href="student-dashboard.css" />
     <script src="student-dashboard.js" defer></script>
+    <script type="module" src="site-auth-ui.js"></script>
   </head>
 
   <body>
@@ -43,7 +44,11 @@
           <a class="nav-link" href="index.html#contact">Contact</a>
         </div>
 
-        <a class="btn btn--pill btn--primary nav-cta" href="index.html#login">
+        <a
+          class="btn btn--pill btn--primary nav-cta"
+          id="logoutBtn"
+          href="index.html#login"
+        >
           Logout <span class="btn__icon" aria-hidden="true">→</span>
         </a>
       </nav>
