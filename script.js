@@ -178,10 +178,20 @@ if (registerForm) {
 
     const email = document.getElementById("regEmail").value.trim();
     const name = document.getElementById("regName").value.trim();
+    const studentNo = document.getElementById("regStudentNo").value.trim();
+    const gradeLevel = document.getElementById("regGradeLevel").value.trim();
+    const program = document.getElementById("regProgram").value.trim();
     const password = document.getElementById("regPassword").value;
 
     try {
-      const user = await registerStudent({ email, password, name });
+      const user = await registerStudent({
+        email,
+        password,
+        name,
+        studentNo,
+        gradeLevel,
+        program
+      });
       const landing = await getLandingPageForUser(user);
 
       closeAuthModal();
