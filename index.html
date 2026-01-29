@@ -609,6 +609,12 @@
         <!-- REGISTER VIEW -->
         <div class="auth-view" data-auth-view="register">
           <form class="auth-form" id="registerForm">
+            <p
+              class="auth-success"
+              id="authSuccess"
+              role="status"
+              aria-live="polite"
+            ></p>
             <div class="auth-field">
               <label class="auth-label" for="regEmail">Email Address</label>
               <input
@@ -646,27 +652,39 @@
             </div>
 
             <div class="auth-field">
-              <label class="auth-label" for="regGradeLevel">Grade Level</label>
-              <input
+              <label class="auth-label" for="regYearLevel">Year Level</label>
+              <select
                 class="auth-input"
-                id="regGradeLevel"
-                name="gradeLevel"
-                type="text"
-                placeholder="Grade 11"
+                id="regYearLevel"
+                name="yearLevel"
                 required
-              />
+              >
+                <option value="" disabled selected>Select year level</option>
+                <option value="1st year">1st year</option>
+                <option value="2nd year">2nd year</option>
+                <option value="3rd year">3rd year</option>
+                <option value="4th year">4th year</option>
+                <option value="irregular">irregular</option>
+              </select>
             </div>
 
             <div class="auth-field">
-              <label class="auth-label" for="regProgram">Program/Strand</label>
-              <input
+              <label class="auth-label" for="regProgram">Program</label>
+              <select
                 class="auth-input"
                 id="regProgram"
                 name="program"
-                type="text"
-                placeholder="STEM"
                 required
-              />
+              >
+                <option value="" disabled selected>Select program</option>
+                <option value="BIT CPT">BIT CPT</option>
+                <option value="BTVTED CP">BTVTED CP</option>
+                <option value="BTVTED MT">BTVTED MT</option>
+                <option value="BTVTED CT">BTVTED CT</option>
+                <option value="BTVTED FSM">BTVTED FSM</option>
+                <option value="BTVTED AT">BTVTED AT</option>
+                <option value="BTVTED ELX/ELT">BTVTED ELX/ELT</option>
+              </select>
             </div>
 
             <div class="auth-field">

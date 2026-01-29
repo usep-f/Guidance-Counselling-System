@@ -146,6 +146,52 @@
   flex-wrap: wrap;
 }
 
+.dash-profile__form{
+  margin-top: 12px;
+  display: none;
+}
+
+.dash-profile.is-editing .dash-profile__form{
+  display: block;
+}
+
+.dash-profile.is-editing .dash-profile__display{
+  display: none;
+}
+
+.dash-form__grid{
+  display: grid;
+  gap: 10px;
+}
+
+.dash-field{
+  display: grid;
+  gap: 6px;
+}
+
+.dash-input{
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: #fff;
+  font-size: 12px;
+  color: rgba(15, 47, 42, 0.8);
+}
+
+.dash-input:disabled{
+  background: rgba(255,255,255,0.6);
+  color: rgba(15, 47, 42, 0.5);
+}
+
+.dash-form__status{
+  margin: 0 0 8px;
+  font-size: 12px;
+  font-weight: 700;
+  color: rgba(31,185,129,1);
+}
+  
+
 /* Card header row inside support-box */
 .dash-cardhead{
   display: flex;

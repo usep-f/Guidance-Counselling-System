@@ -5,15 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Student Dashboard | Guidance System</title>
     <link rel="stylesheet" href="style.css" />
-    <link rel="stylesheet" href="profile-dashboard.css" />
-    <link rel="stylesheet" href="student_dashboard_style.css" />
     <link rel="stylesheet" href="student-dashboard.css" />
     <style>
       html.guard-pending body {
         visibility: hidden;
       }
     </style>
-    <script src="student-dashboard.js" defer></script>
+    <script type="module" src="student-dashboard.js"></script>
     <script type="module" src="site-auth-ui.js"></script>
   </head>
 
@@ -112,29 +110,134 @@
                       Juan Dela Cruz
                     </h2>
                     <p class="dash-profile__sub" id="dashSub">
-                      Student ID: <strong>2024-00123</strong> · Grade 11 · STEM
+                      Student ID: <strong>2024-00123</strong> · Year Level ·
+                      Program
                     </p>
                   </div>
                 </div>
 
-                <div class="dash-info">
-                  <div class="dash-info__row">
-                    <span class="dash-info__label">Email</span>
-                    <span class="dash-info__value" id="dashEmail"
-                      >juan.delacruz@example.com</span
-                    >
-                  </div>
-                  <div class="dash-info__row">
-                    <span class="dash-info__label">Contact</span>
-                    <span class="dash-info__value" id="dashContact"
-                      >+63 9XX XXX XXXX</span
-                    >
-                  </div>
-                  <div class="dash-info__row">
-                    <span class="dash-info__label">Counselor</span>
-                    <span class="dash-info__value">Campus Guidance Office</span>
+                <div class="dash-profile__display">
+                  <div class="dash-info">
+                    <div class="dash-info__row">
+                      <span class="dash-info__label">Email</span>
+                      <span class="dash-info__value" id="dashEmail"
+                        >juan.delacruz@example.com</span
+                      >
+                    </div>
+                    <div class="dash-info__row">
+                      <span class="dash-info__label">Contact</span>
+                      <span class="dash-info__value" id="dashContact"
+                        >Not provided</span
+                      >
+                    </div>
+                    <div class="dash-info__row">
+                      <span class="dash-info__label">Counselor</span>
+                      <span class="dash-info__value"
+                        >Campus Guidance Office</span
+                      >
+                    </div>
                   </div>
                 </div>
+
+                <form class="dash-profile__form" id="profileForm">
+                  <p
+                    class="dash-form__status"
+                    id="profileStatus"
+                    role="status"
+                    aria-live="polite"
+                  ></p>
+                  <div class="dash-form__grid">
+                    <label class="dash-field">
+                      <span class="dash-info__label">Full Name</span>
+                      <input
+                        class="dash-input"
+                        id="profileName"
+                        name="name"
+                        type="text"
+                        placeholder="Juan Dela Cruz"
+                        required
+                      />
+                    </label>
+                    <label class="dash-field">
+                      <span class="dash-info__label">Student No.</span>
+                      <input
+                        class="dash-input"
+                        id="profileStudentNo"
+                        name="studentNo"
+                        type="text"
+                        placeholder="2024-00123"
+                        required
+                      />
+                    </label>
+                    <label class="dash-field">
+                      <span class="dash-info__label">Year Level</span>
+                      <select
+                        class="dash-input"
+                        id="profileYearLevel"
+                        name="yearLevel"
+                        required
+                      >
+                        <option value="" disabled>Select year level</option>
+                        <option value="1st year">1st year</option>
+                        <option value="2nd year">2nd year</option>
+                        <option value="3rd year">3rd year</option>
+                        <option value="4th year">4th year</option>
+                        <option value="irregular">irregular</option>
+                      </select>
+                    </label>
+                    <label class="dash-field">
+                      <span class="dash-info__label">Program</span>
+                      <select
+                        class="dash-input"
+                        id="profileProgram"
+                        name="program"
+                        required
+                      >
+                        <option value="" disabled>Select program</option>
+                        <option value="BIT CPT">BIT CPT</option>
+                        <option value="BTVTED CP">BTVTED CP</option>
+                        <option value="BTVTED MT">BTVTED MT</option>
+                        <option value="BTVTED CT">BTVTED CT</option>
+                        <option value="BTVTED FSM">BTVTED FSM</option>
+                        <option value="BTVTED AT">BTVTED AT</option>
+                        <option value="BTVTED ELX/ELT">BTVTED ELX/ELT</option>
+                      </select>
+                    </label>
+                    <label class="dash-field">
+                      <span class="dash-info__label">Contact (optional)</span>
+                      <input
+                        class="dash-input"
+                        id="profileContact"
+                        name="contact"
+                        type="tel"
+                        placeholder="+63 9XX XXX XXXX"
+                      />
+                    </label>
+                    <label class="dash-field">
+                      <span class="dash-info__label">Email</span>
+                      <input
+                        class="dash-input"
+                        id="profileEmail"
+                        name="email"
+                        type="email"
+                        disabled
+                      />
+                    </label>
+                  </div>
+                  <div class="dash-actions">
+                    <button class="btn btn--pill btn--primary" type="submit">
+                      Save Profile
+                      <span class="btn__icon" aria-hidden="true">→</span>
+                    </button>
+                    <button
+                      class="btn btn--pill btn--ghost"
+                      type="button"
+                      id="cancelProfileBtn"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </form>
 
                 <div class="dash-actions">
                   <a
@@ -147,6 +250,13 @@
                   <a class="btn btn--pill btn--ghost" href="#dashboard-inquiry"
                     >Send Inquiry</a
                   >
+                  <button
+                    class="btn btn--pill btn--ghost"
+                    type="button"
+                    id="editProfileBtn"
+                  >
+                    Edit Profile
+                  </button>
                 </div>
 
                 <p class="support-note">

@@ -1,3 +1,11 @@
+import { auth, db } from "./firebase-config.js";
+import { onAuthStateChanged, updateProfile } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
+import {
+  doc,
+  getDoc,
+  setDoc,
+  serverTimestamp
+} from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
 /* Student dashboard tabs */
 (function () {
   const tabs = Array.from(document.querySelectorAll("[data-dashboard-tab]"));
@@ -278,14 +286,22 @@
   const dashEmail = document.getElementById("dashEmail");
   const dashContact = document.getElementById("dashContact");
 
-  const profile = {
-    name: "Juan Dela Cruz",
-    id: "2024-00123",
-    level: "Grade 11",
-    program: "STEM",
-    email: "juan.delacruz@example.com",
-    contact: "+63 9XX XXX XXXX",
-  };
+  const dashSub = document.getElementById("dashSub");
+  const dashProfile = document.querySelector(".dash-profile");
+  const editProfileBtn = document.getElementById("editProfileBtn");
+  const profileForm = document.getElementById("profileForm");
+  const cancelProfileBtn = document.getElementById("cancelProfileBtn");
+  const profileStatus = document.getElementById("profileStatus");
+
+  const profileNameInput = document.getElementById("profileName");
+  const profileStudentNoInput = document.getElementById("profileStudentNo");
+  const profileYearLevelInput = document.getElementById("profileYearLevel");
+  const profileProgramInput = document.getElementById("profileProgram");
+  const profileContactInput = document.getElementById("profileContact");
+  const profileEmailInput = document.getElementById("profileEmail");
+
+  let currentProfile = null;
+  let currentUser = null;
 
   const appointments = [
     { date: "2026-02-03", time: "10:00 AM", type: "In-Person", status: "Pending Approval" },
@@ -314,6 +330,101 @@
       .slice(0, 2)
       .map((part) => part[0].toUpperCase())
       .join("");
+  }
+
+  function setStatus(message) {
+    if (!profileStatus) return;
+    profileStatus.textContent = message || "";
+  }
+
+  function formatSubline({ studentNo, gradeLevel, program }) {
+    const safeId = studentNo ? `<strong>${studentNo}</strong>` : "<strong>-</strong>";
+    const safeLevel = gradeLevel || "Year Level";
+    const safeProgram = program || "Program";
+    return `Student ID: ${safeId} · ${safeLevel} · ${safeProgram}`;
+  }
+
+  function fillProfileForm(profile) {
+    if (!profileForm) return;
+    profileNameInput.value = profile.name || "";
+    profileStudentNoInput.value = profile.studentNo || "";
+    profileYearLevelInput.value = profile.gradeLevel || "";
+    profileProgramInput.value = profile.program || "";
+    profileContactInput.value = profile.contact || "";
+    profileEmailInput.value = profile.email || "";
+  }
+
+  function renderProfile(profile={}, user) {
+    const displayName = profile.name || user?.displayName || "Student";
+    const email = profile.email || user?.email || "-";
+    const contact = profile.contact || "Not provided";
+
+    if (dashName) dashName.textContent = displayName;
+    if (dashInitials) dashInitials.textContent = initials(displayName);
+    if (dashEmail) dashEmail.textContent = email;
+    if (dashContact) dashContact.textContent = contact;
+    if (dashSub) dashSub.innerHTML = formatSubline(profile);
+  }
+
+  async function loadProfile(user) {
+    const baseProfile = {
+      name: user?.displayName || "",
+      email: user?.email || ""
+    };
+
+    if (!user) {
+      currentProfile = baseProfile;
+      renderProfile(currentProfile, user);
+      fillProfileForm(currentProfile);
+      return;
+    }
+
+    try {
+      const ref = doc(db, "students", user.uid);
+      const snap = await getDoc(ref);
+      const profile = snap.exists() ? snap.data() : {};
+      currentProfile = { ...baseProfile, ...profile };
+      renderProfile(currentProfile, user);
+      fillProfileForm(currentProfile);
+    } catch (err) {
+      currentProfile = baseProfile;
+      renderProfile(currentProfile, user);
+      fillProfileForm(currentProfile);
+      setStatus("Unable to load profile right now.");
+    }
+  }
+
+  async function saveProfile() {
+    if (!currentUser || !profileForm) return;
+    setStatus("");
+
+    const payload = {
+      name: profileNameInput.value.trim(),
+      studentNo: profileStudentNoInput.value.trim(),
+      gradeLevel: profileYearLevelInput.value,
+      program: profileProgramInput.value,
+      contact: profileContactInput.value.trim(),
+      email: currentUser.email || ""
+    };
+
+    if (!payload.contact) {
+      delete payload.contact;
+    }
+
+    try {
+      const ref = doc(db, "students", currentUser.uid);
+      await setDoc(ref, { ...payload, updatedAt: serverTimestamp() }, { merge: true });
+      if (payload.name && currentUser.displayName !== payload.name) {
+        await updateProfile(currentUser, { displayName: payload.name });
+      }
+      currentProfile = { ...currentProfile, ...payload };
+      renderProfile(currentProfile, currentUser);
+      fillProfileForm(currentProfile);
+      dashProfile?.classList.remove("is-editing");
+      setStatus("Profile updated.");
+    } catch (err) {
+      setStatus("Unable to save profile right now.");
+    }
   }
 
   function statusVariant(status) {
@@ -373,14 +484,36 @@
       .join("");
   }
 
-  function renderProfile() {
-    if (dashName) dashName.textContent = profile.name;
-    if (dashInitials) dashInitials.textContent = initials(profile.name);
-    if (dashEmail) dashEmail.textContent = profile.email;
-    if (dashContact) dashContact.textContent = profile.contact;
-  }
-
   renderProfile();
   renderPending();
   renderProgress();
+
+  if (editProfileBtn && dashProfile) {
+    editProfileBtn.addEventListener("click", () => {
+      dashProfile.classList.add("is-editing");
+      setStatus("");
+    });
+  }
+
+  if (cancelProfileBtn && dashProfile) {
+    cancelProfileBtn.addEventListener("click", () => {
+      dashProfile.classList.remove("is-editing");
+      if (currentProfile) {
+        fillProfileForm(currentProfile);
+      }
+      setStatus("");
+    });
+  }
+
+  if (profileForm) {
+    profileForm.addEventListener("submit", (event) => {
+      event.preventDefault();
+      saveProfile();
+    });
+  }
+
+  onAuthStateChanged(auth, (user) => {
+    currentUser = user;
+    loadProfile(user);
+  });
 })();

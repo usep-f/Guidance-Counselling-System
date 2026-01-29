@@ -29,11 +29,18 @@ const loginForm = document.getElementById("loginForm");
 const registerForm = document.getElementById("registerForm");
 
 const authError = document.getElementById("authError");
+const authSuccess = document.getElementById("authSuccess");
 
 function showAuthError(msg) {
   if (!authError) return;
   authError.textContent = msg;
   authError.classList.add("is-active");
+
+  function showAuthSuccess(msg) {
+  if (!authSuccess) return;
+  authSuccess.textContent = msg;
+  authSuccess.classList.add("is-active");
+}
 }
 
 function clearAuthError() {
@@ -41,6 +48,13 @@ function clearAuthError() {
   authError.textContent = "";
   authError.classList.remove("is-active");
 }
+
+function clearAuthSuccess() {
+  if (!authSuccess) return;
+  authSuccess.textContent = "";
+  authSuccess.classList.remove("is-active");
+}
+
 
 function openAuthModal(defaultView = "login") {
   if (!authModal) return;
@@ -51,6 +65,7 @@ function openAuthModal(defaultView = "login") {
 
   setAuthView(defaultView);
   clearAuthError();
+  clearAuthSuccess();
 
   const firstInput = authModal.querySelector(".auth-view.is-active .auth-input");
   if (firstInput) firstInput.focus();
@@ -71,6 +86,7 @@ function closeAuthModal() {
 
 function setAuthView(viewName) {
   clearAuthError();
+  clearAuthSuccess();
 
   const isLogin = viewName === "login";
 
@@ -89,6 +105,7 @@ function setRole(role) {
   roleBtns.forEach((btn) => btn.classList.toggle("is-active", btn.dataset.role === role));
   if (loginRoleInput) loginRoleInput.value = role;
   clearAuthError();
+  clearAuthSuccess();
 }
 
 // Expose modal opener so other pages can redirect to index.html#login and open it
@@ -179,7 +196,7 @@ if (registerForm) {
     const email = document.getElementById("regEmail").value.trim();
     const name = document.getElementById("regName").value.trim();
     const studentNo = document.getElementById("regStudentNo").value.trim();
-    const gradeLevel = document.getElementById("regGradeLevel").value.trim();
+    const gradeLevel = document.getElementById("regYearLevel").value.trim();
     const program = document.getElementById("regProgram").value.trim();
     const password = document.getElementById("regPassword").value;
 
@@ -194,8 +211,14 @@ if (registerForm) {
       });
       const landing = await getLandingPageForUser(user);
 
-      closeAuthModal();
-      goAfterAuth(landing);
+       if (authSuccess) {
+        authSuccess.textContent = "Registration successful. Redirecting to your dashboard...";
+        authSuccess.classList.add("is-active");
+      }
+      setTimeout(() => {
+        closeAuthModal();
+        goAfterAuth(landing);
+      }, 900);
     } catch (err) {
       showAuthError(err.message);
     }
