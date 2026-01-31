@@ -131,9 +131,15 @@
                       >
                     </div>
                     <div class="dash-info__row">
-                      <span class="dash-info__label">Counselor</span>
-                      <span class="dash-info__value"
-                        >Campus Guidance Office</span
+                      <span class="dash-info__label">Year</span>
+                      <span class="dash-info__value" id="dashYear"
+                        >Year Level</span
+                      >
+                    </div>
+                    <div class="dash-info__row">
+                      <span class="dash-info__label">Course</span>
+                      <span class="dash-info__value" id="dashCourse"
+                        >Program</span
                       >
                     </div>
                   </div>
@@ -147,6 +153,19 @@
                     aria-live="polite"
                   ></p>
                   <div class="dash-form__grid">
+                    <label class="dash-field">
+                      <span class="dash-info__label">Profile Photo</span>
+                      <input
+                        class="dash-input"
+                        id="profilePhoto"
+                        name="profilePhoto"
+                        type="file"
+                        accept="image/*"
+                      />
+                      <span class="dash-info__hint"
+                        >Upload coming soon. This is a placeholder.</span
+                      >
+                    </label>
                     <label class="dash-field">
                       <span class="dash-info__label">Full Name</span>
                       <input
@@ -239,17 +258,7 @@
                   </div>
                 </form>
 
-                <div class="dash-actions">
-                  <a
-                    class="btn btn--pill btn--primary"
-                    href="#dashboard-booking"
-                  >
-                    Book Appointment
-                    <span class="btn__icon" aria-hidden="true">→</span>
-                  </a>
-                  <a class="btn btn--pill btn--ghost" href="#dashboard-inquiry"
-                    >Send Inquiry</a
-                  >
+                <div class="dash-actions dash-actions--edit">
                   <button
                     class="btn btn--pill btn--ghost"
                     type="button"
@@ -265,86 +274,6 @@
                 </p>
               </aside>
 
-              <!-- Current Status -->
-              <section class="support-box" aria-label="Progress monitoring">
-                <div class="dash-cardhead">
-                  <h2>Progress Monitoring</h2>
-                  <a class="dash-link" href="#dashboard-history"
-                    >Open full history →</a
-                  >
-                </div>
-
-                <div class="pm-grid">
-                  <!-- Progress Trend -->
-                  <div class="pm-panel">
-                    <h3 class="dash-mini-title">Progress Trend</h3>
-
-                    <div
-                      class="pm-trend"
-                      id="trendBox"
-                      aria-label="Progress trend bars"
-                    >
-                      <!-- JS injects rows -->
-                    </div>
-
-                    <p class="pm-note">
-                      Based on post-session check-ins (demo). Percentages
-                      represent overall improvement after each session.
-                    </p>
-                  </div>
-
-                  <!-- Session History -->
-                  <div class="pm-panel">
-                    <h3 class="dash-mini-title">Session History</h3>
-
-                    <div class="session-list pm-session" id="sessionList">
-                      <!-- JS injects items -->
-                    </div>
-                  </div>
-                </div>
-              </section>
-
-              <!-- Row 2: Pending Appointments (full width) -->
-              <section class="support-box" aria-label="Pending appointments">
-                <div class="dash-cardhead">
-                  <h2>Pending Appointments</h2>
-                  <a class="dash-link" href="#dashboard-booking"
-                    >New booking →</a
-                  >
-                </div>
-
-                <div class="dash-list" id="pendingList">
-                  <!-- JS injects items -->
-                </div>
-
-                <div class="dash-foot">
-                  <a class="btn btn--pill btn--ghost" href="#dashboard-history"
-                    >View History Monitoring</a
-                  >
-                </div>
-              </section>
-
-              <!-- Row 3: Progress (full width) -->
-              <section class="support-box" aria-label="Progress monitoring">
-                <div class="dash-cardhead">
-                  <h2>Progress Monitoring</h2>
-                  <a class="dash-link" href="#dashboard-history"
-                    >Open full history →</a
-                  >
-                </div>
-
-                <h3 class="dash-mini-title">Progress Trend</h3>
-                <div class="trend" id="trendBox">
-                  <!-- JS injects rows -->
-                </div>
-
-                <div class="dash-divider" aria-hidden="true"></div>
-
-                <h3 class="dash-mini-title">Session History</h3>
-                <div class="session-list" id="sessionList">
-                  <!-- JS injects items -->
-                </div>
-              </section>
             </div>
           </div>
         </div>
@@ -370,18 +299,14 @@
             <div class="booking-steps" aria-label="Booking progress">
               <button class="bstep is-active" type="button" data-step="0">
                 <span class="bstep__dot">1</span>
-                <span class="bstep__label">Student Info</span>
+                <span class="bstep__label">Appointment Details</span>
               </button>
               <button class="bstep" type="button" data-step="1">
                 <span class="bstep__dot">2</span>
-                <span class="bstep__label">Appointment Details</span>
+                <span class="bstep__label">Date & Time</span>
               </button>
               <button class="bstep" type="button" data-step="2">
                 <span class="bstep__dot">3</span>
-                <span class="bstep__label">Date & Time</span>
-              </button>
-              <button class="bstep" type="button" data-step="3">
-                <span class="bstep__dot">4</span>
                 <span class="bstep__label">Review</span>
               </button>
             </div>
@@ -390,112 +315,6 @@
             <div class="booking-panels">
               <!-- Step 1 -->
               <section class="bpanel is-active" data-panel="0">
-                <h2 class="bpanel__title">Student Information</h2>
-
-                <div class="bgrid">
-                  <div class="field">
-                    <label class="field__label" for="studentName"
-                      >Full Name</label
-                    >
-                    <input
-                      class="field__input"
-                      id="studentName"
-                      name="studentName"
-                      type="text"
-                      required
-                    />
-                  </div>
-
-                  <div class="field">
-                    <label class="field__label" for="studentId"
-                      >Student ID</label
-                    >
-                    <input
-                      class="field__input"
-                      id="studentId"
-                      name="studentId"
-                      type="text"
-                      required
-                    />
-                  </div>
-
-                  <div class="field">
-                    <label class="field__label" for="gradeLevel"
-                      >Grade/Year Level</label
-                    >
-                    <select
-                      class="field__input"
-                      id="gradeLevel"
-                      name="gradeLevel"
-                      required
-                    >
-                      <option value="" selected disabled>Select</option>
-                      <option>Grade 7</option>
-                      <option>Grade 8</option>
-                      <option>Grade 9</option>
-                      <option>Grade 10</option>
-                      <option>Grade 11</option>
-                      <option>Grade 12</option>
-                      <option>1st Year</option>
-                      <option>2nd Year</option>
-                      <option>3rd Year</option>
-                      <option>4th Year</option>
-                    </select>
-                  </div>
-
-                  <div class="field">
-                    <label class="field__label" for="contactNo"
-                      >Contact Number</label
-                    >
-                    <input
-                      class="field__input"
-                      id="contactNo"
-                      name="contactNo"
-                      type="tel"
-                      required
-                    />
-                  </div>
-
-                  <div class="field">
-                    <label class="field__label" for="email">Email</label>
-                    <input
-                      class="field__input"
-                      id="email"
-                      name="email"
-                      type="email"
-                      required
-                    />
-                  </div>
-
-                  <div class="field">
-                    <label class="field__label" for="section"
-                      >Section / Program</label
-                    >
-                    <input
-                      class="field__input"
-                      id="section"
-                      name="section"
-                      type="text"
-                      placeholder="e.g., STEM / BSIT"
-                      required
-                    />
-                  </div>
-                </div>
-
-                <div class="bactions">
-                  <span></span>
-                  <button
-                    class="btn btn--pill btn--primary"
-                    type="button"
-                    data-next
-                  >
-                    Next <span class="btn__icon" aria-hidden="true">→</span>
-                  </button>
-                </div>
-              </section>
-
-              <!-- Step 2 -->
-              <section class="bpanel" data-panel="1">
                 <h2 class="bpanel__title">Appointment Details</h2>
 
                 <div class="bgrid">
@@ -559,8 +378,8 @@
                 </div>
               </section>
 
-              <!-- Step 3 -->
-              <section class="bpanel" data-panel="2">
+              <!-- Step 2 -->
+              <section class="bpanel" data-panel="1">
                 <h2 class="bpanel__title">Select Date & Time</h2>
 
                 <!-- Hidden values to submit -->
@@ -646,8 +465,8 @@
                 </div>
               </section>
 
-              <!-- Step 4 -->
-              <section class="bpanel" data-panel="3">
+              <!-- Step 3 -->
+              <section class="bpanel" data-panel="2">
                 <h2 class="bpanel__title">Review & Submit</h2>
 
                 <div class="review" id="reviewBox">
@@ -714,6 +533,16 @@
             </div>
           </aside>
         </section>
+
+        <section class="support-box booking-pending" aria-label="Pending appointments">
+          <div class="dash-cardhead">
+            <h2>Pending Appointments</h2>
+          </div>
+
+          <div class="dash-list" id="pendingList">
+            <!-- JS injects items -->
+          </div>
+        </section>
       </section>
 
       <section class="page dashboard-section" id="dashboard-inquiry">
@@ -756,56 +585,6 @@
               <form id="inquiryForm" class="inq-form">
                 <div class="inq-grid">
                   <div class="inq-field">
-                    <label class="inq-label" for="inquiryStudentName"
-                      >Full Name</label
-                    >
-                    <input
-                      class="inq-control"
-                      id="inquiryStudentName"
-                      name="studentName"
-                      type="text"
-                      placeholder="Juan Dela Cruz"
-                      required
-                    />
-                  </div>
-
-                  <div class="inq-field">
-                    <label class="inq-label" for="inquiryStudentId"
-                      >Student ID</label
-                    >
-                    <input
-                      class="inq-control"
-                      id="inquiryStudentId"
-                      name="studentId"
-                      type="text"
-                      placeholder="20XX-XXXX"
-                      required
-                    />
-                  </div>
-
-                  <div class="inq-field">
-                    <label class="inq-label" for="inquiryYearLevel"
-                      >Year Level</label
-                    >
-                    <select
-                      class="inq-control"
-                      id="inquiryYearLevel"
-                      name="yearLevel"
-                      required
-                    >
-                      <option value="" selected disabled>
-                        Select year level
-                      </option>
-                      <option>Grade 11</option>
-                      <option>Grade 12</option>
-                      <option>1st Year</option>
-                      <option>2nd Year</option>
-                      <option>3rd Year</option>
-                      <option>4th Year</option>
-                    </select>
-                  </div>
-
-                  <div class="inq-field">
                     <label class="inq-label" for="inquiryTopic"
                       >Concern Type</label
                     >
@@ -847,10 +626,6 @@
                     Submit Inquiry
                     <span class="btn__icon" aria-hidden="true">→</span>
                   </button>
-
-                  <a class="btn btn--pill btn--ghost" href="#dashboard-profile"
-                    >Back to Dashboard</a
-                  >
                 </div>
 
                 <p class="inq-hint" id="inquiryHint" aria-live="polite"></p>

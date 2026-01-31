@@ -17,7 +17,6 @@
   </head>
 
   <body>
-    <body>
     <!-- NAVBAR (same structure as index.html) -->
     <header class="site-header" id="top">
       <nav class="navbar">
@@ -62,131 +61,242 @@
         </p>
       </header>
 
+      <div class="dashboard-tabs" role="tablist" aria-label="Admin dashboard tabs">
+        <a class="dashboard-tab is-active" href="#admin-analytics" data-dashboard-tab>Analytics</a>
+        <a class="dashboard-tab" href="#admin-users" data-dashboard-tab>Enrolled Users</a>
+        <a class="dashboard-tab" href="#admin-appointments" data-dashboard-tab>Appointments</a>
+      </div>
+
       <section class="admin-wrap">
-        <!-- Filters -->
-        <div class="admin-filters" aria-label="Dashboard filters">
-          <div class="admin-filter">
-            <label class="admin-label" for="timeRange">Time Range</label>
-            <select class="admin-control" id="timeRange" name="timeRange">
-              <option value="7">Last 7 days</option>
-              <option value="30" selected>Last 30 days</option>
-              <option value="90">Last 90 days</option>
-              <option value="all">All time</option>
-            </select>
+        <section class="dashboard-section" id="admin-analytics" aria-label="Admin analytics">
+          <!-- Filters -->
+          <div class="admin-filters" aria-label="Dashboard filters">
+            <div class="admin-filter">
+              <label class="admin-label" for="timeRange">Time Range</label>
+              <select class="admin-control" id="timeRange" name="timeRange">
+                <option value="7">Last 7 days</option>
+                <option value="30" selected>Last 30 days</option>
+                <option value="90">Last 90 days</option>
+                <option value="all">All time</option>
+              </select>
+            </div>
+
+            <div class="admin-filter">
+              <label class="admin-label" for="gradeLevel">Grade Level</label>
+              <select class="admin-control" id="gradeLevel" name="gradeLevel">
+                <option value="all" selected>All students</option>
+                <option value="g7">Grade 7</option>
+                <option value="g8">Grade 8</option>
+                <option value="g9">Grade 9</option>
+                <option value="g10">Grade 10</option>
+                <option value="g11">Grade 11</option>
+                <option value="g12">Grade 12</option>
+              </select>
+            </div>
+
+            <div class="admin-filter admin-filter--stretch">
+              <label class="admin-label" for="searchStudent">Search (Student ID / Name)</label>
+              <input
+                class="admin-control"
+                id="searchStudent"
+                name="searchStudent"
+                type="text"
+                placeholder="e.g., 2024-00123 or Juan Dela Cruz"
+                autocomplete="off"
+              />
+            </div>
+
+            <div class="admin-filter admin-filter--actions">
+              <button class="btn btn--pill btn--ghost" type="button" id="btnReset">
+                Reset
+              </button>
+              <button class="btn btn--pill btn--primary" type="button" id="btnExport">
+                Export Summary
+                <span class="btn__icon" aria-hidden="true">→</span>
+              </button>
+            </div>
           </div>
 
-          <div class="admin-filter">
-            <label class="admin-label" for="gradeLevel">Grade Level</label>
-            <select class="admin-control" id="gradeLevel" name="gradeLevel">
-              <option value="all" selected>All students</option>
-              <option value="g7">Grade 7</option>
-              <option value="g8">Grade 8</option>
-              <option value="g9">Grade 9</option>
-              <option value="g10">Grade 10</option>
-              <option value="g11">Grade 11</option>
-              <option value="g12">Grade 12</option>
-            </select>
+          <!-- KPI cards -->
+          <div class="admin-kpis" aria-label="Key metrics">
+            <article class="admin-kpi">
+              <p class="admin-kpi__label">Total Concerns Logged</p>
+              <h3 class="admin-kpi__value" id="kpiTotalConcerns">0</h3>
+              <p class="admin-kpi__hint" id="kpiTotalConcernsHint">Across selected range</p>
+            </article>
+
+            <article class="admin-kpi">
+              <p class="admin-kpi__label">Most Common Emotion</p>
+              <h3 class="admin-kpi__value" id="kpiTopEmotion">-</h3>
+              <p class="admin-kpi__hint" id="kpiTopEmotionHint">Based on emotional states</p>
+            </article>
+
+            <article class="admin-kpi">
+              <p class="admin-kpi__label">Most Common Trigger</p>
+              <h3 class="admin-kpi__value" id="kpiTopTrigger">-</h3>
+              <p class="admin-kpi__hint" id="kpiTopTriggerHint">Based on triggers</p>
+            </article>
+
+            <article class="admin-kpi">
+              <p class="admin-kpi__label">Pending Items</p>
+              <h3 class="admin-kpi__value" id="kpiPending">0</h3>
+              <p class="admin-kpi__hint">Appointments and inquiries</p>
+            </article>
           </div>
 
-          <div class="admin-filter admin-filter--stretch">
-            <label class="admin-label" for="searchStudent">Search (Student ID / Name)</label>
-            <input
-              class="admin-control"
-              id="searchStudent"
-              name="searchStudent"
-              type="text"
-              placeholder="e.g., 2024-00123 or Juan Dela Cruz"
-              autocomplete="off"
-            />
+          <!-- Charts -->
+          <div class="admin-grid">
+            <section class="admin-card" aria-label="Emotional states chart">
+              <div class="admin-card__head">
+                <h2 class="admin-card__title">Emotional States</h2>
+                <p class="admin-card__sub">Stress, Anxiety, Depression</p>
+              </div>
+
+              <div class="barlist" id="chartEmotions" role="list"></div>
+            </section>
+
+            <section class="admin-card" aria-label="Environmental triggers chart">
+              <div class="admin-card__head">
+                <h2 class="admin-card__title">Environmental Triggers</h2>
+                <p class="admin-card__sub">Family, Financial, Academic, Peer</p>
+              </div>
+
+              <div class="barlist" id="chartTriggers" role="list"></div>
+            </section>
+
+            <section class="admin-card admin-card--wide" aria-label="Summary table">
+              <div class="admin-card__head">
+                <h2 class="admin-card__title">Recent Summary</h2>
+                <p class="admin-card__sub">Sample rows (replace with real DB later)</p>
+              </div>
+
+              <div class="admin-tablewrap">
+                <table class="admin-table">
+                  <thead>
+                    <tr>
+                      <th>Date</th>
+                      <th>Student</th>
+                      <th>Emotion</th>
+                      <th>Trigger</th>
+                      <th>Severity</th>
+                      <th>Status</th>
+                    </tr>
+                  </thead>
+                  <tbody id="recentTable"></tbody>
+                </table>
+              </div>
+
+              <div class="admin-note">
+                Tip: once you connect backend data, you can auto-generate these insights for the guidance
+                coordinator to approve schedules and review counseling summaries.
+              </div>
+            </section>
+          </div>
+        </section>
+
+        <section class="dashboard-section" id="admin-users" aria-label="Enrolled users">
+          <header class="admin-panel__head">
+            <div>
+              <h2 class="admin-panel__title">Enrolled Users</h2>
+              <p class="admin-panel__sub">
+                Review student profiles and recent appointment history.
+              </p>
+            </div>
+          </header>
+
+          <div class="admin-filters admin-filters--stack" aria-label="Enrolled user filters">
+            <div class="admin-filter admin-filter--stretch">
+              <label class="admin-label" for="userSearch">Search (Name / ID)</label>
+              <input
+                class="admin-control"
+                id="userSearch"
+                name="userSearch"
+                type="text"
+                placeholder="Search enrolled students"
+                autocomplete="off"
+              />
+            </div>
+            <div class="admin-filter">
+              <label class="admin-label" for="userGrade">Grade Level</label>
+              <select class="admin-control" id="userGrade" name="userGrade">
+                <option value="all" selected>All levels</option>
+                <option value="g7">Grade 7</option>
+                <option value="g8">Grade 8</option>
+                <option value="g9">Grade 9</option>
+                <option value="g10">Grade 10</option>
+                <option value="g11">Grade 11</option>
+                <option value="g12">Grade 12</option>
+              </select>
+            </div>
+            <div class="admin-filter">
+              <label class="admin-label" for="userProgram">Program</label>
+              <select class="admin-control" id="userProgram" name="userProgram">
+                <option value="all" selected>All programs</option>
+                <option value="stem">STEM</option>
+                <option value="abm">ABM</option>
+                <option value="humss">HUMSS</option>
+                <option value="gas">GAS</option>
+              </select>
+            </div>
           </div>
 
-          <div class="admin-filter admin-filter--actions">
-            <button class="btn btn--pill btn--ghost" type="button" id="btnReset">
-              Reset
+          <div class="admin-list" id="enrolledList" aria-live="polite"></div>
+        </section>
+
+        <section class="dashboard-section" id="admin-appointments" aria-label="Appointments">
+          <header class="admin-panel__head">
+            <div>
+              <h2 class="admin-panel__title">Appointments</h2>
+              <p class="admin-panel__sub">
+                Track pending and completed appointments. Accepted sessions can be opened for notes.
+              </p>
+            </div>
+          </header>
+
+          <div class="admin-pilltabs" role="tablist" aria-label="Appointment filters">
+            <button class="admin-pilltab is-active" type="button" data-appt-filter="pending">
+              Pending
             </button>
-            <button class="btn btn--pill btn--primary" type="button" id="btnExport">
-              Export Summary
-              <span class="btn__icon" aria-hidden="true">→</span>
+            <button class="admin-pilltab" type="button" data-appt-filter="completed">
+              Completed
             </button>
           </div>
-        </div>
 
-        <!-- KPI cards -->
-        <div class="admin-kpis" aria-label="Key metrics">
-          <article class="admin-kpi">
-            <p class="admin-kpi__label">Total Concerns Logged</p>
-            <h3 class="admin-kpi__value" id="kpiTotalConcerns">0</h3>
-            <p class="admin-kpi__hint" id="kpiTotalConcernsHint">Across selected range</p>
-          </article>
-
-          <article class="admin-kpi">
-            <p class="admin-kpi__label">Most Common Emotion</p>
-            <h3 class="admin-kpi__value" id="kpiTopEmotion">-</h3>
-            <p class="admin-kpi__hint" id="kpiTopEmotionHint">Based on emotional states</p>
-          </article>
-
-          <article class="admin-kpi">
-            <p class="admin-kpi__label">Most Common Trigger</p>
-            <h3 class="admin-kpi__value" id="kpiTopTrigger">-</h3>
-            <p class="admin-kpi__hint" id="kpiTopTriggerHint">Based on triggers</p>
-          </article>
-
-          <article class="admin-kpi">
-            <p class="admin-kpi__label">Pending Items</p>
-            <h3 class="admin-kpi__value" id="kpiPending">0</h3>
-            <p class="admin-kpi__hint">Appointments and inquiries</p>
-          </article>
-        </div>
-
-        <!-- Charts -->
-        <div class="admin-grid">
-          <section class="admin-card" aria-label="Emotional states chart">
-            <div class="admin-card__head">
-              <h2 class="admin-card__title">Emotional States</h2>
-              <p class="admin-card__sub">Stress, Anxiety, Depression</p>
-            </div>
-
-            <div class="barlist" id="chartEmotions" role="list"></div>
-          </section>
-
-          <section class="admin-card" aria-label="Environmental triggers chart">
-            <div class="admin-card__head">
-              <h2 class="admin-card__title">Environmental Triggers</h2>
-              <p class="admin-card__sub">Family, Financial, Academic, Peer</p>
-            </div>
-
-            <div class="barlist" id="chartTriggers" role="list"></div>
-          </section>
-
-          <section class="admin-card admin-card--wide" aria-label="Summary table">
-            <div class="admin-card__head">
-              <h2 class="admin-card__title">Recent Summary</h2>
-              <p class="admin-card__sub">Sample rows (replace with real DB later)</p>
-            </div>
-
-            <div class="admin-tablewrap">
-              <table class="admin-table">
-                <thead>
-                  <tr>
-                    <th>Date</th>
-                    <th>Student</th>
-                    <th>Emotion</th>
-                    <th>Trigger</th>
-                    <th>Severity</th>
-                    <th>Status</th>
-                  </tr>
-                </thead>
-                <tbody id="recentTable"></tbody>
-              </table>
-            </div>
-
-            <div class="admin-note">
-              Tip: once you connect backend data, you can auto-generate these insights for the guidance
-              coordinator to approve schedules and review counseling summaries.
-            </div>
-          </section>
-        </div>
+          <div class="admin-list" id="appointmentList" aria-live="polite"></div>
+        </section>
       </section>
+
+      <div class="admin-modal" id="userModal" aria-hidden="true">
+        <div class="admin-modal__overlay" data-modal-close></div>
+        <div class="admin-modal__panel" role="dialog" aria-modal="true" aria-labelledby="userModalTitle">
+          <header class="admin-modal__head">
+            <div>
+              <p class="admin-modal__eyebrow">Student Profile</p>
+              <h2 class="admin-modal__title" id="userModalTitle">Student Name</h2>
+            </div>
+            <button class="admin-modal__close" type="button" data-modal-close aria-label="Close">
+              ✕
+            </button>
+          </header>
+          <div class="admin-modal__body" id="userModalBody"></div>
+        </div>
+      </div>
+
+      <div class="admin-modal" id="appointmentModal" aria-hidden="true">
+        <div class="admin-modal__overlay" data-modal-close></div>
+        <div class="admin-modal__panel" role="dialog" aria-modal="true" aria-labelledby="appointmentModalTitle">
+          <header class="admin-modal__head">
+            <div>
+              <p class="admin-modal__eyebrow">Appointment Details</p>
+              <h2 class="admin-modal__title" id="appointmentModalTitle">Appointment</h2>
+            </div>
+            <button class="admin-modal__close" type="button" data-modal-close aria-label="Close">
+              ✕
+            </button>
+          </header>
+          <div class="admin-modal__body" id="appointmentModalBody"></div>
+        </div>
+      </div>
     </main>
 
     <!-- FOOTER (same structure as index.html) -->
@@ -244,6 +354,7 @@
       </div>
 
 
+    <script src="admin.js"></script>
     <script type="module">
       import "./site-auth-ui.js";
       import { watchAuthState, isAdminUser } from "./auth-backend.js";

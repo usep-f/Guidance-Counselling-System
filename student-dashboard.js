@@ -87,6 +87,12 @@ import {
   const calDays = document.querySelector("#calDays");
   const slotGrid = document.querySelector("#slotGrid");
   const reviewBox = document.querySelector("#reviewBox");
+  const dashYear = document.getElementById("dashYear");
+  const dashCourse = document.getElementById("dashCourse");
+  const profileNameInput = document.getElementById("profileName");
+  const profileStudentNoInput = document.getElementById("profileStudentNo");
+  const profileYearLevelInput = document.getElementById("profileYearLevel");
+  const profileProgramInput = document.getElementById("profileProgram");
 
   const prevMonthBtn = document.querySelector("[data-cal-prev]");
   const nextMonthBtn = document.querySelector("[data-cal-next]");
@@ -103,7 +109,7 @@ import {
       step.classList.toggle("is-done", idx < active);
     });
 
-    if (active === 3) buildReview();
+    if (active === panels.length - 1) buildReview();
   }
 
   function validatePanel(index) {
@@ -251,22 +257,54 @@ import {
     renderCalendar();
   });
 
+  function readFieldValue(field, fallback = "-") {
+    if (!field) return fallback;
+    if (field.tagName === "SELECT") {
+      return field.selectedOptions?.[0]?.textContent || field.value || fallback;
+    }
+    return field.value || fallback;
+  }
+
   function buildReview() {
     const data = new FormData(form);
+    const nameValue = readFieldValue(profileNameInput, "Student");
+    const studentNoValue = readFieldValue(profileStudentNoInput, "-");
+    const yearValue = readFieldValue(profileYearLevelInput, dashYear?.textContent || "Year Level");
+    const courseValue = readFieldValue(profileProgramInput, dashCourse?.textContent || "Program");
     const items = [
-      ["Name", data.get("studentName")],
-      ["Student ID", data.get("studentId")],
-      ["Grade/Year", data.get("gradeLevel")],
-      ["Contact", data.get("contactNo")],
-      ["Email", data.get("email")],
-      ["Section/Program", data.get("section")],
+      ["Full Name", nameValue],
+      ["Student No.", studentNoValue],
+      ["Year Level", yearValue],
+      ["Course", courseValue],
       ["Reason", data.get("topic")],
       ["Session Type", data.get("mode")],
       ["Date", data.get("appointmentDate")],
       ["Time", data.get("appointmentTime")],
     ];
 
-    reviewBox.innerHTML = items.map(([label, value]) => `<p><strong>${label}:</strong> ${value || "-"}</p>`).join("");
+    const studentItems = items.slice(0, 4);
+    const appointmentItems = items.slice(4);
+
+    reviewBox.innerHTML = `
+      <div class="review__section">
+        <h3 class="review__title">Student Details</h3>
+        ${studentItems
+          .map(
+            ([label, value]) =>
+              `<p class="review__item"><strong>${label}:</strong> ${value || "-"}</p>`
+          )
+          .join("")}
+      </div>
+      <div class="review__section">
+        <h3 class="review__title">Appointment Details</h3>
+        ${appointmentItems
+          .map(
+            ([label, value]) =>
+              `<p class="review__item"><strong>${label}:</strong> ${value || "-"}</p>`
+          )
+          .join("")}
+      </div>
+    `;
   }
 
   renderCalendar();
@@ -276,15 +314,15 @@ import {
 /* Dashboard demo data */
 (function studentDashboard() {
   const pendingList = document.getElementById("pendingList");
-  const trendBox = document.getElementById("trendBox");
-  const sessionList = document.getElementById("sessionList");
 
-  if (!pendingList || !trendBox || !sessionList) return;
+  if (!pendingList) return;
 
   const dashName = document.getElementById("dashName");
   const dashInitials = document.getElementById("dashInitials");
   const dashEmail = document.getElementById("dashEmail");
   const dashContact = document.getElementById("dashContact");
+  const dashYear = document.getElementById("dashYear");
+  const dashCourse = document.getElementById("dashCourse");
 
   const dashSub = document.getElementById("dashSub");
   const dashProfile = document.querySelector(".dash-profile");
@@ -308,20 +346,6 @@ import {
     { date: "2026-02-10", time: "09:00 AM", type: "Online", status: "Scheduled" },
   ];
 
-  const progress = {
-    trend: [
-      { label: "Session 1", pct: 35 },
-      { label: "Session 2", pct: 50 },
-      { label: "Session 3", pct: 64 },
-      { label: "Session 4", pct: 72 },
-    ],
-    history: [
-      { title: "Session #4", meta: "Jan 18, 2026 · Wellness Check-in", tag: "Improving" },
-      { title: "Session #3", meta: "Jan 04, 2026 · Academic Stress", tag: "Stable" },
-      { title: "Session #2", meta: "Dec 15, 2025 · Time Management", tag: "Stable" },
-      { title: "Session #1", meta: "Dec 01, 2025 · Intake & Goals", tag: "Starting" },
-    ],
-  };
 
   function initials(name) {
     return name
@@ -358,11 +382,15 @@ import {
     const displayName = profile.name || user?.displayName || "Student";
     const email = profile.email || user?.email || "-";
     const contact = profile.contact || "Not provided";
+    const year = profile.gradeLevel || "Year Level";
+    const course = profile.program || "Program";
 
     if (dashName) dashName.textContent = displayName;
     if (dashInitials) dashInitials.textContent = initials(displayName);
     if (dashEmail) dashEmail.textContent = email;
     if (dashContact) dashContact.textContent = contact;
+    if (dashYear) dashYear.textContent = year;
+    if (dashCourse) dashCourse.textContent = course;
     if (dashSub) dashSub.innerHTML = formatSubline(profile);
   }
 
@@ -454,39 +482,9 @@ import {
       .join("");
   }
 
-  function renderProgress() {
-    trendBox.innerHTML = progress.trend
-      .map((item) => {
-        return `
-    <div class="pm-row">
-      <span class="pm-label">${item.label}</span>
-      <div class="pm-bar" aria-label="${item.label} ${item.pct}%">
-        <div class="pm-fill" style="width:${item.pct}%"></div>
-      </div>
-      <span class="pm-value">${item.pct}%</span>
-    </div>
-  `;
-      })
-      .join("");
-
-    sessionList.innerHTML = progress.history
-      .map((item) => {
-        return `
-        <article class="session-item">
-          <div>
-            <p class="session-item__title">${item.title}</p>
-            <p class="session-item__meta">${item.meta}</p>
-          </div>
-          <span class="tag">${item.tag}</span>
-        </article>
-      `;
-      })
-      .join("");
-  }
 
   renderProfile();
   renderPending();
-  renderProgress();
 
   if (editProfileBtn && dashProfile) {
     editProfileBtn.addEventListener("click", () => {
