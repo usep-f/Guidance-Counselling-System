@@ -285,6 +285,10 @@ import {
   const dashInitials = document.getElementById("dashInitials");
   const dashEmail = document.getElementById("dashEmail");
   const dashContact = document.getElementById("dashContact");
+  const dashYear = document.getElementById("dashYear");
+  const dashCourse = document.getElementById("dashCourse");
+  const navUserName = document.getElementById("navUserName");
+  const navUserInitials = document.getElementById("navUserInitials");
 
   const dashSub = document.getElementById("dashSub");
   const dashProfile = document.querySelector(".dash-profile");
@@ -358,11 +362,17 @@ import {
     const displayName = profile.name || user?.displayName || "Student";
     const email = profile.email || user?.email || "-";
     const contact = profile.contact || "Not provided";
+    const year = profile.gradeLevel || "Year Level";
+    const course = profile.program || "Program";
 
     if (dashName) dashName.textContent = displayName;
     if (dashInitials) dashInitials.textContent = initials(displayName);
+    if (navUserName) navUserName.textContent = displayName;
+    if (navUserInitials) navUserInitials.textContent = initials(displayName);
     if (dashEmail) dashEmail.textContent = email;
     if (dashContact) dashContact.textContent = contact;
+    if (dashYear) dashYear.textContent = year;
+    if (dashCourse) dashCourse.textContent = course;
     if (dashSub) dashSub.innerHTML = formatSubline(profile);
   }
 
