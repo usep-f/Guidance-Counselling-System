@@ -137,6 +137,31 @@ section[id]{
 /* Nav CTA */
 .nav-cta{ white-space: nowrap; }
 
+.nav-cta--user{
+  gap: 8px;
+}
+
+.nav-cta__avatar{
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.22);
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.nav-cta__initials{
+  font-weight: 900;
+  font-size: 11px;
+  color: #ffffff;
+}
+
+.nav-cta__name{
+  white-space: nowrap;
+}
+
 /* Mobile nav toggle */
 .nav-toggle{
   display: none;
