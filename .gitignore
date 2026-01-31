@@ -4,6 +4,8 @@ node_modules/
 # Firebase Admin secret keys (NEVER commit)
 admin-tools/*.json
 admin-tools/serviceAccountKey.json
+admin-tools/set-admin-claim.cjs
+.firebase
 
 # Local env files (if you use them)
 .env
