@@ -193,6 +193,10 @@
   display: none;
 }
 
+.dash-profile.is-editing .dash-actions{
+  display: none;
+}
+
 .dash-form__grid{
   display: grid;
   gap: 10px;
