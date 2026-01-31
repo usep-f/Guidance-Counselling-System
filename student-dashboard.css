@@ -193,7 +193,7 @@
   display: none;
 }
 
-.dash-profile.is-editing .dash-actions{
+.dash-profile.is-editing .dash-actions--edit{
   display: none;
 }
 
