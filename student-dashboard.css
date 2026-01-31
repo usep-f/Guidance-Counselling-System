@@ -159,6 +159,10 @@
   display: none;
 }
 
+.dash-profile.is-editing .dash-actions--edit{
+  display: none;
+}
+
 .dash-form__grid{
   display: grid;
   gap: 10px;
@@ -182,6 +186,11 @@
 .dash-input:disabled{
   background: rgba(255,255,255,0.6);
   color: rgba(15, 47, 42, 0.5);
+}
+
+.dash-info__hint{
+  font-size: 11px;
+  color: rgba(15, 47, 42, 0.6);
 }
 
 .dash-form__status{
@@ -671,6 +680,24 @@
   gap: 8px;
   font-size: 12px;
   color: rgba(15, 47, 42, 0.70);
+}
+
+.review__section{
+  display: grid;
+  gap: 6px;
+}
+
+.review__title{
+  margin: 0;
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: rgba(15, 47, 42, 0.55);
+}
+
+.review__item{
+  margin: 0;
 }
 
 .review-note{
