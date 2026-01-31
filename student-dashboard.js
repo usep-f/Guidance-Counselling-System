@@ -87,6 +87,8 @@ import {
   const calDays = document.querySelector("#calDays");
   const slotGrid = document.querySelector("#slotGrid");
   const reviewBox = document.querySelector("#reviewBox");
+  const dashYear = document.getElementById("dashYear");
+  const dashCourse = document.getElementById("dashCourse");
 
   const prevMonthBtn = document.querySelector("[data-cal-prev]");
   const nextMonthBtn = document.querySelector("[data-cal-next]");
@@ -253,8 +255,8 @@ import {
 
   function buildReview() {
     const data = new FormData(form);
-    const yearValue = bookingYear?.textContent || "Year Level";
-    const courseValue = bookingCourse?.textContent || "Program";
+    const yearValue = dashYear?.textContent || "Year Level";
+    const courseValue = dashCourse?.textContent || "Program";
     const items = [
       ["Year", yearValue],
       ["Course", courseValue],
@@ -285,8 +287,6 @@ import {
   const dashCourse = document.getElementById("dashCourse");
   const navUserName = document.getElementById("navUserName");
   const navUserInitials = document.getElementById("navUserInitials");
-  const bookingYear = document.getElementById("bookingYear");
-  const bookingCourse = document.getElementById("bookingCourse");
 
   const dashSub = document.getElementById("dashSub");
   const dashProfile = document.querySelector(".dash-profile");
@@ -357,8 +357,6 @@ import {
     if (dashContact) dashContact.textContent = contact;
     if (dashYear) dashYear.textContent = year;
     if (dashCourse) dashCourse.textContent = course;
-    if (bookingYear) bookingYear.textContent = year;
-    if (bookingCourse) bookingCourse.textContent = course;
     if (dashSub) dashSub.innerHTML = formatSubline(profile);
   }
 
