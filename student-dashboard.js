@@ -276,10 +276,8 @@ import {
 /* Dashboard demo data */
 (function studentDashboard() {
   const pendingList = document.getElementById("pendingList");
-  const trendBox = document.getElementById("trendBox");
-  const sessionList = document.getElementById("sessionList");
 
-  if (!pendingList || !trendBox || !sessionList) return;
+  if (!pendingList) return;
 
   const dashName = document.getElementById("dashName");
   const dashInitials = document.getElementById("dashInitials");
@@ -312,20 +310,6 @@ import {
     { date: "2026-02-10", time: "09:00 AM", type: "Online", status: "Scheduled" },
   ];
 
-  const progress = {
-    trend: [
-      { label: "Session 1", pct: 35 },
-      { label: "Session 2", pct: 50 },
-      { label: "Session 3", pct: 64 },
-      { label: "Session 4", pct: 72 },
-    ],
-    history: [
-      { title: "Session #4", meta: "Jan 18, 2026 · Wellness Check-in", tag: "Improving" },
-      { title: "Session #3", meta: "Jan 04, 2026 · Academic Stress", tag: "Stable" },
-      { title: "Session #2", meta: "Dec 15, 2025 · Time Management", tag: "Stable" },
-      { title: "Session #1", meta: "Dec 01, 2025 · Intake & Goals", tag: "Starting" },
-    ],
-  };
 
   function initials(name) {
     return name
@@ -464,39 +448,9 @@ import {
       .join("");
   }
 
-  function renderProgress() {
-    trendBox.innerHTML = progress.trend
-      .map((item) => {
-        return `
-    <div class="pm-row">
-      <span class="pm-label">${item.label}</span>
-      <div class="pm-bar" aria-label="${item.label} ${item.pct}%">
-        <div class="pm-fill" style="width:${item.pct}%"></div>
-      </div>
-      <span class="pm-value">${item.pct}%</span>
-    </div>
-  `;
-      })
-      .join("");
-
-    sessionList.innerHTML = progress.history
-      .map((item) => {
-        return `
-        <article class="session-item">
-          <div>
-            <p class="session-item__title">${item.title}</p>
-            <p class="session-item__meta">${item.meta}</p>
-          </div>
-          <span class="tag">${item.tag}</span>
-        </article>
-      `;
-      })
-      .join("");
-  }
 
   renderProfile();
   renderPending();
-  renderProgress();
 
   if (editProfileBtn && dashProfile) {
     editProfileBtn.addEventListener("click", () => {
