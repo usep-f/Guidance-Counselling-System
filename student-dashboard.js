@@ -89,6 +89,10 @@ import {
   const reviewBox = document.querySelector("#reviewBox");
   const dashYear = document.getElementById("dashYear");
   const dashCourse = document.getElementById("dashCourse");
+  const profileNameInput = document.getElementById("profileName");
+  const profileStudentNoInput = document.getElementById("profileStudentNo");
+  const profileYearLevelInput = document.getElementById("profileYearLevel");
+  const profileProgramInput = document.getElementById("profileProgram");
 
   const prevMonthBtn = document.querySelector("[data-cal-prev]");
   const nextMonthBtn = document.querySelector("[data-cal-next]");
@@ -253,12 +257,24 @@ import {
     renderCalendar();
   });
 
+  function readFieldValue(field, fallback = "-") {
+    if (!field) return fallback;
+    if (field.tagName === "SELECT") {
+      return field.selectedOptions?.[0]?.textContent || field.value || fallback;
+    }
+    return field.value || fallback;
+  }
+
   function buildReview() {
     const data = new FormData(form);
-    const yearValue = dashYear?.textContent || "Year Level";
-    const courseValue = dashCourse?.textContent || "Program";
+    const nameValue = readFieldValue(profileNameInput, "Student");
+    const studentNoValue = readFieldValue(profileStudentNoInput, "-");
+    const yearValue = readFieldValue(profileYearLevelInput, dashYear?.textContent || "Year Level");
+    const courseValue = readFieldValue(profileProgramInput, dashCourse?.textContent || "Program");
     const items = [
-      ["Year", yearValue],
+      ["Full Name", nameValue],
+      ["Student No.", studentNoValue],
+      ["Year Level", yearValue],
       ["Course", courseValue],
       ["Reason", data.get("topic")],
       ["Session Type", data.get("mode")],
@@ -266,7 +282,29 @@ import {
       ["Time", data.get("appointmentTime")],
     ];
 
-    reviewBox.innerHTML = items.map(([label, value]) => `<p><strong>${label}:</strong> ${value || "-"}</p>`).join("");
+    const studentItems = items.slice(0, 4);
+    const appointmentItems = items.slice(4);
+
+    reviewBox.innerHTML = `
+      <div class="review__section">
+        <h3 class="review__title">Student Details</h3>
+        ${studentItems
+          .map(
+            ([label, value]) =>
+              `<p class="review__item"><strong>${label}:</strong> ${value || "-"}</p>`
+          )
+          .join("")}
+      </div>
+      <div class="review__section">
+        <h3 class="review__title">Appointment Details</h3>
+        ${appointmentItems
+          .map(
+            ([label, value]) =>
+              `<p class="review__item"><strong>${label}:</strong> ${value || "-"}</p>`
+          )
+          .join("")}
+      </div>
+    `;
   }
 
   renderCalendar();

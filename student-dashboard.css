@@ -682,6 +682,24 @@
   color: rgba(15, 47, 42, 0.70);
 }
 
+.review__section{
+  display: grid;
+  gap: 6px;
+}
+
+.review__title{
+  margin: 0;
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: rgba(15, 47, 42, 0.55);
+}
+
+.review__item{
+  margin: 0;
+}
+
 .review-note{
   margin: 12px 0 0;
   font-size: 12px;
