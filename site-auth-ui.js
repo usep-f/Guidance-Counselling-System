@@ -11,11 +11,40 @@ document.documentElement.classList.add("auth-pending");
 
 const navCta = document.querySelector(".nav-cta");
 const logoutBtn = document.getElementById("logoutBtn");
+const navbar = document.querySelector(".navbar");
+let navUser = document.querySelector(".nav-user");
+let navUserInitials = document.getElementById("navUserInitials");
+let navUserName = document.getElementById("navUserName");
 
 // Mobile nav toggle + close on link click (works on every page that has the navbar)
 const toggleBtn = document.querySelector(".nav-toggle");
 const nav = document.querySelector("[data-nav]");
-const navbar = document.querySelector(".navbar");
+function buildInitials(label = "") {
+  return label
+    .split(" ")
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part[0].toUpperCase())
+    .join("");
+}
+
+function ensureNavUser() {
+  if (navUser || !navbar) return;
+
+  navUser = document.createElement("div");
+  navUser.className = "nav-user";
+  navUser.setAttribute("aria-label", "Logged in user");
+  navUser.innerHTML = `
+    <div class="nav-user__avatar" aria-hidden="true">
+      <span class="nav-user__initials" id="navUserInitials">U</span>
+    </div>
+    <span class="nav-user__name" id="navUserName">User</span>
+  `;
+
+  navUserInitials = navUser.querySelector("#navUserInitials");
+  navUserName = navUser.querySelector("#navUserName");
+  navCta?.before(navUser);
+}
 
 if (toggleBtn && nav) {
   toggleBtn.addEventListener("click", () => {
@@ -57,6 +86,18 @@ function setPostAuthRedirect(href) {
 
 watchAuthState(async (user) => {
   currentUser = user || null;
+
+  ensureNavUser();
+  if (navUser) {
+    if (user) {
+      const label = getAccountLabel(user);
+      navUserInitials.textContent = buildInitials(label || "User");
+      navUserName.textContent = label || "User";
+      navUser.style.display = "inline-flex";
+    } else {
+      navUser.style.display = "none";
+    }
+  }
 
   if (navCta && navCta.id !== "logoutBtn") {
     if (!user) {
