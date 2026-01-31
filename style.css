@@ -137,37 +137,28 @@ section[id]{
 /* Nav CTA */
 .nav-cta{ white-space: nowrap; }
 
-.nav-user{
-  display: inline-flex;
-  align-items: center;
-  gap: 10px;
-  padding: 6px 12px;
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.85);
-  border: 1px solid var(--border);
-  font-weight: 800;
-  font-size: 13px;
-  color: rgba(15, 47, 42, 0.9);
+.nav-cta--user{
+  gap: 8px;
 }
 
-.nav-user__avatar{
-  width: 34px;
-  height: 34px;
+.nav-cta__avatar{
+  width: 30px;
+  height: 30px;
   border-radius: 50%;
-  background: rgba(31, 185, 129, 0.18);
-  border: 1px solid rgba(31, 185, 129, 0.3);
+  background: rgba(255, 255, 255, 0.22);
+  border: 1px solid rgba(255, 255, 255, 0.5);
   display: inline-flex;
   align-items: center;
   justify-content: center;
 }
 
-.nav-user__initials{
+.nav-cta__initials{
   font-weight: 900;
-  font-size: 12px;
-  color: rgba(15, 47, 42, 0.85);
+  font-size: 11px;
+  color: #ffffff;
 }
 
-.nav-user__name{
+.nav-cta__name{
   white-space: nowrap;
 }
 

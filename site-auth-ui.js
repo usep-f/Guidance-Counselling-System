@@ -12,9 +12,6 @@ document.documentElement.classList.add("auth-pending");
 const navCta = document.querySelector(".nav-cta");
 const logoutBtn = document.getElementById("logoutBtn");
 const navbar = document.querySelector(".navbar");
-let navUser = document.querySelector(".nav-user");
-let navUserInitials = document.getElementById("navUserInitials");
-let navUserName = document.getElementById("navUserName");
 
 // Mobile nav toggle + close on link click (works on every page that has the navbar)
 const toggleBtn = document.querySelector(".nav-toggle");
@@ -26,24 +23,6 @@ function buildInitials(label = "") {
     .slice(0, 2)
     .map((part) => part[0].toUpperCase())
     .join("");
-}
-
-function ensureNavUser() {
-  if (navUser || !navbar) return;
-
-  navUser = document.createElement("div");
-  navUser.className = "nav-user";
-  navUser.setAttribute("aria-label", "Logged in user");
-  navUser.innerHTML = `
-    <div class="nav-user__avatar" aria-hidden="true">
-      <span class="nav-user__initials" id="navUserInitials">U</span>
-    </div>
-    <span class="nav-user__name" id="navUserName">User</span>
-  `;
-
-  navUserInitials = navUser.querySelector("#navUserInitials");
-  navUserName = navUser.querySelector("#navUserName");
-  navCta?.before(navUser);
 }
 
 if (toggleBtn && nav) {
@@ -87,20 +66,9 @@ function setPostAuthRedirect(href) {
 watchAuthState(async (user) => {
   currentUser = user || null;
 
-  ensureNavUser();
-  if (navUser) {
-    if (user) {
-      const label = getAccountLabel(user);
-      navUserInitials.textContent = buildInitials(label || "User");
-      navUserName.textContent = label || "User";
-      navUser.style.display = "inline-flex";
-    } else {
-      navUser.style.display = "none";
-    }
-  }
-
   if (navCta && navCta.id !== "logoutBtn") {
     if (!user) {
+      navCta.classList.remove("nav-cta--user");
       navCta.innerHTML = `Login / Register <span class="btn__icon" aria-hidden="true">→</span>`;
       navCta.setAttribute("href", "index.html#login");
       navCta.onclick = (e) => {
@@ -109,7 +77,14 @@ watchAuthState(async (user) => {
       };
     } else {
       const label = getAccountLabel(user);
-      navCta.textContent = label;
+      const initials = buildInitials(label || "User");
+      navCta.classList.add("nav-cta--user");
+      navCta.innerHTML = `
+        <span class="nav-cta__avatar" aria-hidden="true">
+          <span class="nav-cta__initials">${initials || "U"}</span>
+        </span>
+        <span class="nav-cta__name">${label || "User"}</span>
+      `;
 
       const landing = await getLandingPageForUser(user);
       navCta.setAttribute("href", landing);

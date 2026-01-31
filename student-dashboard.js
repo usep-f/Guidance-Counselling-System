@@ -285,8 +285,6 @@ import {
   const dashContact = document.getElementById("dashContact");
   const dashYear = document.getElementById("dashYear");
   const dashCourse = document.getElementById("dashCourse");
-  const navUserName = document.getElementById("navUserName");
-  const navUserInitials = document.getElementById("navUserInitials");
 
   const dashSub = document.getElementById("dashSub");
   const dashProfile = document.querySelector(".dash-profile");
@@ -351,8 +349,6 @@ import {
 
     if (dashName) dashName.textContent = displayName;
     if (dashInitials) dashInitials.textContent = initials(displayName);
-    if (navUserName) navUserName.textContent = displayName;
-    if (navUserInitials) navUserInitials.textContent = initials(displayName);
     if (dashEmail) dashEmail.textContent = email;
     if (dashContact) dashContact.textContent = contact;
     if (dashYear) dashYear.textContent = year;
