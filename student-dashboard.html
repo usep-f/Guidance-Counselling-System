@@ -285,6 +285,17 @@
           </p>
         </header>
 
+        <div class="dash-info booking-info" aria-label="Student summary">
+          <div class="dash-info__row">
+            <span class="dash-info__label">Year</span>
+            <span class="dash-info__value" id="bookingYear">Year Level</span>
+          </div>
+          <div class="dash-info__row">
+            <span class="dash-info__label">Course</span>
+            <span class="dash-info__value" id="bookingCourse">Program</span>
+          </div>
+        </div>
+
         <section class="booking-wrap">
           <!-- LEFT: Form -->
           <form class="booking-card" id="bookingForm">
@@ -292,18 +303,14 @@
             <div class="booking-steps" aria-label="Booking progress">
               <button class="bstep is-active" type="button" data-step="0">
                 <span class="bstep__dot">1</span>
-                <span class="bstep__label">Student Info</span>
+                <span class="bstep__label">Appointment Details</span>
               </button>
               <button class="bstep" type="button" data-step="1">
                 <span class="bstep__dot">2</span>
-                <span class="bstep__label">Appointment Details</span>
+                <span class="bstep__label">Date & Time</span>
               </button>
               <button class="bstep" type="button" data-step="2">
                 <span class="bstep__dot">3</span>
-                <span class="bstep__label">Date & Time</span>
-              </button>
-              <button class="bstep" type="button" data-step="3">
-                <span class="bstep__dot">4</span>
                 <span class="bstep__label">Review</span>
               </button>
             </div>
@@ -312,112 +319,6 @@
             <div class="booking-panels">
               <!-- Step 1 -->
               <section class="bpanel is-active" data-panel="0">
-                <h2 class="bpanel__title">Student Information</h2>
-
-                <div class="bgrid">
-                  <div class="field">
-                    <label class="field__label" for="studentName"
-                      >Full Name</label
-                    >
-                    <input
-                      class="field__input"
-                      id="studentName"
-                      name="studentName"
-                      type="text"
-                      required
-                    />
-                  </div>
-
-                  <div class="field">
-                    <label class="field__label" for="studentId"
-                      >Student ID</label
-                    >
-                    <input
-                      class="field__input"
-                      id="studentId"
-                      name="studentId"
-                      type="text"
-                      required
-                    />
-                  </div>
-
-                  <div class="field">
-                    <label class="field__label" for="gradeLevel"
-                      >Grade/Year Level</label
-                    >
-                    <select
-                      class="field__input"
-                      id="gradeLevel"
-                      name="gradeLevel"
-                      required
-                    >
-                      <option value="" selected disabled>Select</option>
-                      <option>Grade 7</option>
-                      <option>Grade 8</option>
-                      <option>Grade 9</option>
-                      <option>Grade 10</option>
-                      <option>Grade 11</option>
-                      <option>Grade 12</option>
-                      <option>1st Year</option>
-                      <option>2nd Year</option>
-                      <option>3rd Year</option>
-                      <option>4th Year</option>
-                    </select>
-                  </div>
-
-                  <div class="field">
-                    <label class="field__label" for="contactNo"
-                      >Contact Number</label
-                    >
-                    <input
-                      class="field__input"
-                      id="contactNo"
-                      name="contactNo"
-                      type="tel"
-                      required
-                    />
-                  </div>
-
-                  <div class="field">
-                    <label class="field__label" for="email">Email</label>
-                    <input
-                      class="field__input"
-                      id="email"
-                      name="email"
-                      type="email"
-                      required
-                    />
-                  </div>
-
-                  <div class="field">
-                    <label class="field__label" for="section"
-                      >Section / Program</label
-                    >
-                    <input
-                      class="field__input"
-                      id="section"
-                      name="section"
-                      type="text"
-                      placeholder="e.g., STEM / BSIT"
-                      required
-                    />
-                  </div>
-                </div>
-
-                <div class="bactions">
-                  <span></span>
-                  <button
-                    class="btn btn--pill btn--primary"
-                    type="button"
-                    data-next
-                  >
-                    Next <span class="btn__icon" aria-hidden="true">→</span>
-                  </button>
-                </div>
-              </section>
-
-              <!-- Step 2 -->
-              <section class="bpanel" data-panel="1">
                 <h2 class="bpanel__title">Appointment Details</h2>
 
                 <div class="bgrid">
@@ -481,8 +382,8 @@
                 </div>
               </section>
 
-              <!-- Step 3 -->
-              <section class="bpanel" data-panel="2">
+              <!-- Step 2 -->
+              <section class="bpanel" data-panel="1">
                 <h2 class="bpanel__title">Select Date & Time</h2>
 
                 <!-- Hidden values to submit -->
@@ -568,8 +469,8 @@
                 </div>
               </section>
 
-              <!-- Step 4 -->
-              <section class="bpanel" data-panel="3">
+              <!-- Step 3 -->
+              <section class="bpanel" data-panel="2">
                 <h2 class="bpanel__title">Review & Submit</h2>
 
                 <div class="review" id="reviewBox">

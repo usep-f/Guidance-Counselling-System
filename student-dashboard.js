@@ -253,13 +253,11 @@ import {
 
   function buildReview() {
     const data = new FormData(form);
+    const yearValue = bookingYear?.textContent || "Year Level";
+    const courseValue = bookingCourse?.textContent || "Program";
     const items = [
-      ["Name", data.get("studentName")],
-      ["Student ID", data.get("studentId")],
-      ["Grade/Year", data.get("gradeLevel")],
-      ["Contact", data.get("contactNo")],
-      ["Email", data.get("email")],
-      ["Section/Program", data.get("section")],
+      ["Year", yearValue],
+      ["Course", courseValue],
       ["Reason", data.get("topic")],
       ["Session Type", data.get("mode")],
       ["Date", data.get("appointmentDate")],
@@ -287,6 +285,8 @@ import {
   const dashCourse = document.getElementById("dashCourse");
   const navUserName = document.getElementById("navUserName");
   const navUserInitials = document.getElementById("navUserInitials");
+  const bookingYear = document.getElementById("bookingYear");
+  const bookingCourse = document.getElementById("bookingCourse");
 
   const dashSub = document.getElementById("dashSub");
   const dashProfile = document.querySelector(".dash-profile");
@@ -357,6 +357,8 @@ import {
     if (dashContact) dashContact.textContent = contact;
     if (dashYear) dashYear.textContent = year;
     if (dashCourse) dashCourse.textContent = course;
+    if (bookingYear) bookingYear.textContent = year;
+    if (bookingCourse) bookingCourse.textContent = course;
     if (dashSub) dashSub.innerHTML = formatSubline(profile);
   }
 
