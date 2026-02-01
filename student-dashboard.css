@@ -138,6 +138,7 @@
   font-weight: 800;
   color: rgba(15, 47, 42, 0.80);
   text-align: right;
+  overflow-wrap: anywhere;
 }
 
 .dash-actions{
@@ -199,6 +200,30 @@
   font-size: 12px;
   font-weight: 700;
   color: rgba(31,185,129,1);
+}
+
+@media (max-width: 720px){
+  .dash-profile__top{
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .dash-profile__name{
+    font-size: 20px;
+  }
+
+  .dash-info{
+    gap: 12px;
+  }
+
+  .dash-info__row{
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .dash-info__value{
+    text-align: left;
+  }
 }
   
 
