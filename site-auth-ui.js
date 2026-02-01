@@ -12,6 +12,7 @@ document.documentElement.classList.add("auth-pending");
 const navCta = document.querySelector(".nav-cta");
 const logoutBtn = document.getElementById("logoutBtn");
 const navbar = document.querySelector(".navbar");
+const dashboardLink = document.querySelector("[data-dashboard-link]");
 
 // Mobile nav toggle + close on link click (works on every page that has the navbar)
 const toggleBtn = document.querySelector(".nav-toggle");
@@ -65,6 +66,7 @@ function setPostAuthRedirect(href) {
 
 watchAuthState(async (user) => {
   currentUser = user || null;
+  let landing = null;
 
   if (navCta && navCta.id !== "logoutBtn") {
     if (!user) {
@@ -86,10 +88,23 @@ watchAuthState(async (user) => {
         <span class="nav-cta__name">${label || "User"}</span>
       `;
 
-      const landing = await getLandingPageForUser(user);
+      landing = await getLandingPageForUser(user);
       navCta.setAttribute("href", landing);
 
       navCta.onclick = null;
+    }
+  }
+
+  if (dashboardLink) {
+    if (user) {
+      if (!landing) {
+        landing = await getLandingPageForUser(user);
+      }
+      dashboardLink.setAttribute("href", landing);
+      dashboardLink.classList.add("is-visible");
+    } else {
+      dashboardLink.setAttribute("href", "#");
+      dashboardLink.classList.remove("is-visible");
     }
   }
 
