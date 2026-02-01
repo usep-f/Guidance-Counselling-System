@@ -22,8 +22,10 @@ export function watchAuthState(onChange) {
   return onAuthStateChanged(auth, (user) => onChange(user || null));
 }
 
-export function getAccountLabel(user) {
+export async function getAccountLabel(user) {
   if (!user) return "";
+  const admin = await isAdminUser(user);
+  if (admin) return "Admin";
   return user.displayName || user.email || "Account";
 }
 

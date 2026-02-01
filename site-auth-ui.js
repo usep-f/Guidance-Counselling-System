@@ -78,7 +78,7 @@ watchAuthState(async (user) => {
         openLoginUX();
       };
     } else {
-      const label = getAccountLabel(user);
+      const label = await getAccountLabel(user);
       const initials = buildInitials(label || "User");
       navCta.classList.add("nav-cta--user");
       navCta.innerHTML = `
