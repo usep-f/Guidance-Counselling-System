@@ -50,6 +50,7 @@
 @media (max-width: 720px){
   .dashboard-tabs{
     position: static;
+    display: none;
   }
 
   .dashboard-tab{
