@@ -63,8 +63,9 @@
   }
 
   .dash-info__value{
-    text-align: left;
+    text-align: center;
     word-break: break-word;
+    width: 100%;
   }
 }
 
