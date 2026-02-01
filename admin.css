@@ -99,6 +99,10 @@ section[id]{
   transition: background 150ms ease, color 150ms ease;
 }
 
+.nav-link--dashboard{
+  display: none;
+}
+
 .nav-link:hover{
   background: rgba(15, 47, 42, 0.05);
   color: rgba(15, 47, 42, 0.95);
@@ -241,7 +245,6 @@ section[id]{
 }
 
 @media (max-width: 780px){
-  @media (max-width: 780px){
   /* keep top row layout: logo left, hamburger right */
   .navbar{
     position: relative;       /* anchor dropdown */
@@ -251,6 +254,10 @@ section[id]{
   .brand{
     flex: 1;                  /* pushes hamburger to the right */
     min-width: 0;
+  }
+
+  .brand__text{
+    display: none;
   }
 
   .nav-toggle{
@@ -313,8 +320,10 @@ section[id]{
     padding: 12px 12px;
     border-radius: 12px;
   }
-}
 
+  .nav-link--dashboard.is-visible{
+    display: block;
+  }
 
   .hero__inner{
     grid-template-columns: 1fr;
