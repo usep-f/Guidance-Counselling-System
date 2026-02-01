@@ -101,10 +101,17 @@ watchAuthState(async (user) => {
         landing = await getLandingPageForUser(user);
       }
       dashboardLink.setAttribute("href", landing);
+      dashboardLink.textContent = "Dashboard";
       dashboardLink.classList.add("is-visible");
+      dashboardLink.onclick = null;
     } else {
-      dashboardLink.setAttribute("href", "#");
-      dashboardLink.classList.remove("is-visible");
+      dashboardLink.setAttribute("href", "index.html#login");
+      dashboardLink.textContent = "Login";
+      dashboardLink.classList.add("is-visible");
+      dashboardLink.onclick = (e) => {
+        e.preventDefault();
+        openLoginUX();
+      };
     }
   }
 
