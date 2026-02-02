@@ -539,31 +539,56 @@ const payload = {
     return "good";
   }
 
-  function renderPending() {
-    if (!appointments.length) {
-      pendingList.innerHTML = `<p class="form-hint">No pending appointments.</p>`;
-      return;
-    }
+function escapeHtml(str = "") {
+  return String(str).replace(/[&<>"']/g, (m) => ({
+    "&": "&amp;",
+    "<": "&lt;",
+    ">": "&gt;",
+    '"': "&quot;",
+    "'": "&#39;"
+  }[m]));
+}
 
-    pendingList.innerHTML = appointments
-      .map((item) => {
-        const date = item.date || "-";
-        const time = item.time || "-";
-        const mode = item.mode || "-";
-        const status = item.status || "-";
+function renderPending() {
+  if (!appointments.length) {
+    pendingList.innerHTML = `<p class="form-hint">No pending appointments.</p>`;
+    return;
+  }
 
-        return `
+  pendingList.innerHTML = appointments
+    .map((item) => {
+      const date = item.date || "-";
+      const time = item.time || "-";
+      const mode = item.mode || "-";
+      const status = item.status || "-";
+
+      const reason = item.reason || "-";
+      const notes = item.notes || ""; // booking message
+      const studentNo = item.studentNo || ""; // kung sinave mo na sa payload
+      const studentName = item.studentName || ""; // optional
+
+      return `
         <article class="dash-item">
-          <div>
-            <p class="dash-item__title">${date} · ${time}</p>
-            <p class="dash-item__meta">${mode}</p>
+          <div class="dash-item__content">
+            <p class="dash-item__title">${escapeHtml(date)} · ${escapeHtml(time)}</p>
+            <p class="dash-item__meta">${escapeHtml(mode)}</p>
+
+            <p class="dash-item__detail"><strong>Reason:</strong> ${escapeHtml(reason)}</p>
+
+            ${notes ? `<p class="dash-item__detail"><strong>Message:</strong> ${escapeHtml(notes)}</p>` : ""}
+
+            ${(studentNo || studentName)
+              ? `<p class="dash-item__detail"><strong>Student:</strong> ${escapeHtml(studentNo)} ${studentName ? `· ${escapeHtml(studentName)}` : ""}</p>`
+              : ""}
           </div>
-          <span class="dash-pill" data-variant="${statusVariant(status)}">${status}</span>
+
+          <span class="dash-pill" data-variant="${statusVariant(status)}">${escapeHtml(status)}</span>
         </article>
       `;
-      })
-      .join("");
-  }
+    })
+    .join("");
+}
+
 
   function subscribePendingAppointments(user) {
     if (unsubscribeAppointments) {
@@ -576,22 +601,33 @@ const payload = {
 
     if (!user) return;
 
-    const q = query(
-      collection(db, "appointments"),
-      where("studentId", "==", user.uid),
-      orderBy("createdAt", "desc")
-    );
+const q = query(
+  collection(db, "appointments"),
+  where("studentId", "==", user.uid)
+);
 
-    unsubscribeAppointments = onSnapshot(
-      q,
-      (snap) => {
-        appointments = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
-        renderPending();
-      },
-      (err) => {
-        console.error(err);
-      }
-    );
+
+
+unsubscribeAppointments = onSnapshot(
+  q,
+  (snap) => {
+    appointments = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+
+    // sort newest first (createdAt is Timestamp)
+    appointments.sort((a, b) => {
+      const at = a.createdAt?.seconds || 0;
+      const bt = b.createdAt?.seconds || 0;
+      return bt - at;
+    });
+
+    renderPending();
+  },
+  (err) => {
+    console.error(err);
+    pendingList.innerHTML = `<p class="form-hint">Unable to load appointments.</p>`;
+  }
+);
+
   }
 
   renderProfile();
