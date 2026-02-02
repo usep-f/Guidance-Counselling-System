@@ -6,7 +6,7 @@ import {
   getLandingPageForUser
 } from "./auth-backend.js";
 
-// Prevent flicker
+// Prevent flicker by hiding content until auth state is resolved
 document.documentElement.classList.add("auth-pending");
 
 const navCta = document.querySelector(".nav-cta");
@@ -17,6 +17,11 @@ const dashboardLink = document.querySelector("[data-dashboard-link]");
 // Mobile nav toggle + close on link click (works on every page that has the navbar)
 const toggleBtn = document.querySelector(".nav-toggle");
 const nav = document.querySelector("[data-nav]");
+
+/**
+ * Name: buildInitials
+ * Description: Generates a 2-letter uppercase initial string from a user's display label.
+ */
 function buildInitials(label = "") {
   return label
     .split(" ")
@@ -27,11 +32,13 @@ function buildInitials(label = "") {
 }
 
 if (toggleBtn && nav) {
+  // Handle mobile menu expansion
   toggleBtn.addEventListener("click", () => {
     const isOpen = nav.classList.toggle("is-open");
     toggleBtn.setAttribute("aria-expanded", String(isOpen));
   });
 
+  // Automatically close mobile menu when a navigation link is clicked
   nav.addEventListener("click", (e) => {
     const link = e.target.closest("a");
     if (!link) return;
@@ -40,6 +47,7 @@ if (toggleBtn && nav) {
   });
 }
 
+// Close mobile menu if user clicks outside the navigation bar
 document.addEventListener("click", (e) => {
   if (!navbar || !nav || !toggleBtn) return;
   if (!navbar.contains(e.target)) {
@@ -50,6 +58,10 @@ document.addEventListener("click", (e) => {
 
 let currentUser = null;
 
+/**
+ * Name: openLoginUX
+ * Description: Opens the login modal or redirects to the landing page to trigger authentication.
+ */
 function openLoginUX() {
   // If index page has modal handler exposed, open it
   if (typeof window.__openAuthModal === "function") {
@@ -60,16 +72,23 @@ function openLoginUX() {
   window.location.href = "index.html#login";
 }
 
+/**
+ * Name: setPostAuthRedirect
+ * Description: Stores the intended destination URL in sessionStorage for redirection after successful login.
+ */
 function setPostAuthRedirect(href) {
   sessionStorage.setItem("postAuthRedirect", href);
 }
 
+// Global listener for Firebase Auth changes
 watchAuthState(async (user) => {
   currentUser = user || null;
   let landing = null;
 
+  // Update the primary navigation Call-To-Action (CTA) button
   if (navCta && navCta.id !== "logoutBtn") {
     if (!user) {
+      // Show generic Login/Register button for guests
       navCta.classList.remove("nav-cta--user");
       navCta.innerHTML = `Login / Register <span class="btn__icon" aria-hidden="true">→</span>`;
       navCta.setAttribute("href", "index.html#login");
@@ -78,6 +97,7 @@ watchAuthState(async (user) => {
         openLoginUX();
       };
     } else {
+      // Show user profile avatar and label for authenticated users
       const label = await getAccountLabel(user);
       const initials = buildInitials(label || "User");
       navCta.classList.add("nav-cta--user");
@@ -95,6 +115,7 @@ watchAuthState(async (user) => {
     }
   }
 
+  // Update specific dashboard links visibility and targets
   if (dashboardLink) {
     if (user) {
       if (!landing) {
@@ -115,11 +136,12 @@ watchAuthState(async (user) => {
     }
   }
 
+  // Toggle global logout button visibility
   if (logoutBtn) {
     logoutBtn.style.display = user ? "inline-flex" : "none";
   }
 
-  // auth resolved
+  // Resolve auth resolution and reveal page content
   document.documentElement.classList.remove("auth-pending");
 });
 
@@ -134,8 +156,10 @@ if (logoutBtn) {
   });
 }
 
-// OPTIONAL: gate any links that require auth.
-// Add data-requires-auth="true" to <a> tags you want protected.
+/**
+ * Handle route protection for links with data-requires-auth="true"
+ * Redirects guests to login and saves their intended destination.
+ */
 document.addEventListener("click", (e) => {
   const a = e.target.closest("a");
   if (!a) return;

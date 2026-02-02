@@ -6,7 +6,8 @@ import {
   setDoc,
   serverTimestamp
 } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
-/* Student dashboard tabs */
+
+/* Student dashboard tabs management */
 (function () {
   const tabs = Array.from(document.querySelectorAll("[data-dashboard-tab]"));
   if (!tabs.length) return;
@@ -15,6 +16,10 @@ import {
     .map((tab) => document.querySelector(tab.getAttribute("href")))
     .filter(Boolean);
 
+  /**
+   * Name: setActive
+   * Description: Updates the active tab and section visibility for the student dashboard.
+   */
   function setActive(targetId) {
     tabs.forEach((tab) => {
       const isActive = tab.getAttribute("href") === `#${targetId}`;
@@ -33,6 +38,7 @@ import {
     });
   });
 
+  // Use IntersectionObserver to highlight tabs as the user scrolls through the dashboard
   if ("IntersectionObserver" in window) {
     const observer = new IntersectionObserver(
       (entries) => {
@@ -64,7 +70,7 @@ import {
   });
 })();
 
-/* Booking stepper + calendar (demo) */
+/* Booking stepper + calendar (demo logic) */
 (function () {
   const form = document.querySelector("#bookingForm");
   if (!form) return;
@@ -100,6 +106,10 @@ import {
   let view = new Date();
   view.setDate(1);
 
+  /**
+   * Name: setActiveStep
+   * Description: Manages the active panel and progress indicators in the booking stepper.
+   */
   function setActiveStep(index) {
     active = Math.max(0, Math.min(index, panels.length - 1));
 
@@ -109,9 +119,14 @@ import {
       step.classList.toggle("is-done", idx < active);
     });
 
+    // Build the summary review on the final step
     if (active === panels.length - 1) buildReview();
   }
 
+  /**
+   * Name: validatePanel
+   * Description: Validates required input fields within the current stepper panel before proceeding.
+   */
   function validatePanel(index) {
     const panel = panels[index];
     const required = Array.from(panel.querySelectorAll("[required]"));
@@ -159,24 +174,44 @@ import {
     setActiveStep(0);
   });
 
+  /**
+   * Name: pad
+   * Description: Helper function to pad single-digit numbers with a leading zero (e.g., for dates).
+   */
   function pad(value) {
     return String(value).padStart(2, "0");
   }
 
+  /**
+   * Name: fmtKey
+   * Description: Formats a year, month, and day into a standardized YYYY-MM-DD string.
+   */
   function fmtKey(year, month, day) {
     return `${year}-${pad(month)}-${pad(day)}`;
   }
 
+  /**
+   * Name: monthName
+   * Description: Converts a Date object into a human-readable month and year string.
+   */
   function monthName(date) {
     return date.toLocaleString("en-US", { month: "long", year: "numeric" });
   }
 
+  /**
+   * Name: clearSelection
+   * Description: Resets the date and time selection in the booking UI.
+   */
   function clearSelection() {
     dateInput.value = "";
     timeInput.value = "";
     slotGrid.innerHTML = `<p class="slot-hint">Select an available date to view time slots.</p>`;
   }
 
+  /**
+   * Name: renderSlots
+   * Description: Renders the available time slots for a selected date from the availability pool.
+   */
   function renderSlots(dateKey) {
     const slots = availability[dateKey] || [];
     slotGrid.innerHTML = "";
@@ -202,6 +237,10 @@ import {
     });
   }
 
+  /**
+   * Name: renderCalendar
+   * Description: Generates and displays the interactive booking calendar for the current month view.
+   */
   function renderCalendar() {
     const year = view.getFullYear();
     const month = view.getMonth();
@@ -212,12 +251,14 @@ import {
     calTitle.textContent = monthName(view);
     calDays.innerHTML = "";
 
+    // Render leading blank days for the calendar grid
     for (let i = 0; i < startDow; i++) {
       const blank = document.createElement("div");
       blank.className = "cal-day is-muted";
       calDays.appendChild(blank);
     }
 
+    // Render each day of the month
     for (let day = 1; day <= daysInMonth; day++) {
       const key = fmtKey(year, month + 1, day);
       const hasAvail = Boolean(availability[key]);
@@ -257,6 +298,10 @@ import {
     renderCalendar();
   });
 
+  /**
+   * Name: readFieldValue
+   * Description: Safely reads and formats values from various input types for the summary review.
+   */
   function readFieldValue(field, fallback = "-") {
     if (!field) return fallback;
     if (field.tagName === "SELECT") {
@@ -265,12 +310,18 @@ import {
     return field.value || fallback;
   }
 
+  /**
+   * Name: buildReview
+   * Description: Generates the HTML summary of the student's selected appointment details for final review.
+   */
   function buildReview() {
     const data = new FormData(form);
     const nameValue = readFieldValue(profileNameInput, "Student");
     const studentNoValue = readFieldValue(profileStudentNoInput, "-");
     const yearValue = readFieldValue(profileYearLevelInput, dashYear?.textContent || "Year Level");
     const courseValue = readFieldValue(profileProgramInput, dashCourse?.textContent || "Program");
+
+    // Map the selected data for review
     const items = [
       ["Full Name", nameValue],
       ["Student No.", studentNoValue],
@@ -311,7 +362,7 @@ import {
   setActiveStep(0);
 })();
 
-/* Dashboard demo data */
+/* Dashboard profile and appointment logic */
 (function studentDashboard() {
   const pendingList = document.getElementById("pendingList");
 
@@ -341,12 +392,16 @@ import {
   let currentProfile = null;
   let currentUser = null;
 
+  // Demo appointment data
   const appointments = [
     { date: "2026-02-03", time: "10:00 AM", type: "In-Person", status: "Pending Approval" },
     { date: "2026-02-10", time: "09:00 AM", type: "Online", status: "Scheduled" },
   ];
 
-
+  /**
+   * Name: initials
+   * Description: Extracts the first letters of the first and last name to create a user avatar label.
+   */
   function initials(name) {
     return name
       .split(" ")
@@ -356,11 +411,19 @@ import {
       .join("");
   }
 
+  /**
+   * Name: setStatus
+   * Description: Displays temporary status messages (e.g., "Profile updated") in the profile settings.
+   */
   function setStatus(message) {
     if (!profileStatus) return;
     profileStatus.textContent = message || "";
   }
 
+  /**
+   * Name: formatSubline
+   * Description: Formats student metadata (ID, year, program) into a single display string.
+   */
   function formatSubline({ studentNo, gradeLevel, program }) {
     const safeId = studentNo ? `<strong>${studentNo}</strong>` : "<strong>-</strong>";
     const safeLevel = gradeLevel || "Year Level";
@@ -368,6 +431,10 @@ import {
     return `Student ID: ${safeId} · ${safeLevel} · ${safeProgram}`;
   }
 
+  /**
+   * Name: fillProfileForm
+   * Description: Populates the profile edit form with the user's current data from Firestore.
+   */
   function fillProfileForm(profile) {
     if (!profileForm) return;
     profileNameInput.value = profile.name || "";
@@ -378,6 +445,10 @@ import {
     profileEmailInput.value = profile.email || "";
   }
 
+  /**
+   * Name: renderProfile
+   * Description: Updates the dashboard UI elements with the user's profile information.
+   */
   function renderProfile(profile={}, user) {
     const displayName = profile.name || user?.displayName || "Student";
     const email = profile.email || user?.email || "-";
@@ -394,6 +465,10 @@ import {
     if (dashSub) dashSub.innerHTML = formatSubline(profile);
   }
 
+  /**
+   * Name: loadProfile
+   * Description: Fetches the student's profile document from Firestore based on their UID.
+   */
   async function loadProfile(user) {
     const baseProfile = {
       name: user?.displayName || "",
@@ -422,6 +497,10 @@ import {
     }
   }
 
+  /**
+   * Name: saveProfile
+   * Description: Saves updated profile information to Firestore and updates the Auth display name.
+   */
   async function saveProfile() {
     if (!currentUser || !profileForm) return;
     setStatus("");
@@ -442,9 +521,12 @@ import {
     try {
       const ref = doc(db, "students", currentUser.uid);
       await setDoc(ref, { ...payload, updatedAt: serverTimestamp() }, { merge: true });
+
+      // Update the user's display name in Firebase Auth for consistency
       if (payload.name && currentUser.displayName !== payload.name) {
         await updateProfile(currentUser, { displayName: payload.name });
       }
+
       currentProfile = { ...currentProfile, ...payload };
       renderProfile(currentProfile, currentUser);
       fillProfileForm(currentProfile);
@@ -455,12 +537,20 @@ import {
     }
   }
 
+  /**
+   * Name: statusVariant
+   * Description: Determines the CSS data-variant for appointment status pills.
+   */
   function statusVariant(status) {
     const text = status.toLowerCase();
     if (text.includes("pending")) return "warn";
     return "good";
   }
 
+  /**
+   * Name: renderPending
+   * Description: Renders the list of upcoming or pending appointments on the dashboard.
+   */
   function renderPending() {
     if (!appointments.length) {
       pendingList.innerHTML = `<p class="form-hint">No pending appointments.</p>`;
@@ -486,6 +576,7 @@ import {
   renderProfile();
   renderPending();
 
+  // Profile editing toggle listeners
   if (editProfileBtn && dashProfile) {
     editProfileBtn.addEventListener("click", () => {
       dashProfile.classList.add("is-editing");
@@ -510,6 +601,7 @@ import {
     });
   }
 
+  // Monitor Auth state to load the correct profile
   onAuthStateChanged(auth, (user) => {
     currentUser = user;
     loadProfile(user);
