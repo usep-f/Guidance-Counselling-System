@@ -9,6 +9,10 @@
       .map((tab) => document.querySelector(tab.getAttribute("href")))
       .filter(Boolean);
 
+    /**
+     * Name: setActiveTab
+     * Description: Sets the active dashboard tab and its corresponding section visibility.
+     */
     function setActiveTab(targetId) {
       tabs.forEach((tab) => {
         const isActive = tab.getAttribute("href") === `#${targetId}`;
@@ -27,6 +31,7 @@
       });
     });
 
+    // Use IntersectionObserver to highlight tabs as the user scrolls
     if ("IntersectionObserver" in window) {
       const observer = new IntersectionObserver(
         (entries) => {
@@ -184,6 +189,10 @@
 
   let activeAppointmentFilter = "pending";
 
+  /**
+   * Name: matchesFilters
+   * Description: Checks if a data row matches the current dashboard filters (time, grade, search).
+   */
   function matchesFilters(row){
     const timeVal = elTime?.value || "30";
     const gradeVal = elGrade?.value || "all";
@@ -211,6 +220,10 @@
     return true;
   }
 
+  /**
+   * Name: countBy
+   * Description: Aggregates data by a specific key to produce counts for charts/KPIs.
+   */
   function countBy(rows, key){
     const out = {};
     rows.forEach(r => {
@@ -220,6 +233,10 @@
     return out;
   }
 
+  /**
+   * Name: topKey
+   * Description: Identifies the key with the highest count from an aggregate object.
+   */
   function topKey(counts){
     let best = { k: "-", v: -1 };
     Object.keys(counts).forEach(k => {
@@ -228,6 +245,10 @@
     return best.k;
   }
 
+  /**
+   * Name: renderBars
+   * Description: Dynamically creates and renders bar charts for emotional states and triggers.
+   */
   function renderBars(container, counts, order){
     const total = Object.values(counts).reduce((a,b) => a + b, 0) || 1;
     container.innerHTML = "";
@@ -252,6 +273,10 @@
     });
   }
 
+  /**
+   * Name: pillHTML
+   * Description: Generates the HTML for status pills with appropriate color variants.
+   */
   function pillHTML(text){
     let variant = "done";
     if (text.toLowerCase().includes("pending")) variant = "warn";
@@ -261,6 +286,10 @@
     return `<span class="admin-pill" data-variant="${variant}">${text}</span>`;
   }
 
+  /**
+   * Name: renderTable
+   * Description: Renders the recent concerns table with filtered demo data.
+   */
   function renderTable(rows){
     tableEl.innerHTML = rows
       .slice(0, 8)
@@ -279,6 +308,10 @@
       .join("");
   }
 
+  /**
+   * Name: matchesUserFilters
+   * Description: Filters the enrolled user list based on search query, grade, and program.
+   */
   function matchesUserFilters(user) {
     const query = (userSearch?.value || "").trim().toLowerCase();
     const grade = userGrade?.value || "all";
@@ -300,6 +333,10 @@
     return true;
   }
 
+  /**
+   * Name: renderUserList
+   * Description: Displays the list of enrolled students in the Directory tab.
+   */
   function renderUserList() {
     if (!enrolledList) return;
     const rows = enrolledUsers.filter(matchesUserFilters);
@@ -334,6 +371,10 @@
       .join("");
   }
 
+  /**
+   * Name: openUserModal
+   * Description: Opens and populates the modal with a specific student's detailed profile and history.
+   */
   function openUserModal(userId) {
     if (!userModal || !userModalBody || !userModalTitle) return;
     const user = enrolledUsers.find((item) => item.id === userId);
@@ -366,22 +407,38 @@
     userModal.setAttribute("aria-hidden", "false");
   }
 
+  /**
+   * Name: closeModal
+   * Description: Closes the specified modal and updates ARIA attributes.
+   */
   function closeModal(modal) {
     if (!modal) return;
     modal.classList.remove("is-open");
     modal.setAttribute("aria-hidden", "true");
   }
 
+  /**
+   * Name: normalizeStatus
+   * Description: Standardizes status strings for consistent comparison logic.
+   */
   function normalizeStatus(status) {
     return status.toLowerCase();
   }
 
+  /**
+   * Name: statusVariant
+   * Description: Determines the visual variant (color) for appointment status pills.
+   */
   function statusVariant(status) {
     const text = normalizeStatus(status);
     if (text.includes("pending")) return "warn";
     return "done";
   }
 
+  /**
+   * Name: renderAppointments
+   * Description: Renders the list of appointments filtered by the active tab (Pending/Completed).
+   */
   function renderAppointments() {
     if (!appointmentList) return;
 
@@ -443,6 +500,10 @@
       .join("");
   }
 
+  /**
+   * Name: openAppointmentModal
+   * Description: Opens the appointment details modal for the counselor to add notes and finalize sessions.
+   */
   function openAppointmentModal(appointmentId) {
     if (!appointmentModal || !appointmentModalBody || !appointmentModalTitle) return;
     const appt = appointments.find((item) => item.id === appointmentId);
@@ -492,19 +553,26 @@
     appointmentModal.setAttribute("aria-hidden", "false");
   }
 
+  /**
+   * Name: update
+   * Description: The primary refresh function that recalculates analytics and updates all dashboard UI elements.
+   */
   function update(){
     const rows = demo.filter(matchesFilters);
 
+    // Calculate aggregated data for the bar charts
     const emotionCounts = countBy(rows, "emotion");
     const triggerCounts = countBy(rows, "trigger");
 
     const emotionOrder = ["Stress", "Anxiety", "Depression"];
     const triggerOrder = ["Family", "Financial", "Academic", "Peer"];
 
+    // Refresh UI components
     renderBars(emotionsEl, emotionCounts, emotionOrder);
     renderBars(triggersEl, triggerCounts, triggerOrder);
     renderTable(rows);
 
+    // Update KPI cards
     const totalConcerns = rows.length;
     kpiTotalConcerns.textContent = String(totalConcerns);
     kpiTopEmotion.textContent = topKey(emotionCounts);
@@ -519,6 +587,10 @@
     kpiTotalConcernsHint.textContent = rangeText;
   }
 
+  /**
+   * Name: reset
+   * Description: Resets all dashboard filters to their default values and refreshes the view.
+   */
   function reset(){
     elTime.value = "30";
     elGrade.value = "all";
@@ -526,6 +598,10 @@
     update();
   }
 
+  /**
+   * Name: exportSummary
+   * Description: Generates and downloads a text file summary of the current emotional states and triggers.
+   */
   function exportSummary(){
     const rows = demo.filter(matchesFilters);
     const emotionCounts = countBy(rows, "emotion");
@@ -541,6 +617,7 @@
     lines.push("Environmental Triggers");
     Object.keys(triggerCounts).forEach(k => lines.push(`${k},${triggerCounts[k]}`));
 
+    // Create a blob and trigger a browser download
     const blob = new Blob([lines.join("\n")], { type: "text/plain;charset=utf-8" });
     const url = URL.createObjectURL(blob);
 
@@ -554,6 +631,7 @@
     URL.revokeObjectURL(url);
   }
 
+  // Event listeners for dashboard controls
   elTime.addEventListener("change", update);
   elGrade.addEventListener("change", update);
   elSearch.addEventListener("input", update);
