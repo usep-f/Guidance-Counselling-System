@@ -152,50 +152,28 @@
     }
   ];
 
-  const appointments = [
-    {
-      id: "APT-001",
-      studentId: "2024-00123",
-      name: "Juan Dela Cruz",
-      year: "Grade 12",
-      course: "STEM",
-      email: "juan.delacruz@school.edu",
-      reason: "Academic Concern",
-      mode: "In-Person",
-      date: "2026-01-16",
-      time: "10:00 AM",
-      status: "Pending",
-      hidden: false
-    },
-    {
-      id: "APT-002",
-      studentId: "2024-00456",
-      name: "Maria Santos",
-      year: "Grade 11",
-      course: "ABM",
-      email: "maria.santos@school.edu",
-      reason: "Personal Concern",
-      mode: "Online",
-      date: "2026-01-18",
-      time: "01:30 PM",
-      status: "Accepted",
-      hidden: false
-    },
-    {
-      id: "APT-003",
-      studentId: "2024-00589",
-      name: "Kyle Ramirez",
-      year: "Grade 10",
-      course: "HUMSS",
-      email: "kyle.ramirez@school.edu",
-      reason: "Mental Wellness",
-      mode: "In-Person",
-      date: "2025-12-11",
-      time: "09:30 AM",
-      status: "Completed",
-      hidden: false
-    }
-  ];
+  // ============================
+  // ✅ APPOINTMENT CHANGE ONLY:
+  // Start EMPTY appointments (user will insert new appointments)
+  // ============================
+  let appointments = [];
+
+  // Optional helper: add appointment later
+  // window.addAppointment({ id:"APT-001", studentId:"2024-00123", name:"Juan Dela Cruz", year:"Grade 12", course:"STEM", email:"juan.delacruz@school.edu", reason:"Academic Concern", mode:"In-Person", date:"2026-02-10", time:"10:00 AM", status:"Pending", hidden:false });
+  window.addAppointment = function addAppointment(appt){
+    if (!appt || typeof appt !== "object") return;
+    // default fields if missing
+    if (typeof appt.hidden === "undefined") appt.hidden = false;
+    if (!appt.status) appt.status = "Pending";
+    appointments.push(appt);
+    renderAppointments();
+  };
+
+  // Optional helper: clear all appointments
+  window.clearAppointments = function clearAppointments(){
+    appointments = [];
+    renderAppointments();
+  };
 
   let activeAppointmentFilter = "pending";
 
@@ -534,7 +512,6 @@
       <div class="admin-detail">
         <div class="admin-detail__block">
           <h3>Appointment Details</h3>
-          <p><strong>Message:</strong> ${appt.notes || "-"}</p>
           <p><strong>Student ID:</strong> ${appt.studentId}</p>
           <p><strong>Year & Course:</strong> ${appt.year} · ${appt.course}</p>
           <p><strong>Reason:</strong> ${appt.reason}</p>
