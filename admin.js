@@ -534,6 +534,7 @@
       <div class="admin-detail">
         <div class="admin-detail__block">
           <h3>Appointment Details</h3>
+          <p><strong>Message:</strong> ${appt.notes || "-"}</p>
           <p><strong>Student ID:</strong> ${appt.studentId}</p>
           <p><strong>Year & Course:</strong> ${appt.year} · ${appt.course}</p>
           <p><strong>Reason:</strong> ${appt.reason}</p>

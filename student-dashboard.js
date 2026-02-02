@@ -4,8 +4,17 @@ import {
   doc,
   getDoc,
   setDoc,
-  serverTimestamp
+  serverTimestamp,
+  collection,
+  addDoc,
+  query,
+  where,
+  orderBy,
+  onSnapshot
 } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
+
+// Shared auth user for the whole file (booking + dashboard)
+let currentUser = null;
 
 /* Student dashboard tabs management */
 (function () {
@@ -16,10 +25,6 @@ import {
     .map((tab) => document.querySelector(tab.getAttribute("href")))
     .filter(Boolean);
 
-  /**
-   * Name: setActive
-   * Description: Updates the active tab and section visibility for the student dashboard.
-   */
   function setActive(targetId) {
     tabs.forEach((tab) => {
       const isActive = tab.getAttribute("href") === `#${targetId}`;
@@ -38,14 +43,11 @@ import {
     });
   });
 
-  // Use IntersectionObserver to highlight tabs as the user scrolls through the dashboard
   if ("IntersectionObserver" in window) {
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            setActive(entry.target.id);
-          }
+          if (entry.isIntersecting) setActive(entry.target.id);
         });
       },
       { rootMargin: "-30% 0px -60% 0px" }
@@ -70,7 +72,7 @@ import {
   });
 })();
 
-/* Booking stepper + calendar (demo logic) */
+/* Booking stepper + calendar */
 (function () {
   const form = document.querySelector("#bookingForm");
   if (!form) return;
@@ -79,6 +81,7 @@ import {
   const panels = Array.from(form.querySelectorAll(".bpanel"));
   let active = 0;
 
+  // DEMO availability (pwede mo palitan later ng Firestore availability)
   const availability = {
     "2026-02-03": ["09:00 AM", "10:00 AM", "02:00 PM"],
     "2026-02-05": ["11:00 AM", "01:00 PM", "03:00 PM"],
@@ -106,10 +109,6 @@ import {
   let view = new Date();
   view.setDate(1);
 
-  /**
-   * Name: setActiveStep
-   * Description: Manages the active panel and progress indicators in the booking stepper.
-   */
   function setActiveStep(index) {
     active = Math.max(0, Math.min(index, panels.length - 1));
 
@@ -119,20 +118,27 @@ import {
       step.classList.toggle("is-done", idx < active);
     });
 
-    // Build the summary review on the final step
     if (active === panels.length - 1) buildReview();
   }
 
-  /**
-   * Name: validatePanel
-   * Description: Validates required input fields within the current stepper panel before proceeding.
-   */
+  // Slightly better validation (handles checkboxes/radios)
+  function isFieldValid(el) {
+    if (!el) return false;
+    if (el.type === "checkbox") return el.checked;
+    if (el.type === "radio") {
+      const name = el.name;
+      if (!name) return false;
+      return !!form.querySelector(`input[type="radio"][name="${CSS.escape(name)}"]:checked`);
+    }
+    return !!String(el.value || "").trim();
+  }
+
   function validatePanel(index) {
     const panel = panels[index];
     const required = Array.from(panel.querySelectorAll("[required]"));
 
     for (const el of required) {
-      if (!el.value) {
+      if (!isFieldValid(el)) {
         el.focus?.();
         return false;
       }
@@ -162,56 +168,85 @@ import {
     }
   });
 
-  form.addEventListener("submit", (event) => {
+  // ✅ REAL booking submit → saves to Firestore → pending list auto updates
+  form.addEventListener("submit", async (event) => {
     event.preventDefault();
     if (!validatePanel(active)) return;
 
-    alert("Appointment request submitted (demo).");
-    form.reset();
-    dateInput.value = "";
-    timeInput.value = "";
-    renderCalendar();
-    setActiveStep(0);
+    if (!currentUser) {
+      alert("Please log in first.");
+      return;
+    }
+
+    const data = new FormData(form);
+
+ // get student profile fields (studentNo, name) from Firestore
+let studentNo = "";
+let studentName = currentUser.displayName || "";
+
+try {
+  const profileSnap = await getDoc(doc(db, "students", currentUser.uid));
+  if (profileSnap.exists()) {
+    const p = profileSnap.data();
+    studentNo = p.studentNo || "";
+    studentName = p.name || studentName;
+  }
+} catch (e) {
+  console.warn("Could not fetch student profile for appointment metadata.", e);
+}
+
+const payload = {
+  // Auth UID (technical)
+  studentId: currentUser.uid,
+
+  // Human-readable identity for admin
+  studentNo: studentNo,               // <-- STUDENT NUMBER ENTERED
+  studentName: studentName || "",     // optional, helpful
+
+  reason: data.get("topic") || "",
+  mode: data.get("mode") || "",
+  date: data.get("appointmentDate") || "",
+  time: data.get("appointmentTime") || "",
+  notes: (data.get("notes") || "").trim(),
+  status: "Pending Approval",
+  createdAt: serverTimestamp(),
+  updatedAt: serverTimestamp(),
+};
+
+
+    try {
+      await addDoc(collection(db, "appointments"), payload);
+
+      alert("Appointment request submitted.");
+      form.reset();
+      dateInput.value = "";
+      timeInput.value = "";
+      renderCalendar();
+      setActiveStep(0);
+    } catch (err) {
+      console.error(err);
+      alert("Unable to submit appointment right now. Please try again.");
+    }
   });
 
-  /**
-   * Name: pad
-   * Description: Helper function to pad single-digit numbers with a leading zero (e.g., for dates).
-   */
   function pad(value) {
     return String(value).padStart(2, "0");
   }
 
-  /**
-   * Name: fmtKey
-   * Description: Formats a year, month, and day into a standardized YYYY-MM-DD string.
-   */
   function fmtKey(year, month, day) {
     return `${year}-${pad(month)}-${pad(day)}`;
   }
 
-  /**
-   * Name: monthName
-   * Description: Converts a Date object into a human-readable month and year string.
-   */
   function monthName(date) {
     return date.toLocaleString("en-US", { month: "long", year: "numeric" });
   }
 
-  /**
-   * Name: clearSelection
-   * Description: Resets the date and time selection in the booking UI.
-   */
   function clearSelection() {
     dateInput.value = "";
     timeInput.value = "";
     slotGrid.innerHTML = `<p class="slot-hint">Select an available date to view time slots.</p>`;
   }
 
-  /**
-   * Name: renderSlots
-   * Description: Renders the available time slots for a selected date from the availability pool.
-   */
   function renderSlots(dateKey) {
     const slots = availability[dateKey] || [];
     slotGrid.innerHTML = "";
@@ -237,10 +272,6 @@ import {
     });
   }
 
-  /**
-   * Name: renderCalendar
-   * Description: Generates and displays the interactive booking calendar for the current month view.
-   */
   function renderCalendar() {
     const year = view.getFullYear();
     const month = view.getMonth();
@@ -251,17 +282,16 @@ import {
     calTitle.textContent = monthName(view);
     calDays.innerHTML = "";
 
-    // Render leading blank days for the calendar grid
     for (let i = 0; i < startDow; i++) {
       const blank = document.createElement("div");
       blank.className = "cal-day is-muted";
       calDays.appendChild(blank);
     }
 
-    // Render each day of the month
     for (let day = 1; day <= daysInMonth; day++) {
       const key = fmtKey(year, month + 1, day);
-      const hasAvail = Boolean(availability[key]);
+      const slots = availability[key];
+      const hasAvail = Array.isArray(slots) && slots.length > 0;
 
       const cell = document.createElement("button");
       cell.type = "button";
@@ -269,9 +299,7 @@ import {
       cell.textContent = String(day);
       if (!hasAvail) cell.disabled = true;
 
-      if (dateInput.value === key) {
-        cell.classList.add("is-selected");
-      }
+      if (dateInput.value === key) cell.classList.add("is-selected");
 
       cell.addEventListener("click", () => {
         calDays.querySelectorAll(".cal-day").forEach((el) => el.classList.remove("is-selected"));
@@ -298,10 +326,6 @@ import {
     renderCalendar();
   });
 
-  /**
-   * Name: readFieldValue
-   * Description: Safely reads and formats values from various input types for the summary review.
-   */
   function readFieldValue(field, fallback = "-") {
     if (!field) return fallback;
     if (field.tagName === "SELECT") {
@@ -310,10 +334,16 @@ import {
     return field.value || fallback;
   }
 
-  /**
-   * Name: buildReview
-   * Description: Generates the HTML summary of the student's selected appointment details for final review.
-   */
+  function escapeHtml(str = "") {
+    return String(str).replace(/[&<>"']/g, (m) => ({
+      "&": "&amp;",
+      "<": "&lt;",
+      ">": "&gt;",
+      '"': "&quot;",
+      "'": "&#39;"
+    }[m]));
+  }
+
   function buildReview() {
     const data = new FormData(form);
     const nameValue = readFieldValue(profileNameInput, "Student");
@@ -321,7 +351,6 @@ import {
     const yearValue = readFieldValue(profileYearLevelInput, dashYear?.textContent || "Year Level");
     const courseValue = readFieldValue(profileProgramInput, dashCourse?.textContent || "Program");
 
-    // Map the selected data for review
     const items = [
       ["Full Name", nameValue],
       ["Student No.", studentNoValue],
@@ -340,18 +369,16 @@ import {
       <div class="review__section">
         <h3 class="review__title">Student Details</h3>
         ${studentItems
-          .map(
-            ([label, value]) =>
-              `<p class="review__item"><strong>${label}:</strong> ${value || "-"}</p>`
+          .map(([label, value]) =>
+            `<p class="review__item"><strong>${escapeHtml(label)}:</strong> ${escapeHtml(value || "-")}</p>`
           )
           .join("")}
       </div>
       <div class="review__section">
         <h3 class="review__title">Appointment Details</h3>
         ${appointmentItems
-          .map(
-            ([label, value]) =>
-              `<p class="review__item"><strong>${label}:</strong> ${value || "-"}</p>`
+          .map(([label, value]) =>
+            `<p class="review__item"><strong>${escapeHtml(label)}:</strong> ${escapeHtml(value || "-")}</p>`
           )
           .join("")}
       </div>
@@ -365,8 +392,11 @@ import {
 /* Dashboard profile and appointment logic */
 (function studentDashboard() {
   const pendingList = document.getElementById("pendingList");
-
   if (!pendingList) return;
+
+  // ✅ empty by default, new account shows "No pending appointments."
+  let appointments = [];
+  let unsubscribeAppointments = null;
 
   const dashName = document.getElementById("dashName");
   const dashInitials = document.getElementById("dashInitials");
@@ -390,18 +420,7 @@ import {
   const profileEmailInput = document.getElementById("profileEmail");
 
   let currentProfile = null;
-  let currentUser = null;
 
-  // Demo appointment data
-  const appointments = [
-    { date: "2026-02-03", time: "10:00 AM", type: "In-Person", status: "Pending Approval" },
-    { date: "2026-02-10", time: "09:00 AM", type: "Online", status: "Scheduled" },
-  ];
-
-  /**
-   * Name: initials
-   * Description: Extracts the first letters of the first and last name to create a user avatar label.
-   */
   function initials(name) {
     return name
       .split(" ")
@@ -411,30 +430,18 @@ import {
       .join("");
   }
 
-  /**
-   * Name: setStatus
-   * Description: Displays temporary status messages (e.g., "Profile updated") in the profile settings.
-   */
   function setStatus(message) {
     if (!profileStatus) return;
     profileStatus.textContent = message || "";
   }
 
-  /**
-   * Name: formatSubline
-   * Description: Formats student metadata (ID, year, program) into a single display string.
-   */
   function formatSubline({ studentNo, gradeLevel, program }) {
-    const safeId = studentNo ? `<strong>${studentNo}</strong>` : "<strong>-</strong>";
+    const safeId = studentNo || "-";
     const safeLevel = gradeLevel || "Year Level";
     const safeProgram = program || "Program";
     return `Student ID: ${safeId} · ${safeLevel} · ${safeProgram}`;
   }
 
-  /**
-   * Name: fillProfileForm
-   * Description: Populates the profile edit form with the user's current data from Firestore.
-   */
   function fillProfileForm(profile) {
     if (!profileForm) return;
     profileNameInput.value = profile.name || "";
@@ -445,11 +452,7 @@ import {
     profileEmailInput.value = profile.email || "";
   }
 
-  /**
-   * Name: renderProfile
-   * Description: Updates the dashboard UI elements with the user's profile information.
-   */
-  function renderProfile(profile={}, user) {
+  function renderProfile(profile = {}, user) {
     const displayName = profile.name || user?.displayName || "Student";
     const email = profile.email || user?.email || "-";
     const contact = profile.contact || "Not provided";
@@ -462,13 +465,11 @@ import {
     if (dashContact) dashContact.textContent = contact;
     if (dashYear) dashYear.textContent = year;
     if (dashCourse) dashCourse.textContent = course;
-    if (dashSub) dashSub.innerHTML = formatSubline(profile);
+
+    // safer than innerHTML
+    if (dashSub) dashSub.textContent = formatSubline(profile);
   }
 
-  /**
-   * Name: loadProfile
-   * Description: Fetches the student's profile document from Firestore based on their UID.
-   */
   async function loadProfile(user) {
     const baseProfile = {
       name: user?.displayName || "",
@@ -490,6 +491,7 @@ import {
       renderProfile(currentProfile, user);
       fillProfileForm(currentProfile);
     } catch (err) {
+      console.error(err);
       currentProfile = baseProfile;
       renderProfile(currentProfile, user);
       fillProfileForm(currentProfile);
@@ -497,10 +499,6 @@ import {
     }
   }
 
-  /**
-   * Name: saveProfile
-   * Description: Saves updated profile information to Firestore and updates the Auth display name.
-   */
   async function saveProfile() {
     if (!currentUser || !profileForm) return;
     setStatus("");
@@ -514,15 +512,12 @@ import {
       email: currentUser.email || ""
     };
 
-    if (!payload.contact) {
-      delete payload.contact;
-    }
+    if (!payload.contact) delete payload.contact;
 
     try {
       const ref = doc(db, "students", currentUser.uid);
       await setDoc(ref, { ...payload, updatedAt: serverTimestamp() }, { merge: true });
 
-      // Update the user's display name in Firebase Auth for consistency
       if (payload.name && currentUser.displayName !== payload.name) {
         await updateProfile(currentUser, { displayName: payload.name });
       }
@@ -533,24 +528,17 @@ import {
       dashProfile?.classList.remove("is-editing");
       setStatus("Profile updated.");
     } catch (err) {
+      console.error(err);
       setStatus("Unable to save profile right now.");
     }
   }
 
-  /**
-   * Name: statusVariant
-   * Description: Determines the CSS data-variant for appointment status pills.
-   */
   function statusVariant(status) {
-    const text = status.toLowerCase();
+    const text = String(status || "").toLowerCase();
     if (text.includes("pending")) return "warn";
     return "good";
   }
 
-  /**
-   * Name: renderPending
-   * Description: Renders the list of upcoming or pending appointments on the dashboard.
-   */
   function renderPending() {
     if (!appointments.length) {
       pendingList.innerHTML = `<p class="form-hint">No pending appointments.</p>`;
@@ -559,24 +547,56 @@ import {
 
     pendingList.innerHTML = appointments
       .map((item) => {
+        const date = item.date || "-";
+        const time = item.time || "-";
+        const mode = item.mode || "-";
+        const status = item.status || "-";
+
         return `
         <article class="dash-item">
           <div>
-            <p class="dash-item__title">${item.date} · ${item.time}</p>
-            <p class="dash-item__meta">${item.type}</p>
+            <p class="dash-item__title">${date} · ${time}</p>
+            <p class="dash-item__meta">${mode}</p>
           </div>
-          <span class="dash-pill" data-variant="${statusVariant(item.status)}">${item.status}</span>
+          <span class="dash-pill" data-variant="${statusVariant(status)}">${status}</span>
         </article>
       `;
       })
       .join("");
   }
 
+  function subscribePendingAppointments(user) {
+    if (unsubscribeAppointments) {
+      unsubscribeAppointments();
+      unsubscribeAppointments = null;
+    }
+
+    appointments = [];
+    renderPending();
+
+    if (!user) return;
+
+    const q = query(
+      collection(db, "appointments"),
+      where("studentId", "==", user.uid),
+      orderBy("createdAt", "desc")
+    );
+
+    unsubscribeAppointments = onSnapshot(
+      q,
+      (snap) => {
+        appointments = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+        renderPending();
+      },
+      (err) => {
+        console.error(err);
+      }
+    );
+  }
 
   renderProfile();
   renderPending();
 
-  // Profile editing toggle listeners
   if (editProfileBtn && dashProfile) {
     editProfileBtn.addEventListener("click", () => {
       dashProfile.classList.add("is-editing");
@@ -587,9 +607,7 @@ import {
   if (cancelProfileBtn && dashProfile) {
     cancelProfileBtn.addEventListener("click", () => {
       dashProfile.classList.remove("is-editing");
-      if (currentProfile) {
-        fillProfileForm(currentProfile);
-      }
+      if (currentProfile) fillProfileForm(currentProfile);
       setStatus("");
     });
   }
@@ -601,9 +619,10 @@ import {
     });
   }
 
-  // Monitor Auth state to load the correct profile
+  // ✅ Single source of truth for currentUser
   onAuthStateChanged(auth, (user) => {
     currentUser = user;
     loadProfile(user);
+    subscribePendingAppointments(user);
   });
 })();
