@@ -31,31 +31,50 @@ const registerForm = document.getElementById("registerForm");
 const authError = document.getElementById("authError");
 const authSuccess = document.getElementById("authSuccess");
 
+/**
+ * Name: showAuthError
+ * Description: Displays an error message in the authentication modal.
+ */
 function showAuthError(msg) {
   if (!authError) return;
   authError.textContent = msg;
   authError.classList.add("is-active");
+}
 
-  function showAuthSuccess(msg) {
+/**
+ * Name: showAuthSuccess
+ * Description: Displays a success message in the authentication modal.
+ */
+function showAuthSuccess(msg) {
   if (!authSuccess) return;
   authSuccess.textContent = msg;
   authSuccess.classList.add("is-active");
 }
-}
 
+/**
+ * Name: clearAuthError
+ * Description: Removes any active error messages from the authentication modal.
+ */
 function clearAuthError() {
   if (!authError) return;
   authError.textContent = "";
   authError.classList.remove("is-active");
 }
 
+/**
+ * Name: clearAuthSuccess
+ * Description: Removes any active success messages from the authentication modal.
+ */
 function clearAuthSuccess() {
   if (!authSuccess) return;
   authSuccess.textContent = "";
   authSuccess.classList.remove("is-active");
 }
 
-
+/**
+ * Name: openAuthModal
+ * Description: Opens the login/register modal and initializes the view.
+ */
 function openAuthModal(defaultView = "login") {
   if (!authModal) return;
 
@@ -71,6 +90,10 @@ function openAuthModal(defaultView = "login") {
   if (firstInput) firstInput.focus();
 }
 
+/**
+ * Name: closeAuthModal
+ * Description: Closes the authentication modal and resets relevant UI states.
+ */
 function closeAuthModal() {
   if (!authModal) return;
 
@@ -84,6 +107,10 @@ function closeAuthModal() {
   }
 }
 
+/**
+ * Name: setAuthView
+ * Description: Switches between the 'login' and 'register' views within the auth modal.
+ */
 function setAuthView(viewName) {
   clearAuthError();
   clearAuthSuccess();
@@ -101,6 +128,10 @@ function setAuthView(viewName) {
   }
 }
 
+/**
+ * Name: setRole
+ * Description: Updates the selected role (Student/Admin) for the login process.
+ */
 function setRole(role) {
   roleBtns.forEach((btn) => btn.classList.toggle("is-active", btn.dataset.role === role));
   if (loginRoleInput) loginRoleInput.value = role;
@@ -138,6 +169,10 @@ switchBtns.forEach((btn) => {
   });
 });
 
+/**
+ * Name: goAfterAuth
+ * Description: Redirects the user to their landing page or a previously requested protected route.
+ */
 function goAfterAuth(defaultUrl) {
   const redirect = sessionStorage.getItem("postAuthRedirect");
   if (redirect) sessionStorage.removeItem("postAuthRedirect");
@@ -164,7 +199,7 @@ if (loginForm) {
       // Real role from claims
       const realIsAdmin = await isAdminUser(user);
 
-      // Block mismatches
+      // Block mismatches between selected login portal and real account role
       if (selectedIsAdmin !== realIsAdmin) {
         await logout();
 
@@ -211,10 +246,8 @@ if (registerForm) {
       });
       const landing = await getLandingPageForUser(user);
 
-       if (authSuccess) {
-        authSuccess.textContent = "Registration successful. Redirecting to your dashboard...";
-        authSuccess.classList.add("is-active");
-      }
+      showAuthSuccess("Registration successful. Redirecting to your dashboard...");
+
       setTimeout(() => {
         closeAuthModal();
         goAfterAuth(landing);

@@ -4,6 +4,7 @@ const admin = require("firebase-admin");
 // 1) Update this path to your downloaded service account JSON
 const serviceAccount = require("./serviceAccountKey.json");
 
+// Initialize the Firebase Admin SDK
 admin.initializeApp({
   credential: admin.credential.cert(serviceAccount),
 });
@@ -11,16 +12,21 @@ admin.initializeApp({
 // 2) Put your real admin email here
 const ADMIN_EMAIL = "guidancecounseling.web@gmail.com";
 
+/**
+ * Name: run
+ * Description: Retrieves a user by email and assigns the 'admin' custom claim to their UID via firebase-admin SDK.
+ */
 async function run() {
   const user = await admin.auth().getUserByEmail(ADMIN_EMAIL);
 
-  // Set admin claim
+  // Set the admin custom claim to true
   await admin.auth().setCustomUserClaims(user.uid, { admin: true });
 
   console.log("✅ Admin claim set for:", ADMIN_EMAIL, "uid:", user.uid);
   console.log("NOTE: The user must sign out and sign in again (or refresh token) to receive updated claims.");
 }
 
+// Execute the claim assignment process
 run().catch((err) => {
   console.error("❌ Failed:", err);
   process.exit(1);
