@@ -78,15 +78,25 @@
   const kpiPending = document.getElementById("kpiPending");
   const kpiTotalConcernsHint = document.getElementById("kpiTotalConcernsHint");
 
-  // Demo dataset (replace later with real DB)
-  const demo = [
-    { date: "2026-01-03", student: "2024-00123 • Juan D.", emotion: "Stress", trigger: "Academic", severity: "High", status: "Pending Review" },
-    { date: "2026-01-05", student: "2024-00456 • Maria S.", emotion: "Anxiety", trigger: "Family", severity: "Medium", status: "Scheduled" },
-    { date: "2026-01-08", student: "2024-00089 • Carlo R.", emotion: "Depression", trigger: "Peer", severity: "High", status: "In Session" },
-    { date: "2026-01-10", student: "2024-00301 • Bea C.", emotion: "Stress", trigger: "Financial", severity: "Low", status: "Completed" },
-    { date: "2026-01-12", student: "2024-00222 • Alex P.", emotion: "Anxiety", trigger: "Academic", severity: "Medium", status: "Pending Review" },
-    { date: "2026-01-14", student: "2024-00555 • Nicole V.", emotion: "Stress", trigger: "Peer", severity: "Low", status: "Scheduled" }
-  ];
+  // ============================
+  // ✅ ANALYTICS CHANGE ONLY:
+  // Start EMPTY dataset (user will insert real data)
+  // ============================
+  let demo = [];
+
+  // Optional helper: add analytics row later (from other scripts/forms)
+  // window.addAnalyticsRow({ date:"2026-02-02", student:"2024-00123 • Juan D.", emotion:"Stress", trigger:"Academic", severity:"High", status:"Pending Review" });
+  window.addAnalyticsRow = function addAnalyticsRow(row){
+    if (!row || typeof row !== "object") return;
+    demo.push(row);
+    update();
+  };
+
+  // Optional helper: clear analytics any time
+  window.clearAnalytics = function clearAnalytics(){
+    demo = [];
+    update();
+  };
 
   const enrolledUsers = [
     {
@@ -291,6 +301,16 @@
    * Description: Renders the recent concerns table with filtered demo data.
    */
   function renderTable(rows){
+    // ✅ ANALYTICS CHANGE ONLY: show empty state when no rows
+    if (!rows.length) {
+      tableEl.innerHTML = `
+        <tr>
+          <td colspan="6" style="padding:16px;opacity:.6;">No records yet.</td>
+        </tr>
+      `;
+      return;
+    }
+
     tableEl.innerHTML = rows
       .slice(0, 8)
       .map(r => {
@@ -595,6 +615,10 @@
     elTime.value = "30";
     elGrade.value = "all";
     elSearch.value = "";
+
+    // ✅ ANALYTICS CHANGE ONLY: keep analytics empty after reset
+    demo = [];
+
     update();
   }
 
