@@ -81,13 +81,12 @@ let currentUser = null;
   const panels = Array.from(form.querySelectorAll(".bpanel"));
   let active = 0;
 
-  // DEMO availability (pwede mo palitan later ng Firestore availability)
-  const availability = {
-    "2026-02-03": ["09:00 AM", "10:00 AM", "02:00 PM"],
-    "2026-02-05": ["11:00 AM", "01:00 PM", "03:00 PM"],
-    "2026-02-10": ["09:00 AM", "10:30 AM", "04:00 PM"],
-    "2026-02-12": ["08:30 AM", "01:30 PM", "02:30 PM"],
-  };
+  // Fixed daily timeslots (matches your UI / Firestore time strings)
+  const TIMESLOTS = ["08:30 AM", "01:30 PM", "02:30 PM"];
+
+  // dateKey -> Set(times) for Accepted appointments
+  let blockedByDate = new Map();
+  let unsubscribeAccepted = null;
 
   const dateInput = document.querySelector("#appointmentDate");
   const timeInput = document.querySelector("#appointmentTime");
@@ -180,39 +179,38 @@ let currentUser = null;
 
     const data = new FormData(form);
 
- // get student profile fields (studentNo, name) from Firestore
-let studentNo = "";
-let studentName = currentUser.displayName || "";
+    // get student profile fields (studentNo, name) from Firestore
+    let studentNo = "";
+    let studentName = currentUser.displayName || "";
 
-try {
-  const profileSnap = await getDoc(doc(db, "students", currentUser.uid));
-  if (profileSnap.exists()) {
-    const p = profileSnap.data();
-    studentNo = p.studentNo || "";
-    studentName = p.name || studentName;
-  }
-} catch (e) {
-  console.warn("Could not fetch student profile for appointment metadata.", e);
-}
+    try {
+      const profileSnap = await getDoc(doc(db, "students", currentUser.uid));
+      if (profileSnap.exists()) {
+        const p = profileSnap.data();
+        studentNo = p.studentNo || "";
+        studentName = p.name || studentName;
+      }
+    } catch (e) {
+      console.warn("Could not fetch student profile for appointment metadata.", e);
+    }
 
-const payload = {
-  // Auth UID (technical)
-  studentId: currentUser.uid,
+    const payload = {
+      // Auth UID (technical)
+      studentId: currentUser.uid,
 
-  // Human-readable identity for admin
-  studentNo: studentNo,               // <-- STUDENT NUMBER ENTERED
-  studentName: studentName || "",     // optional, helpful
+      // Human-readable identity for admin
+      studentNo: studentNo, // <-- STUDENT NUMBER ENTERED
+      studentName: studentName || "",
 
-  reason: data.get("topic") || "",
-  mode: data.get("mode") || "",
-  date: data.get("appointmentDate") || "",
-  time: data.get("appointmentTime") || "",
-  notes: (data.get("notes") || "").trim(),
-  status: "Pending Approval",
-  createdAt: serverTimestamp(),
-  updatedAt: serverTimestamp(),
-};
-
+      reason: data.get("topic") || "",
+      mode: data.get("mode") || "",
+      date: data.get("appointmentDate") || "",
+      time: data.get("appointmentTime") || "",
+      notes: (data.get("notes") || "").trim(),
+      status: "Pending Approval",
+      createdAt: serverTimestamp(),
+      updatedAt: serverTimestamp(),
+    };
 
     try {
       await addDoc(collection(db, "appointments"), payload);
@@ -221,6 +219,7 @@ const payload = {
       form.reset();
       dateInput.value = "";
       timeInput.value = "";
+      clearSelection();
       renderCalendar();
       setActiveStep(0);
     } catch (err) {
@@ -241,28 +240,119 @@ const payload = {
     return date.toLocaleString("en-US", { month: "long", year: "numeric" });
   }
 
+  function isPastDate(dateKey) {
+    const [y, m, d] = dateKey.split("-").map(Number);
+    const cellDate = new Date(y, m - 1, d);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    cellDate.setHours(0, 0, 0, 0);
+    return cellDate < today;
+  }
+
+  function isSlotBlocked(dateKey, timeLabel) {
+    const set = blockedByDate.get(dateKey);
+    return !!set && set.has(timeLabel);
+  }
+
+  function isDayFullyBlocked(dateKey) {
+    const set = blockedByDate.get(dateKey);
+    if (!set) return false;
+    return TIMESLOTS.every((t) => set.has(t));
+  }
+
+  function monthStartEndKeys(dateObj) {
+    const y = dateObj.getFullYear();
+    const m = dateObj.getMonth();
+    const startKey = fmtKey(y, m + 1, 1);
+    const lastDay = new Date(y, m + 1, 0).getDate();
+    const endKey = fmtKey(y, m + 1, lastDay);
+    return { startKey, endKey };
+  }
+
   function clearSelection() {
     dateInput.value = "";
     timeInput.value = "";
     slotGrid.innerHTML = `<p class="slot-hint">Select an available date to view time slots.</p>`;
   }
 
+  function subscribeAcceptedForViewMonth() {
+    if (unsubscribeAccepted) unsubscribeAccepted();
+
+    const { startKey, endKey } = monthStartEndKeys(view);
+
+    const q = query(
+      collection(db, "appointments"),
+      where("status", "==", "Accepted"),
+      where("date", ">=", startKey),
+      where("date", "<=", endKey)
+    );
+
+    unsubscribeAccepted = onSnapshot(
+      q,
+      (snap) => {
+        const nextMap = new Map();
+
+        snap.forEach((docSnap) => {
+          const a = docSnap.data();
+          if (!a?.date || !a?.time) return;
+          if (!TIMESLOTS.includes(a.time)) return;
+
+          if (!nextMap.has(a.date)) nextMap.set(a.date, new Set());
+          nextMap.get(a.date).add(a.time);
+        });
+
+        blockedByDate = nextMap;
+
+        // If selected date becomes fully blocked (or is in the past), clear selection
+        if (dateInput.value) {
+          const selected = dateInput.value;
+          if (isPastDate(selected) || isDayFullyBlocked(selected)) {
+            clearSelection();
+          } else {
+            renderSlots(selected);
+          }
+        }
+
+        renderCalendar();
+      },
+      (err) => {
+        console.error("Accepted appointments listener failed:", err);
+      }
+    );
+  }
+
   function renderSlots(dateKey) {
-    const slots = availability[dateKey] || [];
     slotGrid.innerHTML = "";
 
-    if (!slots.length) {
+    if (!dateKey) {
+      slotGrid.innerHTML = `<p class="slot-hint">Select an available date to view time slots.</p>`;
+      return;
+    }
+
+    if (isPastDate(dateKey)) {
       slotGrid.innerHTML = `<p class="slot-hint">No available slots for this date.</p>`;
       return;
     }
 
-    slots.forEach((slot) => {
+    if (isDayFullyBlocked(dateKey)) {
+      slotGrid.innerHTML = `<p class="slot-hint">No available slots for this date.</p>`;
+      return;
+    }
+
+    TIMESLOTS.forEach((slot) => {
       const button = document.createElement("button");
       button.type = "button";
       button.className = "slot";
       button.textContent = slot;
 
+      const blocked = isSlotBlocked(dateKey, slot);
+      button.disabled = blocked;
+
+      if (timeInput.value === slot && !blocked) button.classList.add("is-selected");
+
       button.addEventListener("click", () => {
+        if (button.disabled) return;
+
         slotGrid.querySelectorAll(".slot").forEach((el) => el.classList.remove("is-selected"));
         button.classList.add("is-selected");
         timeInput.value = slot;
@@ -290,18 +380,21 @@ const payload = {
 
     for (let day = 1; day <= daysInMonth; day++) {
       const key = fmtKey(year, month + 1, day);
-      const slots = availability[key];
-      const hasAvail = Array.isArray(slots) && slots.length > 0;
+
+      // Disabled if past OR all 3 timeslots are already Accepted
+      const disabled = isPastDate(key) || isDayFullyBlocked(key);
 
       const cell = document.createElement("button");
       cell.type = "button";
-      cell.className = `cal-day${hasAvail ? " is-available" : " is-muted"}`;
+      cell.className = `cal-day${disabled ? " is-muted" : " is-available"}`;
       cell.textContent = String(day);
-      if (!hasAvail) cell.disabled = true;
+      cell.disabled = disabled;
 
       if (dateInput.value === key) cell.classList.add("is-selected");
 
       cell.addEventListener("click", () => {
+        if (cell.disabled) return;
+
         calDays.querySelectorAll(".cal-day").forEach((el) => el.classList.remove("is-selected"));
         cell.classList.add("is-selected");
 
@@ -317,12 +410,14 @@ const payload = {
   prevMonthBtn?.addEventListener("click", () => {
     view = new Date(view.getFullYear(), view.getMonth() - 1, 1);
     clearSelection();
+    subscribeAcceptedForViewMonth();
     renderCalendar();
   });
 
   nextMonthBtn?.addEventListener("click", () => {
     view = new Date(view.getFullYear(), view.getMonth() + 1, 1);
     clearSelection();
+    subscribeAcceptedForViewMonth();
     renderCalendar();
   });
 
@@ -386,6 +481,7 @@ const payload = {
   }
 
   renderCalendar();
+  subscribeAcceptedForViewMonth();
   setActiveStep(0);
 })();
 
@@ -539,35 +635,35 @@ const payload = {
     return "good";
   }
 
-function escapeHtml(str = "") {
-  return String(str).replace(/[&<>"']/g, (m) => ({
-    "&": "&amp;",
-    "<": "&lt;",
-    ">": "&gt;",
-    '"': "&quot;",
-    "'": "&#39;"
-  }[m]));
-}
-
-function renderPending() {
-  if (!appointments.length) {
-    pendingList.innerHTML = `<p class="form-hint">No pending appointments.</p>`;
-    return;
+  function escapeHtml(str = "") {
+    return String(str).replace(/[&<>"']/g, (m) => ({
+      "&": "&amp;",
+      "<": "&lt;",
+      ">": "&gt;",
+      '"': "&quot;",
+      "'": "&#39;"
+    }[m]));
   }
 
-  pendingList.innerHTML = appointments
-    .map((item) => {
-      const date = item.date || "-";
-      const time = item.time || "-";
-      const mode = item.mode || "-";
-      const status = item.status || "-";
+  function renderPending() {
+    if (!appointments.length) {
+      pendingList.innerHTML = `<p class="form-hint">No pending appointments.</p>`;
+      return;
+    }
 
-      const reason = item.reason || "-";
-      const notes = item.notes || ""; // booking message
-      const studentNo = item.studentNo || ""; // kung sinave mo na sa payload
-      const studentName = item.studentName || ""; // optional
+    pendingList.innerHTML = appointments
+      .map((item) => {
+        const date = item.date || "-";
+        const time = item.time || "-";
+        const mode = item.mode || "-";
+        const status = item.status || "-";
 
-      return `
+        const reason = item.reason || "-";
+        const notes = item.notes || "";
+        const studentNo = item.studentNo || "";
+        const studentName = item.studentName || "";
+
+        return `
         <article class="dash-item">
           <div class="dash-item__content">
             <p class="dash-item__title">${escapeHtml(date)} · ${escapeHtml(time)}</p>
@@ -585,10 +681,9 @@ function renderPending() {
           <span class="dash-pill" data-variant="${statusVariant(status)}">${escapeHtml(status)}</span>
         </article>
       `;
-    })
-    .join("");
-}
-
+      })
+      .join("");
+  }
 
   function subscribePendingAppointments(user) {
     if (unsubscribeAppointments) {
@@ -601,33 +696,30 @@ function renderPending() {
 
     if (!user) return;
 
-const q = query(
-  collection(db, "appointments"),
-  where("studentId", "==", user.uid)
-);
+    const q = query(
+      collection(db, "appointments"),
+      where("studentId", "==", user.uid)
+    );
 
+    unsubscribeAppointments = onSnapshot(
+      q,
+      (snap) => {
+        appointments = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
 
+        // sort newest first (createdAt is Timestamp)
+        appointments.sort((a, b) => {
+          const at = a.createdAt?.seconds || 0;
+          const bt = b.createdAt?.seconds || 0;
+          return bt - at;
+        });
 
-unsubscribeAppointments = onSnapshot(
-  q,
-  (snap) => {
-    appointments = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
-
-    // sort newest first (createdAt is Timestamp)
-    appointments.sort((a, b) => {
-      const at = a.createdAt?.seconds || 0;
-      const bt = b.createdAt?.seconds || 0;
-      return bt - at;
-    });
-
-    renderPending();
-  },
-  (err) => {
-    console.error(err);
-    pendingList.innerHTML = `<p class="form-hint">Unable to load appointments.</p>`;
-  }
-);
-
+        renderPending();
+      },
+      (err) => {
+        console.error(err);
+        pendingList.innerHTML = `<p class="form-hint">Unable to load appointments.</p>`;
+      }
+    );
   }
 
   renderProfile();
