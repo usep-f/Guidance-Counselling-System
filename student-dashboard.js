@@ -245,8 +245,11 @@ let currentUser = null;
     const cellDate = new Date(y, m - 1, d);
     const today = new Date();
     today.setHours(0, 0, 0, 0);
+    today.setHours(0, 0, 0, 0);
     cellDate.setHours(0, 0, 0, 0);
-    return cellDate < today;
+
+    // BLOCK SAME DAY: Must book at least tomorrow
+    return cellDate <= today;
   }
 
   function isSlotBlocked(dateKey, timeLabel) {
