@@ -1,6 +1,19 @@
 /* =========================
-   ADMIN DASHBOARD (demo data)
+   ADMIN DASHBOARD (Firestore + transaction accept)
    ========================= */
+
+import { db } from "./firebase-config.js";
+import {
+  collection,
+  query,
+  where,
+  onSnapshot,
+  doc,
+  updateDoc,
+  serverTimestamp,
+  getDocs,
+  runTransaction
+} from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
 
 (function adminDashboard(){
   const tabs = Array.from(document.querySelectorAll("[data-dashboard-tab]"));
@@ -85,7 +98,6 @@
   let demo = [];
 
   // Optional helper: add analytics row later (from other scripts/forms)
-  // window.addAnalyticsRow({ date:"2026-02-02", student:"2024-00123 • Juan D.", emotion:"Stress", trigger:"Academic", severity:"High", status:"Pending Review" });
   window.addAnalyticsRow = function addAnalyticsRow(row){
     if (!row || typeof row !== "object") return;
     demo.push(row);
@@ -153,53 +165,28 @@
   ];
 
   // ============================
-  // ✅ APPOINTMENT CHANGE ONLY:
-  // Start EMPTY appointments (user will insert new appointments)
+  // ✅ APPOINTMENTS (Firestore)
   // ============================
   let appointments = [];
+  let unsubscribeAppointments = null;
 
-  // Optional helper: add appointment later
-  // window.addAppointment({ id:"APT-001", studentId:"2024-00123", name:"Juan Dela Cruz", year:"Grade 12", course:"STEM", email:"juan.delacruz@school.edu", reason:"Academic Concern", mode:"In-Person", date:"2026-02-10", time:"10:00 AM", status:"Pending", hidden:false });
-  window.addAppointment = function addAppointment(appt){
-    if (!appt || typeof appt !== "object") return;
-    // default fields if missing
-    if (typeof appt.hidden === "undefined") appt.hidden = false;
-    if (!appt.status) appt.status = "Pending";
-    appointments.push(appt);
-    renderAppointments();
-  };
-
-  // Optional helper: clear all appointments
-  window.clearAppointments = function clearAppointments(){
-    appointments = [];
-    renderAppointments();
-  };
+  // Remove demo helpers from runtime behavior (kept harmless if you used them before)
+  window.addAppointment = function(){};
+  window.clearAppointments = function(){};
 
   let activeAppointmentFilter = "pending";
 
-  /**
-   * Name: matchesFilters
-   * Description: Checks if a data row matches the current dashboard filters (time, grade, search).
-   */
   function matchesFilters(row){
     const timeVal = elTime?.value || "30";
-    const gradeVal = elGrade?.value || "all";
     const q = (elSearch?.value || "").trim().toLowerCase();
 
-    // Demo grade filter (no real grade data here yet)
-    if (gradeVal !== "all") {
-      // keep as pass for now to avoid hiding everything
-    }
-
-    // Search filter
     if (q) {
       if (!row.student.toLowerCase().includes(q)) return false;
     }
 
-    // Time range filter (simple)
     if (timeVal !== "all") {
       const days = Number(timeVal);
-      const now = new Date("2026-01-15"); // static demo anchor date
+      const now = new Date(); // changed from static demo anchor date
       const d = new Date(row.date);
       const diff = (now - d) / (1000 * 60 * 60 * 24);
       if (diff > days) return false;
@@ -208,10 +195,6 @@
     return true;
   }
 
-  /**
-   * Name: countBy
-   * Description: Aggregates data by a specific key to produce counts for charts/KPIs.
-   */
   function countBy(rows, key){
     const out = {};
     rows.forEach(r => {
@@ -221,10 +204,6 @@
     return out;
   }
 
-  /**
-   * Name: topKey
-   * Description: Identifies the key with the highest count from an aggregate object.
-   */
   function topKey(counts){
     let best = { k: "-", v: -1 };
     Object.keys(counts).forEach(k => {
@@ -233,10 +212,6 @@
     return best.k;
   }
 
-  /**
-   * Name: renderBars
-   * Description: Dynamically creates and renders bar charts for emotional states and triggers.
-   */
   function renderBars(container, counts, order){
     const total = Object.values(counts).reduce((a,b) => a + b, 0) || 1;
     container.innerHTML = "";
@@ -261,25 +236,15 @@
     });
   }
 
-  /**
-   * Name: pillHTML
-   * Description: Generates the HTML for status pills with appropriate color variants.
-   */
   function pillHTML(text){
     let variant = "done";
-    if (text.toLowerCase().includes("pending")) variant = "warn";
-    if (text.toLowerCase().includes("scheduled")) variant = "done";
-    if (text.toLowerCase().includes("in session")) variant = "done";
-
+    if (String(text).toLowerCase().includes("pending")) variant = "warn";
+    if (String(text).toLowerCase().includes("scheduled")) variant = "done";
+    if (String(text).toLowerCase().includes("in session")) variant = "done";
     return `<span class="admin-pill" data-variant="${variant}">${text}</span>`;
   }
 
-  /**
-   * Name: renderTable
-   * Description: Renders the recent concerns table with filtered demo data.
-   */
   function renderTable(rows){
-    // ✅ ANALYTICS CHANGE ONLY: show empty state when no rows
     if (!rows.length) {
       tableEl.innerHTML = `
         <tr>
@@ -306,12 +271,8 @@
       .join("");
   }
 
-  /**
-   * Name: matchesUserFilters
-   * Description: Filters the enrolled user list based on search query, grade, and program.
-   */
   function matchesUserFilters(user) {
-    const query = (userSearch?.value || "").trim().toLowerCase();
+    const queryVal = (userSearch?.value || "").trim().toLowerCase();
     const grade = userGrade?.value || "all";
     const program = userProgram?.value || "all";
 
@@ -323,18 +284,14 @@
       return false;
     }
 
-    if (query) {
+    if (queryVal) {
       const haystack = `${user.name} ${user.id}`.toLowerCase();
-      if (!haystack.includes(query)) return false;
+      if (!haystack.includes(queryVal)) return false;
     }
 
     return true;
   }
 
-  /**
-   * Name: renderUserList
-   * Description: Displays the list of enrolled students in the Directory tab.
-   */
   function renderUserList() {
     if (!enrolledList) return;
     const rows = enrolledUsers.filter(matchesUserFilters);
@@ -369,10 +326,6 @@
       .join("");
   }
 
-  /**
-   * Name: openUserModal
-   * Description: Opens and populates the modal with a specific student's detailed profile and history.
-   */
   function openUserModal(userId) {
     if (!userModal || !userModalBody || !userModalTitle) return;
     const user = enrolledUsers.find((item) => item.id === userId);
@@ -405,46 +358,35 @@
     userModal.setAttribute("aria-hidden", "false");
   }
 
-  /**
-   * Name: closeModal
-   * Description: Closes the specified modal and updates ARIA attributes.
-   */
   function closeModal(modal) {
     if (!modal) return;
     modal.classList.remove("is-open");
     modal.setAttribute("aria-hidden", "true");
   }
 
-  /**
-   * Name: normalizeStatus
-   * Description: Standardizes status strings for consistent comparison logic.
-   */
   function normalizeStatus(status) {
-    return status.toLowerCase();
+    return String(status || "").toLowerCase();
   }
 
-  /**
-   * Name: statusVariant
-   * Description: Determines the visual variant (color) for appointment status pills.
-   */
   function statusVariant(status) {
     const text = normalizeStatus(status);
     if (text.includes("pending")) return "warn";
     return "done";
   }
 
-  /**
-   * Name: renderAppointments
-   * Description: Renders the list of appointments filtered by the active tab (Pending/Completed).
-   */
+  // Render appointments from Firestore data
   function renderAppointments() {
     if (!appointmentList) return;
 
     const rows = appointments.filter((appt) => {
-      if (appt.hidden) return false;
       const state = normalizeStatus(appt.status);
+
+      // Hide cancelled everywhere for now (you can add a Cancelled tab later)
+      if (state === "cancelled") return false;
+
       if (activeAppointmentFilter === "pending") {
-        return state === "pending" || state === "accepted";
+        // Pending tab shows BOTH pending approval and accepted (matches your earlier behavior)
+        return state.includes("pending") || state === "accepted";
       }
       return state === "completed";
     });
@@ -456,21 +398,25 @@
 
     appointmentList.innerHTML = rows
       .map((appt) => {
-        const status = appt.status;
+        const status = appt.status || "-";
         const statusPill = `<span class="admin-pill" data-variant="${statusVariant(status)}">${status}</span>`;
-        const showActions = normalizeStatus(appt.status) === "pending";
-        const canOpen = normalizeStatus(appt.status) !== "pending";
+
+        const state = normalizeStatus(appt.status);
+
+        // Actions only for pending approval
+        const showActions = state.includes("pending");
+        const canOpen = state !== "cancelled";
+
+        const title = appt.studentName || appt.studentNo || appt.studentId || "Student";
+        const meta = `${appt.studentNo || "-"} · ${appt.studentId || "-"}`;
+        const details = `${appt.reason || "-"} · ${appt.mode || "-"} · ${appt.date || "-"} · ${appt.time || "-"}`;
 
         return `
           <article class="admin-item">
             <div class="admin-item__main">
-              <h3 class="admin-item__title">${appt.name}</h3>
-              <p class="admin-item__meta">
-                ${appt.studentId} · ${appt.year} · ${appt.course} · ${appt.email}
-              </p>
-              <p class="admin-item__meta">
-                ${appt.reason} · ${appt.mode} · ${appt.date} · ${appt.time}
-              </p>
+              <h3 class="admin-item__title">${title}</h3>
+              <p class="admin-item__meta">${meta}</p>
+              <p class="admin-item__meta">${details}</p>
             </div>
             <div class="admin-item__actions">
               ${statusPill}
@@ -498,25 +444,22 @@
       .join("");
   }
 
-  /**
-   * Name: openAppointmentModal
-   * Description: Opens the appointment details modal for the counselor to add notes and finalize sessions.
-   */
   function openAppointmentModal(appointmentId) {
     if (!appointmentModal || !appointmentModalBody || !appointmentModalTitle) return;
     const appt = appointments.find((item) => item.id === appointmentId);
     if (!appt) return;
 
-    appointmentModalTitle.textContent = `${appt.name} · ${appt.date}`;
+    const title = appt.studentName || appt.studentNo || appt.studentId || "Student";
+    appointmentModalTitle.textContent = `${title} · ${appt.date || "-"}`;
     appointmentModalBody.innerHTML = `
       <div class="admin-detail">
         <div class="admin-detail__block">
           <h3>Appointment Details</h3>
-          <p><strong>Student ID:</strong> ${appt.studentId}</p>
-          <p><strong>Year & Course:</strong> ${appt.year} · ${appt.course}</p>
-          <p><strong>Reason:</strong> ${appt.reason}</p>
-          <p><strong>Session Type:</strong> ${appt.mode}</p>
-          <p><strong>Date & Time:</strong> ${appt.date} · ${appt.time}</p>
+          <p><strong>Student ID:</strong> ${appt.studentId || "-"}</p>
+          <p><strong>Student No:</strong> ${appt.studentNo || "-"}</p>
+          <p><strong>Reason:</strong> ${appt.reason || "-"}</p>
+          <p><strong>Session Type:</strong> ${appt.mode || "-"}</p>
+          <p><strong>Date & Time:</strong> ${appt.date || "-"} · ${appt.time || "-"}</p>
         </div>
         <div class="admin-detail__block">
           <h3>Counselor Notes</h3>
@@ -551,33 +494,25 @@
     appointmentModal.setAttribute("aria-hidden", "false");
   }
 
-  /**
-   * Name: update
-   * Description: The primary refresh function that recalculates analytics and updates all dashboard UI elements.
-   */
   function update(){
     const rows = demo.filter(matchesFilters);
 
-    // Calculate aggregated data for the bar charts
     const emotionCounts = countBy(rows, "emotion");
     const triggerCounts = countBy(rows, "trigger");
 
     const emotionOrder = ["Stress", "Anxiety", "Depression"];
     const triggerOrder = ["Family", "Financial", "Academic", "Peer"];
 
-    // Refresh UI components
     renderBars(emotionsEl, emotionCounts, emotionOrder);
     renderBars(triggersEl, triggerCounts, triggerOrder);
     renderTable(rows);
 
-    // Update KPI cards
     const totalConcerns = rows.length;
     kpiTotalConcerns.textContent = String(totalConcerns);
     kpiTopEmotion.textContent = topKey(emotionCounts);
     kpiTopTrigger.textContent = topKey(triggerCounts);
 
-    // Simple pending counter for demo
-    const pending = rows.filter(r => r.status.toLowerCase().includes("pending")).length;
+    const pending = rows.filter(r => String(r.status || "").toLowerCase().includes("pending")).length;
     kpiPending.textContent = String(pending);
 
     const rangeText =
@@ -585,25 +520,14 @@
     kpiTotalConcernsHint.textContent = rangeText;
   }
 
-  /**
-   * Name: reset
-   * Description: Resets all dashboard filters to their default values and refreshes the view.
-   */
   function reset(){
     elTime.value = "30";
     elGrade.value = "all";
     elSearch.value = "";
-
-    // ✅ ANALYTICS CHANGE ONLY: keep analytics empty after reset
     demo = [];
-
     update();
   }
 
-  /**
-   * Name: exportSummary
-   * Description: Generates and downloads a text file summary of the current emotional states and triggers.
-   */
   function exportSummary(){
     const rows = demo.filter(matchesFilters);
     const emotionCounts = countBy(rows, "emotion");
@@ -619,7 +543,6 @@
     lines.push("Environmental Triggers");
     Object.keys(triggerCounts).forEach(k => lines.push(`${k},${triggerCounts[k]}`));
 
-    // Create a blob and trigger a browser download
     const blob = new Blob([lines.join("\n")], { type: "text/plain;charset=utf-8" });
     const url = URL.createObjectURL(blob);
 
@@ -631,6 +554,134 @@
     a.remove();
 
     URL.revokeObjectURL(url);
+  }
+
+  // ============================
+  // Firestore subscriptions + actions
+  // ============================
+  function subscribeAppointments() {
+    if (unsubscribeAppointments) unsubscribeAppointments();
+
+    const q = query(collection(db, "appointments"));
+    unsubscribeAppointments = onSnapshot(
+      q,
+      (snap) => {
+        appointments = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+
+        // Sort newest first (createdAt Timestamp)
+        appointments.sort((a, b) => {
+          const at = a.createdAt?.seconds || 0;
+          const bt = b.createdAt?.seconds || 0;
+          return bt - at;
+        });
+
+        renderAppointments();
+      },
+      (err) => {
+        console.error(err);
+        if (appointmentList) {
+          appointmentList.innerHTML = `<p class="admin-empty">Unable to load appointments.</p>`;
+        }
+      }
+    );
+  }
+
+  // Transaction-based Accept:
+  // - Block if slot already has Accepted appointment
+  // - Accept selected
+  // - Auto-cancel other Pending Approval appointments in the same slot
+  async function acceptAppointmentTx(appointmentId) {
+    const appt = appointments.find((a) => a.id === appointmentId);
+    if (!appt) return;
+
+    const date = appt.date;
+    const time = appt.time;
+
+    if (!date || !time) {
+      alert("Invalid appointment. Missing date/time.");
+      return;
+    }
+
+    const apptRef = doc(db, "appointments", appointmentId);
+
+    try {
+      await runTransaction(db, async (tx) => {
+        const apptSnap = await tx.get(apptRef);
+        if (!apptSnap.exists()) throw new Error("Appointment no longer exists.");
+
+        const live = apptSnap.data();
+        const liveStatus = String(live.status || "");
+        const liveDate = live.date;
+        const liveTime = live.time;
+
+        // Block if already not pending-like
+        if (!String(liveStatus).toLowerCase().includes("pending")) {
+          throw new Error("Only pending appointments can be accepted.");
+        }
+
+        if (!liveDate || !liveTime) {
+          throw new Error("Missing date/time.");
+        }
+
+        // Check if slot already accepted (outside tx query, but guarded by re-check below)
+        const acceptedQ = query(
+          collection(db, "appointments"),
+          where("date", "==", liveDate),
+          where("time", "==", liveTime),
+          where("status", "==", "Accepted")
+        );
+
+        const acceptedSnap = await getDocs(acceptedQ);
+        const acceptedExists = acceptedSnap.docs.some((d) => d.id !== appointmentId);
+        if (acceptedExists) {
+          throw new Error("This slot is already allotted (Accepted).");
+        }
+
+        // Accept the selected appointment
+        tx.update(apptRef, { status: "Accepted", updatedAt: serverTimestamp() });
+
+        // Auto-cancel other pending requests in same slot
+        const pendingQ = query(
+          collection(db, "appointments"),
+          where("date", "==", liveDate),
+          where("time", "==", liveTime),
+          where("status", "==", "Pending Approval")
+        );
+
+        const pendingSnap = await getDocs(pendingQ);
+        pendingSnap.docs.forEach((d) => {
+          if (d.id === appointmentId) return;
+          tx.update(d.ref, { status: "Cancelled", updatedAt: serverTimestamp() });
+        });
+      });
+    } catch (err) {
+      console.error(err);
+      alert(err.message || "Unable to accept appointment.");
+    }
+  }
+
+  async function denyAppointment(appointmentId) {
+    try {
+      await updateDoc(doc(db, "appointments", appointmentId), {
+        status: "Cancelled",
+        updatedAt: serverTimestamp()
+      });
+    } catch (err) {
+      console.error(err);
+      alert("Unable to deny appointment.");
+    }
+  }
+
+  async function completeAppointment(appointmentId) {
+    try {
+      await updateDoc(doc(db, "appointments", appointmentId), {
+        status: "Completed",
+        updatedAt: serverTimestamp()
+      });
+    } catch (err) {
+      console.error(err);
+      alert("Unable to mark as complete.");
+    }
   }
 
   // Event listeners for dashboard controls
@@ -659,16 +710,12 @@
     const openBtn = event.target.closest("[data-appt-open]");
 
     if (acceptBtn) {
-      const appt = appointments.find((item) => item.id === acceptBtn.dataset.accept);
-      if (appt) appt.status = "Accepted";
-      renderAppointments();
+      acceptAppointmentTx(acceptBtn.dataset.accept);
       return;
     }
 
     if (denyBtn) {
-      const appt = appointments.find((item) => item.id === denyBtn.dataset.deny);
-      if (appt) appt.hidden = true;
-      renderAppointments();
+      denyAppointment(denyBtn.dataset.deny);
       return;
     }
 
@@ -681,10 +728,9 @@
   appointmentModal?.addEventListener("click", (event) => {
     const completeBtn = event.target.closest("[data-complete]");
     if (!completeBtn) return;
-    const appt = appointments.find((item) => item.id === completeBtn.dataset.complete);
-    if (appt) appt.status = "Completed";
+
+    completeAppointment(completeBtn.dataset.complete);
     closeModal(appointmentModal);
-    renderAppointments();
   });
 
   apptFilters.forEach((button) => {
@@ -704,4 +750,5 @@
 
   renderUserList();
   renderAppointments();
+  subscribeAppointments();
 })();
