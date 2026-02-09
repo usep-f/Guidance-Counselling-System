@@ -2,7 +2,8 @@
    ADMIN DASHBOARD (Firestore + transaction accept)
    ========================= */
 
-import { db } from "./firebase-config.js";
+import { db, auth } from "./firebase-config.js";
+import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
 import {
   collection,
   query,
@@ -12,10 +13,12 @@ import {
   updateDoc,
   serverTimestamp,
   getDocs,
-  runTransaction
+  runTransaction,
+  setDoc,
+  deleteDoc
 } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
 
-(function adminDashboard(){
+(function adminDashboard() {
   const tabs = Array.from(document.querySelectorAll("[data-dashboard-tab]"));
   if (tabs.length) {
     const sections = tabs
@@ -98,14 +101,14 @@ import {
   let demo = [];
 
   // Optional helper: add analytics row later (from other scripts/forms)
-  window.addAnalyticsRow = function addAnalyticsRow(row){
+  window.addAnalyticsRow = function addAnalyticsRow(row) {
     if (!row || typeof row !== "object") return;
     demo.push(row);
     update();
   };
 
   // Optional helper: clear analytics any time
-  window.clearAnalytics = function clearAnalytics(){
+  window.clearAnalytics = function clearAnalytics() {
     demo = [];
     update();
   };
@@ -171,12 +174,12 @@ import {
   let unsubscribeAppointments = null;
 
   // Remove demo helpers from runtime behavior (kept harmless if you used them before)
-  window.addAppointment = function(){};
-  window.clearAppointments = function(){};
+  window.addAppointment = function () { };
+  window.clearAppointments = function () { };
 
   let activeAppointmentFilter = "pending";
 
-  function matchesFilters(row){
+  function matchesFilters(row) {
     const timeVal = elTime?.value || "30";
     const q = (elSearch?.value || "").trim().toLowerCase();
 
@@ -195,7 +198,7 @@ import {
     return true;
   }
 
-  function countBy(rows, key){
+  function countBy(rows, key) {
     const out = {};
     rows.forEach(r => {
       const k = r[key];
@@ -204,7 +207,7 @@ import {
     return out;
   }
 
-  function topKey(counts){
+  function topKey(counts) {
     let best = { k: "-", v: -1 };
     Object.keys(counts).forEach(k => {
       if (counts[k] > best.v) best = { k, v: counts[k] };
@@ -212,8 +215,8 @@ import {
     return best.k;
   }
 
-  function renderBars(container, counts, order){
-    const total = Object.values(counts).reduce((a,b) => a + b, 0) || 1;
+  function renderBars(container, counts, order) {
+    const total = Object.values(counts).reduce((a, b) => a + b, 0) || 1;
     container.innerHTML = "";
 
     order.forEach(label => {
@@ -236,7 +239,7 @@ import {
     });
   }
 
-  function pillHTML(text){
+  function pillHTML(text) {
     let variant = "done";
     if (String(text).toLowerCase().includes("pending")) variant = "warn";
     if (String(text).toLowerCase().includes("scheduled")) variant = "done";
@@ -244,7 +247,7 @@ import {
     return `<span class="admin-pill" data-variant="${variant}">${text}</span>`;
   }
 
-  function renderTable(rows){
+  function renderTable(rows) {
     if (!rows.length) {
       tableEl.innerHTML = `
         <tr>
@@ -344,11 +347,11 @@ import {
           <h3>Recent Appointments</h3>
           <ul class="admin-detail__list">
             ${user.history
-              .map(
-                (item) =>
-                  `<li>${item.date} · ${item.time} <span class="admin-tag">${item.status}</span></li>`
-              )
-              .join("")}
+        .map(
+          (item) =>
+            `<li>${item.date} · ${item.time} <span class="admin-tag">${item.status}</span></li>`
+        )
+        .join("")}
           </ul>
         </div>
       </div>
@@ -421,7 +424,7 @@ import {
             <div class="admin-item__actions">
               ${statusPill}
               ${showActions
-                ? `
+            ? `
                   <button class="btn btn--pill btn--primary" type="button" data-accept="${appt.id}">
                     Accept
                   </button>
@@ -429,14 +432,14 @@ import {
                     Deny
                   </button>
                 `
-                : ""}
+            : ""}
               ${canOpen
-                ? `
+            ? `
                   <button class="btn btn--pill btn--ghost" type="button" data-appt-open="${appt.id}">
                     Open Details
                   </button>
                 `
-                : ""}
+            : ""}
             </div>
           </article>
         `;
@@ -494,7 +497,7 @@ import {
     appointmentModal.setAttribute("aria-hidden", "false");
   }
 
-  function update(){
+  function update() {
     const rows = demo.filter(matchesFilters);
 
     const emotionCounts = countBy(rows, "emotion");
@@ -520,7 +523,7 @@ import {
     kpiTotalConcernsHint.textContent = rangeText;
   }
 
-  function reset(){
+  function reset() {
     elTime.value = "30";
     elGrade.value = "all";
     elSearch.value = "";
@@ -528,7 +531,7 @@ import {
     update();
   }
 
-  function exportSummary(){
+  function exportSummary() {
     const rows = demo.filter(matchesFilters);
     const emotionCounts = countBy(rows, "emotion");
     const triggerCounts = countBy(rows, "trigger");
@@ -580,7 +583,7 @@ import {
       (err) => {
         console.error(err);
         if (appointmentList) {
-          appointmentList.innerHTML = `<p class="admin-empty">Unable to load appointments.</p>`;
+          appointmentList.innerHTML = `<p class="admin-empty">Unable to load appointments. Details: ${err.message}</p>`;
         }
       }
     );
@@ -640,6 +643,14 @@ import {
         // Accept the selected appointment
         tx.update(apptRef, { status: "Accepted", updatedAt: serverTimestamp() });
 
+        // ✅ PUBLIC AVAILABILITY: Write a simple doc { date, time } blocking this slot
+        const availRef = doc(db, "availability", `${liveDate}_${liveTime}`);
+        tx.set(availRef, {
+          date: liveDate,
+          time: liveTime,
+          appointmentId: appointmentId
+        });
+
         // Auto-cancel other pending requests in same slot
         const pendingQ = query(
           collection(db, "appointments"),
@@ -662,6 +673,12 @@ import {
 
   async function denyAppointment(appointmentId) {
     try {
+      const appt = appointments.find(a => a.id === appointmentId);
+      if (appt && appt.date && appt.time) {
+        // Remove public block if it exists
+        await deleteDoc(doc(db, "availability", `${appt.date}_${appt.time}`));
+      }
+
       await updateDoc(doc(db, "appointments", appointmentId), {
         status: "Cancelled",
         updatedAt: serverTimestamp()
@@ -749,6 +766,13 @@ import {
   });
 
   renderUserList();
-  renderAppointments();
-  subscribeAppointments();
+
+  onAuthStateChanged(auth, (user) => {
+    if (user) {
+      subscribeAppointments();
+    } else {
+      appointments = [];
+      renderAppointments();
+    }
+  });
 })();

@@ -281,8 +281,7 @@ let currentUser = null;
     const { startKey, endKey } = monthStartEndKeys(view);
 
     const q = query(
-      collection(db, "appointments"),
-      where("status", "==", "Accepted"),
+      collection(db, "availability"),
       where("date", ">=", startKey),
       where("date", "<=", endKey)
     );
@@ -464,18 +463,18 @@ let currentUser = null;
       <div class="review__section">
         <h3 class="review__title">Student Details</h3>
         ${studentItems
-          .map(([label, value]) =>
-            `<p class="review__item"><strong>${escapeHtml(label)}:</strong> ${escapeHtml(value || "-")}</p>`
-          )
-          .join("")}
+        .map(([label, value]) =>
+          `<p class="review__item"><strong>${escapeHtml(label)}:</strong> ${escapeHtml(value || "-")}</p>`
+        )
+        .join("")}
       </div>
       <div class="review__section">
         <h3 class="review__title">Appointment Details</h3>
         ${appointmentItems
-          .map(([label, value]) =>
-            `<p class="review__item"><strong>${escapeHtml(label)}:</strong> ${escapeHtml(value || "-")}</p>`
-          )
-          .join("")}
+        .map(([label, value]) =>
+          `<p class="review__item"><strong>${escapeHtml(label)}:</strong> ${escapeHtml(value || "-")}</p>`
+        )
+        .join("")}
       </div>
     `;
   }
@@ -674,8 +673,8 @@ let currentUser = null;
             ${notes ? `<p class="dash-item__detail"><strong>Message:</strong> ${escapeHtml(notes)}</p>` : ""}
 
             ${(studentNo || studentName)
-              ? `<p class="dash-item__detail"><strong>Student:</strong> ${escapeHtml(studentNo)} ${studentName ? `· ${escapeHtml(studentName)}` : ""}</p>`
-              : ""}
+            ? `<p class="dash-item__detail"><strong>Student:</strong> ${escapeHtml(studentNo)} ${studentName ? `· ${escapeHtml(studentName)}` : ""}</p>`
+            : ""}
           </div>
 
           <span class="dash-pill" data-variant="${statusVariant(status)}">${escapeHtml(status)}</span>
