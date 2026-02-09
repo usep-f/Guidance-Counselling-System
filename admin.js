@@ -79,6 +79,12 @@ import {
   const appointmentModalTitle = document.getElementById("appointmentModalTitle");
   const appointmentModalBody = document.getElementById("appointmentModalBody");
 
+  // Pagination controls
+  const paginationControls = document.getElementById("paginationControls");
+  const prevPageBtn = document.getElementById("prevPageBtn");
+  const nextPageBtn = document.getElementById("nextPageBtn");
+  const pageIndicator = document.getElementById("pageIndicator");
+
   // If we are not on admin.html, do nothing
   if (!emotionsEl || !triggersEl || !tableEl) return;
 
@@ -172,6 +178,10 @@ import {
   // ============================
   let appointments = [];
   let unsubscribeAppointments = null;
+
+  // Pagination state
+  let currentPage = 1;
+  const itemsPerPage = 5;
 
   // Remove demo helpers from runtime behavior (kept harmless if you used them before)
   window.addAppointment = function () { };
@@ -381,7 +391,8 @@ import {
   function renderAppointments() {
     if (!appointmentList) return;
 
-    const rows = appointments.filter((appt) => {
+    // 1. First filter the "raw" list based on tabs/search/etc
+    const filteredRows = appointments.filter((appt) => {
       const state = normalizeStatus(appt.status);
 
       // Hide cancelled everywhere for now (you can add a Cancelled tab later)
@@ -394,12 +405,23 @@ import {
       return state === "completed";
     });
 
-    if (!rows.length) {
+    if (!filteredRows.length) {
       appointmentList.innerHTML = `<p class="admin-empty">No appointments available.</p>`;
+      if (paginationControls) paginationControls.hidden = true;
       return;
     }
 
-    appointmentList.innerHTML = rows
+    // 2. Calculate pagination on the FILTERED list
+    const totalPages = Math.ceil(filteredRows.length / itemsPerPage) || 1;
+    if (currentPage > totalPages) currentPage = totalPages;
+    if (currentPage < 1) currentPage = 1;
+
+    // 3. Slice for current page
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const pagedItems = filteredRows.slice(startIndex, startIndex + itemsPerPage);
+
+    // 4. Render only the paged items
+    appointmentList.innerHTML = pagedItems
       .map((appt) => {
         const status = appt.status || "-";
         const statusPill = `<span class="admin-pill" data-variant="${statusVariant(status)}">${status}</span>`;
@@ -445,6 +467,18 @@ import {
         `;
       })
       .join("");
+
+    renderPagination(totalPages);
+  }
+
+  function renderPagination(totalPages) {
+    if (!paginationControls) return;
+
+    paginationControls.hidden = false;
+    pageIndicator.textContent = `Page ${currentPage} of ${totalPages}`;
+
+    if (prevPageBtn) prevPageBtn.disabled = currentPage === 1;
+    if (nextPageBtn) nextPageBtn.disabled = currentPage === totalPages;
   }
 
   function openAppointmentModal(appointmentId) {
@@ -754,9 +788,40 @@ import {
     button.addEventListener("click", () => {
       activeAppointmentFilter = button.dataset.apptFilter;
       apptFilters.forEach((btn) => btn.classList.toggle("is-active", btn === button));
+      currentPage = 1; // Reset to page 1 when filter changes
       renderAppointments();
     });
   });
+
+  // Pagination event listeners
+  if (prevPageBtn) {
+    prevPageBtn.addEventListener("click", () => {
+      if (currentPage > 1) {
+        currentPage--;
+        renderAppointments();
+      }
+    });
+  }
+
+  if (nextPageBtn) {
+    nextPageBtn.addEventListener("click", () => {
+      // Calculate total pages again (needs to match render logic)
+      // A cleaner way is to store filtered list or just recount.
+      // For now, let's recount similar to renderAppointments.
+      const filtered = appointments.filter((appt) => {
+        const state = normalizeStatus(appt.status);
+        if (state === "cancelled") return false;
+        if (activeAppointmentFilter === "pending") return state.includes("pending") || state === "accepted";
+        return state === "completed";
+      });
+      const totalPages = Math.ceil(filtered.length / itemsPerPage) || 1;
+
+      if (currentPage < totalPages) {
+        currentPage++;
+        renderAppointments();
+      }
+    });
+  }
 
   document.querySelectorAll("[data-modal-close]").forEach((btn) => {
     btn.addEventListener("click", () => {
