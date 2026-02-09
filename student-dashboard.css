@@ -311,6 +311,33 @@
   color: rgba(15, 47, 42, 0.68);
 }
 
+/* Pagination */
+.dash-pagination{
+  margin-top: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(15, 47, 42, 0.08);
+}
+
+.dash-pagination[hidden]{
+  display: none;
+}
+
+.dash-pagination__info{
+  font-size: 12px;
+  font-weight: 700;
+  color: rgba(15, 47, 42, 0.6);
+}
+
+.btn--sm{
+  padding: 6px 14px;
+  font-size: 12px;
+  height: auto;
+}
+
 /* Metrics */
 .dash-metrics{
   margin-top: 12px;

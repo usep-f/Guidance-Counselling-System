@@ -647,13 +647,106 @@ let currentUser = null;
     }[m]));
   }
 
-  function renderPending() {
-    if (!appointments.length) {
-      pendingList.innerHTML = `<p class="form-hint">No pending appointments.</p>`;
+
+
+  function subscribePendingAppointments(user) {
+    if (unsubscribeAppointments) {
+      unsubscribeAppointments();
+      unsubscribeAppointments = null;
+    }
+
+    appointments = [];
+    renderPending();
+
+    if (!user) return;
+
+    const q = query(
+      collection(db, "appointments"),
+      where("studentId", "==", user.uid)
+    );
+
+    unsubscribeAppointments = onSnapshot(
+      q,
+      (snap) => {
+        appointments = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+
+        // sort newest first (createdAt is Timestamp)
+        appointments.sort((a, b) => {
+          const at = a.createdAt?.seconds || 0;
+          const bt = b.createdAt?.seconds || 0;
+          return bt - at;
+        });
+
+        // Reset to page 1 on new data arrival (optional, but good for "realtime" feeling so they see new stuff)
+        // Or keep current page if preferred. Let's reset to see the new item.
+        // currentPage = 1; 
+        renderPending();
+      },
+      (err) => {
+        console.error(err);
+        pendingList.innerHTML = `<p class="form-hint">Unable to load appointments.</p>`;
+      }
+    );
+  }
+
+  // --- Pagination Logic ---
+  let currentPage = 1;
+  const itemsPerPage = 5;
+
+  const paginationControls = document.getElementById("paginationControls");
+  const prevPageBtn = document.getElementById("prevPageBtn");
+  const nextPageBtn = document.getElementById("nextPageBtn");
+  const pageIndicator = document.getElementById("pageIndicator");
+
+  function renderPagination(totalPages) {
+    if (!paginationControls) return;
+
+    if (appointments.length <= itemsPerPage) {
+      paginationControls.hidden = true;
       return;
     }
 
-    pendingList.innerHTML = appointments
+    paginationControls.hidden = false;
+    pageIndicator.textContent = `Page ${currentPage} of ${totalPages}`;
+
+    if (prevPageBtn) prevPageBtn.disabled = currentPage === 1;
+    if (nextPageBtn) nextPageBtn.disabled = currentPage === totalPages;
+  }
+
+  if (prevPageBtn) {
+    prevPageBtn.addEventListener("click", () => {
+      if (currentPage > 1) {
+        currentPage--;
+        renderPending();
+      }
+    });
+  }
+
+  if (nextPageBtn) {
+    nextPageBtn.addEventListener("click", () => {
+      const totalPages = Math.ceil(appointments.length / itemsPerPage) || 1;
+      if (currentPage < totalPages) {
+        currentPage++;
+        renderPending();
+      }
+    });
+  }
+
+  function renderPending() {
+    if (!appointments.length) {
+      pendingList.innerHTML = `<p class="form-hint">No pending appointments.</p>`;
+      if (paginationControls) paginationControls.hidden = true;
+      return;
+    }
+
+    const totalPages = Math.ceil(appointments.length / itemsPerPage) || 1;
+    if (currentPage > totalPages) currentPage = totalPages;
+    if (currentPage < 1) currentPage = 1;
+
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const pagedItems = appointments.slice(startIndex, startIndex + itemsPerPage);
+
+    pendingList.innerHTML = pagedItems
       .map((item) => {
         const date = item.date || "-";
         const time = item.time || "-";
@@ -685,43 +778,8 @@ let currentUser = null;
       `;
       })
       .join("");
-  }
 
-  function subscribePendingAppointments(user) {
-    if (unsubscribeAppointments) {
-      unsubscribeAppointments();
-      unsubscribeAppointments = null;
-    }
-
-    appointments = [];
-    renderPending();
-
-    if (!user) return;
-
-    const q = query(
-      collection(db, "appointments"),
-      where("studentId", "==", user.uid)
-    );
-
-    unsubscribeAppointments = onSnapshot(
-      q,
-      (snap) => {
-        appointments = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
-
-        // sort newest first (createdAt is Timestamp)
-        appointments.sort((a, b) => {
-          const at = a.createdAt?.seconds || 0;
-          const bt = b.createdAt?.seconds || 0;
-          return bt - at;
-        });
-
-        renderPending();
-      },
-      (err) => {
-        console.error(err);
-        pendingList.innerHTML = `<p class="form-hint">Unable to load appointments.</p>`;
-      }
-    );
+    renderPagination(totalPages);
   }
 
   renderProfile();
