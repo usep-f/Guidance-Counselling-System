@@ -69,8 +69,8 @@ import {
   const enrolledList = document.getElementById("enrolledList");
   const appointmentList = document.getElementById("appointmentList");
   const userSearch = document.getElementById("userSearch");
-  const userGrade = document.getElementById("userGrade");
-  const userProgram = document.getElementById("userProgram");
+  const userYear = document.getElementById("userYear");
+  const userCourse = document.getElementById("userCourse");
   const apptFilters = Array.from(document.querySelectorAll("[data-appt-filter]"));
   const userModal = document.getElementById("userModal");
   const userModalTitle = document.getElementById("userModalTitle");
@@ -89,7 +89,7 @@ import {
   if (!emotionsEl || !triggersEl || !tableEl) return;
 
   const elTime = document.getElementById("timeRange");
-  const elGrade = document.getElementById("gradeLevel");
+  const elYear = document.getElementById("gradeLevel");
   const elSearch = document.getElementById("searchStudent");
   const btnReset = document.getElementById("btnReset");
   const btnExport = document.getElementById("btnExport");
@@ -119,59 +119,30 @@ import {
     update();
   };
 
-  const enrolledUsers = [
-    {
-      id: "2024-00123",
-      name: "Juan Dela Cruz",
-      year: "Grade 12",
-      course: "STEM",
-      email: "juan.delacruz@school.edu",
-      program: "stem",
-      recent: [
-        { date: "2026-01-03", status: "Pending" },
-        { date: "2025-12-08", status: "Completed" },
-        { date: "2025-11-21", status: "Completed" }
-      ],
-      history: [
-        { date: "2026-01-03", time: "10:00 AM", status: "Pending" },
-        { date: "2025-12-08", time: "01:30 PM", status: "Completed" },
-        { date: "2025-11-21", time: "09:00 AM", status: "Completed" },
-        { date: "2025-10-02", time: "02:30 PM", status: "Completed" }
-      ]
-    },
-    {
-      id: "2024-00456",
-      name: "Maria Santos",
-      year: "Grade 11",
-      course: "ABM",
-      email: "maria.santos@school.edu",
-      program: "abm",
-      recent: [
-        { date: "2026-01-05", status: "Scheduled" },
-        { date: "2025-12-12", status: "Completed" }
-      ],
-      history: [
-        { date: "2026-01-05", time: "11:00 AM", status: "Scheduled" },
-        { date: "2025-12-12", time: "08:30 AM", status: "Completed" }
-      ]
-    },
-    {
-      id: "2024-00589",
-      name: "Kyle Ramirez",
-      year: "Grade 10",
-      course: "HUMSS",
-      email: "kyle.ramirez@school.edu",
-      program: "humss",
-      recent: [
-        { date: "2026-01-12", status: "Pending" },
-        { date: "2025-11-18", status: "Completed" }
-      ],
-      history: [
-        { date: "2026-01-12", time: "02:00 PM", status: "Pending" },
-        { date: "2025-11-18", time: "09:30 AM", status: "Completed" }
-      ]
-    }
-  ];
+  // ============================
+  // ✅ REAL STUDENTS (Firestore)
+  // ============================
+  let students = [];
+  let unsubscribeStudents = null;
+
+  function subscribeStudents() {
+    if (unsubscribeStudents) unsubscribeStudents();
+
+    const q = query(collection(db, "students"));
+    unsubscribeStudents = onSnapshot(
+      q,
+      (snap) => {
+        students = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+        renderUserList();
+      },
+      (err) => {
+        console.error("Error fetching students:", err);
+        if (enrolledList) {
+          enrolledList.innerHTML = `<p class="admin-empty">Unable to load students.</p>`;
+        }
+      }
+    );
+  }
 
   // ============================
   // ✅ APPOINTMENTS (Firestore)
@@ -286,19 +257,24 @@ import {
 
   function matchesUserFilters(user) {
     const queryVal = (userSearch?.value || "").trim().toLowerCase();
-    const grade = userGrade?.value || "all";
-    const program = userProgram?.value || "all";
+    const year = userYear?.value || "all";
+    const course = userCourse?.value || "all";
 
-    if (grade !== "all" && user.year.toLowerCase() !== grade.replace("g", "grade ")) {
+    const uProgram = (user.program || "").toLowerCase();
+    const uName = (user.name || "").toLowerCase();
+    const uId = (user.studentNo || "").toLowerCase();
+    const uYear = (user.gradeLevel || "").toLowerCase();
+
+    if (year !== "all" && uYear !== year.toLowerCase()) {
       return false;
     }
 
-    if (program !== "all" && user.program !== program) {
+    if (course !== "all" && uProgram !== course.toLowerCase()) {
       return false;
     }
 
     if (queryVal) {
-      const haystack = `${user.name} ${user.id}`.toLowerCase();
+      const haystack = `${uName} ${uId}`;
       if (!haystack.includes(queryVal)) return false;
     }
 
@@ -307,7 +283,7 @@ import {
 
   function renderUserList() {
     if (!enrolledList) return;
-    const rows = enrolledUsers.filter(matchesUserFilters);
+    const rows = students.filter(matchesUserFilters);
 
     if (!rows.length) {
       enrolledList.innerHTML = `<p class="admin-empty">No enrolled users found.</p>`;
@@ -316,15 +292,28 @@ import {
 
     enrolledList.innerHTML = rows
       .map((user) => {
-        const recent = user.recent
+        // Find recent appointments for this student
+        const userAppts = appointments
+          .filter(a => a.studentId === user.id)
+          .sort((a, b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0))
+          .slice(0, 3);
+
+        const recent = userAppts
           .map((item) => `<span class="admin-tag">${item.date} · ${item.status}</span>`)
           .join("");
+
+        const displayName = user.name || "Student";
+        const displayId = user.studentNo || "No ID";
+        const displayYear = user.gradeLevel || "Year Level";
+        const displayProgram = user.program || "Program";
+        const displayEmail = user.email || "";
+
         return `
           <article class="admin-item">
             <div class="admin-item__main">
-              <h3 class="admin-item__title">${user.name}</h3>
+              <h3 class="admin-item__title">${displayName}</h3>
               <p class="admin-item__meta">
-                ${user.id} · ${user.year} · ${user.course} · ${user.email}
+                ${displayId} · ${displayYear} · ${displayProgram} · ${displayEmail}
               </p>
               <div class="admin-item__tags">${recent}</div>
             </div>
@@ -341,25 +330,36 @@ import {
 
   function openUserModal(userId) {
     if (!userModal || !userModalBody || !userModalTitle) return;
-    const user = enrolledUsers.find((item) => item.id === userId);
+    const user = students.find((item) => item.id === userId);
     if (!user) return;
 
-    userModalTitle.textContent = user.name;
+    userModalTitle.textContent = user.name || "Student Profile";
+
+    // Get full history
+    const history = appointments
+      .filter(a => a.studentId === user.id)
+      .sort((a, b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0));
+
     userModalBody.innerHTML = `
       <div class="admin-detail">
         <div class="admin-detail__block">
           <h3>Student Information</h3>
-          <p><strong>ID:</strong> ${user.id}</p>
-          <p><strong>Year & Course:</strong> ${user.year} · ${user.course}</p>
-          <p><strong>Email:</strong> ${user.email}</p>
+          <p><strong>Name:</strong> ${user.name || "-"}</p>
+          <p><strong>Student No:</strong> ${user.studentNo || "-"}</p>
+          <p><strong>Program/Year:</strong> ${user.program || "-"} / ${user.gradeLevel || "-"}</p>
+          <p><strong>Email:</strong> ${user.email || "-"}</p>
+          <p><strong>Contact:</strong> ${user.contact || "Not provided"}</p>
         </div>
         <div class="admin-detail__block">
-          <h3>Recent Appointments</h3>
+          <h3>Appointment History</h3>
+          ${history.length === 0 ? '<p class="admin-empty">No appointments found.</p>' : ''}
           <ul class="admin-detail__list">
-            ${user.history
+            ${history
         .map(
           (item) =>
-            `<li>${item.date} · ${item.time} <span class="admin-tag">${item.status}</span></li>`
+            `<li>${item.date} · ${item.time} <span class="admin-tag">${item.status}</span><br>
+             <small>${item.reason || "No reason"} · ${item.mode || "-"}</small>
+            </li>`
         )
         .join("")}
           </ul>
@@ -559,7 +559,7 @@ import {
 
   function reset() {
     elTime.value = "30";
-    elGrade.value = "all";
+    elYear.value = "all";
     elSearch.value = "";
     demo = [];
     update();
@@ -736,17 +736,21 @@ import {
   }
 
   // Event listeners for dashboard controls
+  // Event listeners for dashboard controls
   elTime.addEventListener("change", update);
-  elGrade.addEventListener("change", update);
+  elYear.addEventListener("change", update);
   elSearch.addEventListener("input", update);
   btnReset.addEventListener("click", reset);
   btnExport.addEventListener("click", exportSummary);
 
   update();
 
-  userSearch?.addEventListener("input", renderUserList);
-  userGrade?.addEventListener("change", renderUserList);
-  userProgram?.addEventListener("change", renderUserList);
+  /* 
+     NOTE: The following event listeners were redundant or incorrect. 
+     The correct listeners for userYear and userCourse are added below 
+     in the "User list filter listeners" block. 
+     I will remove the specific lines causing ReferenceErrors here.
+  */
 
   enrolledList?.addEventListener("click", (event) => {
     const button = event.target.closest("[data-user-open]");
@@ -793,6 +797,17 @@ import {
     });
   });
 
+  // User list filter listeners
+  if (userSearch) {
+    userSearch.addEventListener("input", renderUserList);
+  }
+  if (userYear) {
+    userYear.addEventListener("change", renderUserList);
+  }
+  if (userCourse) {
+    userCourse.addEventListener("change", renderUserList);
+  }
+
   // Pagination event listeners
   if (prevPageBtn) {
     prevPageBtn.addEventListener("click", () => {
@@ -834,9 +849,12 @@ import {
 
   onAuthStateChanged(auth, (user) => {
     if (user) {
+      subscribeStudents();
       subscribeAppointments();
     } else {
+      students = [];
       appointments = [];
+      renderUserList();
       renderAppointments();
     }
   });
