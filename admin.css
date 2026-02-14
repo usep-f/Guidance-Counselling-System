@@ -1492,7 +1492,7 @@ img {
   position: fixed;
   inset: 0;
   display: none;
-  align-items: stretch;
+  align-items: center;
   justify-content: center;
   z-index: 100;
 }
@@ -1509,15 +1509,20 @@ img {
 
 .admin-modal__panel {
   position: relative;
-  margin: 48px auto;
+  margin: 18px;
   background: #fff;
   border-radius: 22px;
   padding: 24px;
   width: min(900px, 92vw);
-  max-height: calc(100vh - 96px);
+  max-height: calc(100vh - 48px);
   overflow-y: auto;
   box-shadow: var(--shadow-soft);
 }
+
+.admin-modal__panel--sm {
+  width: min(440px, 92vw);
+}
+
 
 .admin-modal__head {
   display: flex;
