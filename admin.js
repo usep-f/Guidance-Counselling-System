@@ -36,33 +36,24 @@ import {
         const isActive = tab.getAttribute("href") === `#${targetId}`;
         tab.classList.toggle("is-active", isActive);
       });
+
+      sections.forEach((section) => {
+        const isActive = section.id === targetId;
+        section.classList.toggle("is-active", isActive);
+        section.style.display = isActive ? "block" : "none";
+      });
     }
 
     tabs.forEach((tab) => {
       tab.addEventListener("click", (event) => {
         event.preventDefault();
-        const target = document.querySelector(tab.getAttribute("href"));
-        if (target) {
-          target.scrollIntoView({ behavior: "smooth", block: "start" });
-          setActiveTab(target.id);
-        }
+        const targetId = tab.getAttribute("href").substring(1);
+        setActiveTab(targetId);
       });
     });
 
-    // Use IntersectionObserver to highlight tabs as the user scrolls
-    if ("IntersectionObserver" in window) {
-      const observer = new IntersectionObserver(
-        (entries) => {
-          entries.forEach((entry) => {
-            if (entry.isIntersecting) {
-              setActiveTab(entry.target.id);
-            }
-          });
-        },
-        { rootMargin: "-30% 0px -60% 0px" }
-      );
-      sections.forEach((section) => observer.observe(section));
-    }
+    // Set initial tab
+    setActiveTab("admin-analytics");
   }
 
   const emotionsEl = document.getElementById("chartEmotions");
@@ -88,6 +79,10 @@ import {
   const inquiryResponseForm = document.getElementById("inquiryResponseForm");
   const adminResponseMessage = document.getElementById("adminResponseMessage");
   const btnSubmitInquiryResponse = document.getElementById("btnSubmitInquiryResponse");
+  const confirmAcceptModal = document.getElementById("confirmAcceptModal");
+  const btnConfirmAction = document.getElementById("btnConfirmAction");
+  const confirmModalTitle = document.getElementById("confirmModalTitle");
+  const confirmModalBody = document.getElementById("confirmModalBody");
 
   // Pagination controls
   const paginationControls = document.getElementById("paginationControls");
@@ -648,6 +643,11 @@ import {
                   <button class="btn btn--pill btn--ghost" type="button" data-appt-open="${appt.id}">
                     Open Details
                   </button>
+                  ${state === "accepted" ? `
+                    <button class="btn btn--pill btn--ghost" type="button" data-deny="${appt.id}">
+                      Cancel
+                    </button>
+                  ` : ""}
                 `
             : ""}
             </div>
@@ -680,6 +680,12 @@ import {
     // check if it's already completed to hide "complete" action
     const isCompleted = normalizeStatus(appt.status) === "completed";
 
+    // ✅ Find clinical data if completed
+    const record = isCompleted ? sessionRecords.find(r => r.appointmentId === appointmentId) : null;
+    const notes = record?.notes || "";
+    const savedEmotions = record?.emotions || [];
+    const savedTriggers = record?.triggers || [];
+
     appointmentModalBody.innerHTML = `
       <div class="admin-detail">
         <div class="admin-detail__block">
@@ -692,23 +698,23 @@ import {
         </div>
         <div class="admin-detail__block">
           <h3>Counselor Notes</h3>
-          <textarea id="sessionNotes" class="admin-textarea" rows="5" placeholder="Type session notes here..."></textarea>
+          <textarea id="sessionNotes" class="admin-textarea" rows="5" placeholder="Type session notes here..." ${isCompleted ? 'disabled' : ''}>${notes}</textarea>
         </div>
         <div class="admin-detail__block">
           <h3>Emotional States</h3>
           <div class="admin-checkgrid" id="emotionGrid">
-            <label class="admin-check"><input type="checkbox" value="Stress" /> Stress</label>
-            <label class="admin-check"><input type="checkbox" value="Anxiety" /> Anxiety</label>
-            <label class="admin-check"><input type="checkbox" value="Depression" /> Depression</label>
+            <label class="admin-check"><input type="checkbox" value="Stress" ${savedEmotions.includes("Stress") ? "checked" : ""} ${isCompleted ? 'disabled' : ''} /> Stress</label>
+            <label class="admin-check"><input type="checkbox" value="Anxiety" ${savedEmotions.includes("Anxiety") ? "checked" : ""} ${isCompleted ? 'disabled' : ''} /> Anxiety</label>
+            <label class="admin-check"><input type="checkbox" value="Depression" ${savedEmotions.includes("Depression") ? "checked" : ""} ${isCompleted ? 'disabled' : ''} /> Depression</label>
           </div>
         </div>
         <div class="admin-detail__block">
           <h3>Environmental Triggers</h3>
           <div class="admin-checkgrid" id="triggerGrid">
-            <label class="admin-check"><input type="checkbox" value="Family" /> Family</label>
-            <label class="admin-check"><input type="checkbox" value="Financial" /> Financial</label>
-            <label class="admin-check"><input type="checkbox" value="Academic" /> Academic</label>
-            <label class="admin-check"><input type="checkbox" value="Peer" /> Peer</label>
+            <label class="admin-check"><input type="checkbox" value="Family" ${savedTriggers.includes("Family") ? "checked" : ""} ${isCompleted ? 'disabled' : ''} /> Family</label>
+            <label class="admin-check"><input type="checkbox" value="Financial" ${savedTriggers.includes("Financial") ? "checked" : ""} ${isCompleted ? 'disabled' : ''} /> Financial</label>
+            <label class="admin-check"><input type="checkbox" value="Academic" ${savedTriggers.includes("Academic") ? "checked" : ""} ${isCompleted ? 'disabled' : ''} /> Academic</label>
+            <label class="admin-check"><input type="checkbox" value="Peer" ${savedTriggers.includes("Peer") ? "checked" : ""} ${isCompleted ? 'disabled' : ''} /> Peer</label>
           </div>
         </div>
         ${!isCompleted ? `
@@ -868,32 +874,62 @@ import {
   }
 
   function exportSummary() {
-    const rows = demo.filter(matchesFilters);
-    const emotionCounts = countBy(rows, "emotion");
-    const triggerCounts = countBy(rows, "trigger");
+    const timeVal = elTime?.value || "30";
+    const yearVal = elYear?.value || "all";
+    const searchVal = (elSearch?.value || "").trim().toLowerCase();
 
-    const lines = [];
-    lines.push("Guidance System Admin Summary");
-    lines.push(`Exported: ${new Date().toISOString()}`);
-    lines.push("");
-    lines.push("Emotional States");
-    Object.keys(emotionCounts).forEach(k => lines.push(`${k},${emotionCounts[k]}`));
-    lines.push("");
-    lines.push("Environmental Triggers");
-    Object.keys(triggerCounts).forEach(k => lines.push(`${k},${triggerCounts[k]}`));
+    // 1. Filter sessionRecords using same logic as update()
+    const rows = sessionRecords.filter(rec => {
+      if (timeVal !== "all") {
+        const days = Number(timeVal);
+        const now = new Date();
+        const d = rec.timestamp?.toDate ? rec.timestamp.toDate() : new Date();
+        const diff = (now - d) / (1000 * 60 * 60 * 24);
+        if (diff > days) return false;
+      }
+      if (yearVal !== "all") {
+        if ((rec.gradeLevel || "").toLowerCase() !== yearVal.toLowerCase()) return false;
+      }
+      if (searchVal) {
+        const haystack = `${rec.studentName} ${rec.studentNo}`.toLowerCase();
+        if (!haystack.includes(searchVal)) return false;
+      }
+      return true;
+    });
 
-    const blob = new Blob([lines.join("\n")], { type: "text/plain;charset=utf-8" });
+    // 2. Format as CSV
+    const csvRows = [];
+    // Header
+    csvRows.push(["Date", "Student Name", "Student ID", "Year", "Emotions", "Triggers", "Notes"].map(h => `"${h}"`).join(","));
+
+    // Body
+    rows.forEach(r => {
+      const date = r.timestamp?.toDate ? r.timestamp.toDate().toLocaleDateString() : "-";
+      csvRows.push([
+        date,
+        r.studentName || "-",
+        r.studentNo || "-",
+        r.gradeLevel || "-",
+        (r.emotions || []).join("; "),
+        (r.triggers || []).join("; "),
+        r.notes || ""
+      ].map(val => `"${String(val).replace(/"/g, '""')}"`).join(","));
+    });
+
+    // 3. Download
+    const blob = new Blob([csvRows.join("\n")], { type: "text/csv;charset=utf-8" });
     const url = URL.createObjectURL(blob);
 
     const a = document.createElement("a");
     a.href = url;
-    a.download = "guidance_admin_summary.txt";
+    a.download = `guidance_summary_${new Date().toISOString().split('T')[0]}.csv`;
     document.body.appendChild(a);
     a.click();
     a.remove();
 
     URL.revokeObjectURL(url);
   }
+
 
   // ============================
   // Firestore subscriptions + actions
@@ -930,99 +966,123 @@ import {
   // - Accept selected
   // - Auto-cancel other Pending Approval appointments in the same slot
   async function acceptAppointmentTx(appointmentId) {
-    const appt = appointments.find((a) => a.id === appointmentId);
-    if (!appt) return;
-
-    const date = appt.date;
-    const time = appt.time;
-
-    if (!date || !time) {
-      alert("Invalid appointment. Missing date/time.");
-      return;
-    }
-
     const apptRef = doc(db, "appointments", appointmentId);
 
-    try {
-      await runTransaction(db, async (tx) => {
-        const apptSnap = await tx.get(apptRef);
-        if (!apptSnap.exists()) throw new Error("Appointment no longer exists.");
-
-        const live = apptSnap.data();
-        const liveStatus = String(live.status || "");
-        const liveDate = live.date;
-        const liveTime = live.time;
-
-        // Block if already not pending-like
-        if (!String(liveStatus).toLowerCase().includes("pending")) {
-          throw new Error("Only pending appointments can be accepted.");
-        }
-
-        if (!liveDate || !liveTime) {
-          throw new Error("Missing date/time.");
-        }
-
-        // Check if slot already accepted (outside tx query, but guarded by re-check below)
-        const acceptedQ = query(
-          collection(db, "appointments"),
-          where("date", "==", liveDate),
-          where("time", "==", liveTime),
-          where("status", "==", "Accepted")
-        );
-
-        const acceptedSnap = await getDocs(acceptedQ);
-        const acceptedExists = acceptedSnap.docs.some((d) => d.id !== appointmentId);
-        if (acceptedExists) {
-          throw new Error("This slot is already allotted (Accepted).");
-        }
-
-        // Accept the selected appointment
-        tx.update(apptRef, { status: "Accepted", updatedAt: serverTimestamp() });
-
-        // ✅ PUBLIC AVAILABILITY: Write a simple doc { date, time } blocking this slot
-        const availRef = doc(db, "availability", `${liveDate}_${liveTime}`);
-        tx.set(availRef, {
-          date: liveDate,
-          time: liveTime,
-          appointmentId: appointmentId
-        });
-
-        // Auto-cancel other pending requests in same slot
-        const pendingQ = query(
-          collection(db, "appointments"),
-          where("date", "==", liveDate),
-          where("time", "==", liveTime),
-          where("status", "==", "Pending Approval")
-        );
-
-        const pendingSnap = await getDocs(pendingQ);
-        pendingSnap.docs.forEach((d) => {
-          if (d.id === appointmentId) return;
-          tx.update(d.ref, { status: "Cancelled", updatedAt: serverTimestamp() });
-        });
-      });
-    } catch (err) {
-      console.error(err);
-      alert(err.message || "Unable to accept appointment.");
+    // Dynamic text for Accept
+    if (confirmModalTitle) confirmModalTitle.textContent = "Confirm Appointment";
+    if (confirmModalBody) {
+      confirmModalBody.innerHTML = `<p>Are you sure you want to accept this appointment request? This will block the selected slot and notify the student.</p>`;
     }
+    if (btnConfirmAction) btnConfirmAction.textContent = "Confirm & Accept";
+
+    // Show confirmation modal
+    confirmAcceptModal.classList.add("is-open");
+    confirmAcceptModal.setAttribute("aria-hidden", "false");
+
+    // Setup the confirm button
+    btnConfirmAction.onclick = async () => {
+      closeModal(confirmAcceptModal);
+      try {
+        await runTransaction(db, async (tx) => {
+          const apptSnap = await tx.get(apptRef);
+          if (!apptSnap.exists()) throw new Error("Appointment no longer exists.");
+
+          const live = apptSnap.data();
+          const liveStatus = String(live.status || "");
+          const liveDate = live.date;
+          const liveTime = live.time;
+
+          if (!String(liveStatus).toLowerCase().includes("pending")) {
+            throw new Error("Only pending appointments can be accepted.");
+          }
+
+          if (!liveDate || !liveTime) {
+            throw new Error("Missing date/time.");
+          }
+
+          const acceptedQ = query(
+            collection(db, "appointments"),
+            where("date", "==", liveDate),
+            where("time", "==", liveTime),
+            where("status", "==", "Accepted")
+          );
+
+          const acceptedSnap = await getDocs(acceptedQ);
+          const acceptedExists = acceptedSnap.docs.some((d) => d.id !== appointmentId);
+          if (acceptedExists) {
+            throw new Error("This slot is already allotted (Accepted).");
+          }
+
+          tx.update(apptRef, { status: "Accepted", updatedAt: serverTimestamp() });
+
+          const availRef = doc(db, "availability", `${liveDate}_${liveTime}`);
+          tx.set(availRef, {
+            date: liveDate,
+            time: liveTime,
+            appointmentId: appointmentId
+          });
+
+          const pendingQ = query(
+            collection(db, "appointments"),
+            where("date", "==", liveDate),
+            where("time", "==", liveTime),
+            where("status", "==", "Pending Approval")
+          );
+
+          const pendingSnap = await getDocs(pendingQ);
+          pendingSnap.docs.forEach((d) => {
+            if (d.id === appointmentId) return;
+            tx.update(d.ref, { status: "Cancelled", updatedAt: serverTimestamp() });
+          });
+        });
+      } catch (err) {
+        console.error(err);
+        alert(err.message || "Unable to accept appointment.");
+      }
+    };
   }
 
   async function denyAppointment(appointmentId) {
-    try {
-      const appt = appointments.find(a => a.id === appointmentId);
-      if (appt && appt.date && appt.time) {
-        // Remove public block if it exists
-        await deleteDoc(doc(db, "availability", `${appt.date}_${appt.time}`));
-      }
+    const appt = appointments.find(a => a.id === appointmentId);
+    if (!appt) return;
 
-      await updateDoc(doc(db, "appointments", appointmentId), {
-        status: "Cancelled",
-        updatedAt: serverTimestamp()
-      });
-    } catch (err) {
-      console.error(err);
-      alert("Unable to deny appointment.");
+    const isAccepted = normalizeStatus(appt.status) === "accepted";
+
+    // Dynamic text for Deny/Cancel
+    if (confirmModalTitle) {
+      confirmModalTitle.textContent = isAccepted ? "Cancel Appointment" : "Deny Appointment";
     }
+    if (confirmModalBody) {
+      const msg = isAccepted
+        ? "Are you sure you want to cancel this accepted appointment? The slot will be freed for other students."
+        : "Are you sure you want to deny this appointment request?";
+      confirmModalBody.innerHTML = `<p>${msg}</p>`;
+    }
+    if (btnConfirmAction) {
+      btnConfirmAction.textContent = isAccepted ? "Confirm Cancellation" : "Confirm Deny";
+    }
+
+    // Show confirmation modal
+    confirmAcceptModal.classList.add("is-open");
+    confirmAcceptModal.setAttribute("aria-hidden", "false");
+
+    btnConfirmAction.onclick = async () => {
+      closeModal(confirmAcceptModal);
+      try {
+        if (appt.date && appt.time) {
+          // Remove public block if it exists
+          await deleteDoc(doc(db, "availability", `${appt.date}_${appt.time}`));
+        }
+
+        await updateDoc(doc(db, "appointments", appointmentId), {
+          status: "Cancelled",
+          updatedAt: serverTimestamp()
+        });
+      } catch (err) {
+        console.error(err);
+        alert("Unable to process cancellation.");
+      }
+    };
   }
 
   async function completeAppointment(appointmentId) {
@@ -1176,6 +1236,7 @@ import {
       closeModal(userModal);
       closeModal(appointmentModal);
       closeModal(inquiryModal);
+      closeModal(confirmAcceptModal);
     });
   });
 

@@ -363,6 +363,22 @@
           </div>
         </div>
       </div>
+      <div class="admin-modal" id="confirmAcceptModal" aria-hidden="true">
+        <div class="admin-modal__overlay" data-modal-close></div>
+        <div class="admin-modal__panel admin-modal__panel--sm" role="dialog" aria-modal="true">
+          <header class="admin-modal__head">
+            <h2 class="admin-modal__title" id="confirmModalTitle">Confirm Appointment</h2>
+            <button class="admin-modal__close" type="button" data-modal-close aria-label="Close">✕</button>
+          </header>
+          <div class="admin-modal__body" id="confirmModalBody">
+            <p>Are you sure you want to accept this appointment request? This will block the selected slot and notify the student.</p>
+          </div>
+          <footer class="admin-modal__footer">
+            <button class="btn btn--pill btn--ghost" type="button" data-modal-close>Cancel</button>
+            <button class="btn btn--pill btn--primary" id="btnConfirmAction" type="button">Confirm & Accept</button>
+          </footer>
+        </div>
+      </div>
     </main>
 
     <!-- FOOTER (same structure as index.html) -->

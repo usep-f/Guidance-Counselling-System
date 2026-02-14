@@ -45,10 +45,7 @@ img {
   display: block;
 }
 
-/* Smooth-scroll offset for sticky header */
-section[id] {
-  scroll-margin-top: calc(var(--nav-h) + 18px);
-}
+/* removed scroll-margin for tabbed view */
 
 /* Header / Nav (floating) */
 .site-header {
@@ -1289,7 +1286,8 @@ section[id] {
 
 .dashboard-tabs {
   position: sticky;
-  top: calc(var(--nav-h) + 16px);
+  top: 100px;
+  /* Below the sticky main header */
   z-index: 40;
   display: flex;
   flex-wrap: wrap;
@@ -1328,7 +1326,12 @@ section[id] {
 }
 
 .dashboard-section {
-  margin-bottom: 44px;
+  display: none;
+  margin-bottom: 24px;
+}
+
+.dashboard-section.is-active {
+  display: block;
 }
 
 /* Wrapper aligned with your container system */
@@ -1489,7 +1492,7 @@ section[id] {
   position: fixed;
   inset: 0;
   display: none;
-  align-items: stretch;
+  align-items: center;
   justify-content: center;
   z-index: 100;
 }
@@ -1506,15 +1509,20 @@ section[id] {
 
 .admin-modal__panel {
   position: relative;
-  margin: 48px auto;
+  margin: 18px;
   background: #fff;
   border-radius: 22px;
   padding: 24px;
   width: min(900px, 92vw);
-  max-height: calc(100vh - 96px);
+  max-height: calc(100vh - 48px);
   overflow-y: auto;
   box-shadow: var(--shadow-soft);
 }
+
+.admin-modal__panel--sm {
+  width: min(440px, 92vw);
+}
+
 
 .admin-modal__head {
   display: flex;
