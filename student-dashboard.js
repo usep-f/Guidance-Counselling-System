@@ -4,8 +4,17 @@ import {
   doc,
   getDoc,
   setDoc,
-  serverTimestamp
+  serverTimestamp,
+  collection,
+  addDoc,
+  query,
+  where,
+  orderBy,
+  onSnapshot
 } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
+
+// Shared auth user for the whole file (booking + dashboard)
+let currentUser = null;
 
 /* Student dashboard tabs management */
 (function () {
@@ -16,10 +25,6 @@ import {
     .map((tab) => document.querySelector(tab.getAttribute("href")))
     .filter(Boolean);
 
-  /**
-   * Name: setActive
-   * Description: Updates the active tab and section visibility for the student dashboard.
-   */
   function setActive(targetId) {
     tabs.forEach((tab) => {
       const isActive = tab.getAttribute("href") === `#${targetId}`;
@@ -38,14 +43,11 @@ import {
     });
   });
 
-  // Use IntersectionObserver to highlight tabs as the user scrolls through the dashboard
   if ("IntersectionObserver" in window) {
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            setActive(entry.target.id);
-          }
+          if (entry.isIntersecting) setActive(entry.target.id);
         });
       },
       { rootMargin: "-30% 0px -60% 0px" }
@@ -55,22 +57,74 @@ import {
   }
 })();
 
-/* Inquiry feedback (demo) */
+/* Inquiry submission (Firestore) */
 (function () {
   const form = document.getElementById("inquiryForm");
   const hint = document.getElementById("inquiryHint");
 
   if (!form || !hint) return;
 
-  form.addEventListener("submit", (event) => {
+  form.addEventListener("submit", async (event) => {
     event.preventDefault();
-    hint.textContent =
-      "Inquiry submitted (demo). The counselor will review your message within 1–2 school days.";
-    form.reset();
+
+    if (!currentUser) {
+      alert("Please log in to submit an inquiry.");
+      return;
+    }
+
+    const topic = document.getElementById("inquiryTopic")?.value;
+    const message = document.getElementById("inquiryMessage")?.value;
+
+    if (!topic || !message) {
+      alert("Please fill in all fields.");
+      return;
+    }
+
+    try {
+      // Get student details (best effort)
+      let studentNo = "";
+      let studentName = currentUser.displayName || "Student";
+
+      try {
+        const snap = await getDoc(doc(db, "students", currentUser.uid));
+        if (snap.exists()) {
+          const d = snap.data();
+          studentNo = d.studentNo || "";
+          studentName = d.name || studentName;
+        }
+      } catch (e) {
+        console.warn("Could not fetch profile for inquiry", e);
+      }
+
+      await addDoc(collection(db, "inquiries"), {
+        studentId: currentUser.uid,
+        studentName,
+        studentNo,
+        topic,
+        message,
+        status: "unread",
+        isReplied: false,
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp()
+      });
+
+      hint.textContent = "Inquiry sent! The counselor will review your message soon.";
+      hint.style.color = "var(--color-primary)";
+      form.reset();
+
+      // Clear success message after 5 seconds
+      setTimeout(() => {
+        hint.textContent = "";
+      }, 5000);
+
+    } catch (err) {
+      console.error("Error sending inquiry:", err);
+      alert("Unable to send inquiry. Please try again.");
+    }
   });
 })();
 
-/* Booking stepper + calendar (demo logic) */
+/* Booking stepper + calendar */
 (function () {
   const form = document.querySelector("#bookingForm");
   if (!form) return;
@@ -79,12 +133,12 @@ import {
   const panels = Array.from(form.querySelectorAll(".bpanel"));
   let active = 0;
 
-  const availability = {
-    "2026-02-03": ["09:00 AM", "10:00 AM", "02:00 PM"],
-    "2026-02-05": ["11:00 AM", "01:00 PM", "03:00 PM"],
-    "2026-02-10": ["09:00 AM", "10:30 AM", "04:00 PM"],
-    "2026-02-12": ["08:30 AM", "01:30 PM", "02:30 PM"],
-  };
+  // Fixed daily timeslots (matches your UI / Firestore time strings)
+  const TIMESLOTS = ["08:30 AM", "01:30 PM", "02:30 PM"];
+
+  // dateKey -> Set(times) for Accepted appointments
+  let blockedByDate = new Map();
+  let unsubscribeAccepted = null;
 
   const dateInput = document.querySelector("#appointmentDate");
   const timeInput = document.querySelector("#appointmentTime");
@@ -106,10 +160,6 @@ import {
   let view = new Date();
   view.setDate(1);
 
-  /**
-   * Name: setActiveStep
-   * Description: Manages the active panel and progress indicators in the booking stepper.
-   */
   function setActiveStep(index) {
     active = Math.max(0, Math.min(index, panels.length - 1));
 
@@ -119,20 +169,27 @@ import {
       step.classList.toggle("is-done", idx < active);
     });
 
-    // Build the summary review on the final step
     if (active === panels.length - 1) buildReview();
   }
 
-  /**
-   * Name: validatePanel
-   * Description: Validates required input fields within the current stepper panel before proceeding.
-   */
+  // Slightly better validation (handles checkboxes/radios)
+  function isFieldValid(el) {
+    if (!el) return false;
+    if (el.type === "checkbox") return el.checked;
+    if (el.type === "radio") {
+      const name = el.name;
+      if (!name) return false;
+      return !!form.querySelector(`input[type="radio"][name="${CSS.escape(name)}"]:checked`);
+    }
+    return !!String(el.value || "").trim();
+  }
+
   function validatePanel(index) {
     const panel = panels[index];
     const required = Array.from(panel.querySelectorAll("[required]"));
 
     for (const el of required) {
-      if (!el.value) {
+      if (!isFieldValid(el)) {
         el.focus?.();
         return false;
       }
@@ -162,72 +219,194 @@ import {
     }
   });
 
-  form.addEventListener("submit", (event) => {
+  // ✅ REAL booking submit → saves to Firestore → pending list auto updates
+  form.addEventListener("submit", async (event) => {
     event.preventDefault();
     if (!validatePanel(active)) return;
 
-    alert("Appointment request submitted (demo).");
-    form.reset();
-    dateInput.value = "";
-    timeInput.value = "";
-    renderCalendar();
-    setActiveStep(0);
+    if (!currentUser) {
+      alert("Please log in first.");
+      return;
+    }
+
+    const data = new FormData(form);
+
+    // get student profile fields (studentNo, name) from Firestore
+    let studentNo = "";
+    let studentName = currentUser.displayName || "";
+
+    try {
+      const profileSnap = await getDoc(doc(db, "students", currentUser.uid));
+      if (profileSnap.exists()) {
+        const p = profileSnap.data();
+        studentNo = p.studentNo || "";
+        studentName = p.name || studentName;
+      }
+    } catch (e) {
+      console.warn("Could not fetch student profile for appointment metadata.", e);
+    }
+
+    const payload = {
+      // Auth UID (technical)
+      studentId: currentUser.uid,
+
+      // Human-readable identity for admin
+      studentNo: studentNo, // <-- STUDENT NUMBER ENTERED
+      studentName: studentName || "",
+
+      reason: data.get("topic") || "",
+      mode: data.get("mode") || "",
+      date: data.get("appointmentDate") || "",
+      time: data.get("appointmentTime") || "",
+      notes: (data.get("notes") || "").trim(),
+      status: "Pending Approval",
+      createdAt: serverTimestamp(),
+      updatedAt: serverTimestamp(),
+    };
+
+    try {
+      await addDoc(collection(db, "appointments"), payload);
+
+      alert("Appointment request submitted.");
+      form.reset();
+      dateInput.value = "";
+      timeInput.value = "";
+      clearSelection();
+      renderCalendar();
+      setActiveStep(0);
+    } catch (err) {
+      console.error(err);
+      alert("Unable to submit appointment right now. Please try again.");
+    }
   });
 
-  /**
-   * Name: pad
-   * Description: Helper function to pad single-digit numbers with a leading zero (e.g., for dates).
-   */
   function pad(value) {
     return String(value).padStart(2, "0");
   }
 
-  /**
-   * Name: fmtKey
-   * Description: Formats a year, month, and day into a standardized YYYY-MM-DD string.
-   */
   function fmtKey(year, month, day) {
     return `${year}-${pad(month)}-${pad(day)}`;
   }
 
-  /**
-   * Name: monthName
-   * Description: Converts a Date object into a human-readable month and year string.
-   */
   function monthName(date) {
     return date.toLocaleString("en-US", { month: "long", year: "numeric" });
   }
 
-  /**
-   * Name: clearSelection
-   * Description: Resets the date and time selection in the booking UI.
-   */
+  function isPastDate(dateKey) {
+    const [y, m, d] = dateKey.split("-").map(Number);
+    const cellDate = new Date(y, m - 1, d);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    today.setHours(0, 0, 0, 0);
+    cellDate.setHours(0, 0, 0, 0);
+
+    // BLOCK SAME DAY: Must book at least tomorrow
+    return cellDate <= today;
+  }
+
+  function isSlotBlocked(dateKey, timeLabel) {
+    const set = blockedByDate.get(dateKey);
+    return !!set && set.has(timeLabel);
+  }
+
+  function isDayFullyBlocked(dateKey) {
+    const set = blockedByDate.get(dateKey);
+    if (!set) return false;
+    return TIMESLOTS.every((t) => set.has(t));
+  }
+
+  function monthStartEndKeys(dateObj) {
+    const y = dateObj.getFullYear();
+    const m = dateObj.getMonth();
+    const startKey = fmtKey(y, m + 1, 1);
+    const lastDay = new Date(y, m + 1, 0).getDate();
+    const endKey = fmtKey(y, m + 1, lastDay);
+    return { startKey, endKey };
+  }
+
   function clearSelection() {
     dateInput.value = "";
     timeInput.value = "";
     slotGrid.innerHTML = `<p class="slot-hint">Select an available date to view time slots.</p>`;
   }
 
-  /**
-   * Name: renderSlots
-   * Description: Renders the available time slots for a selected date from the availability pool.
-   */
+  function subscribeAcceptedForViewMonth() {
+    if (unsubscribeAccepted) unsubscribeAccepted();
+
+    const { startKey, endKey } = monthStartEndKeys(view);
+
+    const q = query(
+      collection(db, "availability"),
+      where("date", ">=", startKey),
+      where("date", "<=", endKey)
+    );
+
+    unsubscribeAccepted = onSnapshot(
+      q,
+      (snap) => {
+        const nextMap = new Map();
+
+        snap.forEach((docSnap) => {
+          const a = docSnap.data();
+          if (!a?.date || !a?.time) return;
+          if (!TIMESLOTS.includes(a.time)) return;
+
+          if (!nextMap.has(a.date)) nextMap.set(a.date, new Set());
+          nextMap.get(a.date).add(a.time);
+        });
+
+        blockedByDate = nextMap;
+
+        // If selected date becomes fully blocked (or is in the past), clear selection
+        if (dateInput.value) {
+          const selected = dateInput.value;
+          if (isPastDate(selected) || isDayFullyBlocked(selected)) {
+            clearSelection();
+          } else {
+            renderSlots(selected);
+          }
+        }
+
+        renderCalendar();
+      },
+      (err) => {
+        console.error("Accepted appointments listener failed:", err);
+      }
+    );
+  }
+
   function renderSlots(dateKey) {
-    const slots = availability[dateKey] || [];
     slotGrid.innerHTML = "";
 
-    if (!slots.length) {
+    if (!dateKey) {
+      slotGrid.innerHTML = `<p class="slot-hint">Select an available date to view time slots.</p>`;
+      return;
+    }
+
+    if (isPastDate(dateKey)) {
       slotGrid.innerHTML = `<p class="slot-hint">No available slots for this date.</p>`;
       return;
     }
 
-    slots.forEach((slot) => {
+    if (isDayFullyBlocked(dateKey)) {
+      slotGrid.innerHTML = `<p class="slot-hint">No available slots for this date.</p>`;
+      return;
+    }
+
+    TIMESLOTS.forEach((slot) => {
       const button = document.createElement("button");
       button.type = "button";
       button.className = "slot";
       button.textContent = slot;
 
+      const blocked = isSlotBlocked(dateKey, slot);
+      button.disabled = blocked;
+
+      if (timeInput.value === slot && !blocked) button.classList.add("is-selected");
+
       button.addEventListener("click", () => {
+        if (button.disabled) return;
+
         slotGrid.querySelectorAll(".slot").forEach((el) => el.classList.remove("is-selected"));
         button.classList.add("is-selected");
         timeInput.value = slot;
@@ -237,10 +416,6 @@ import {
     });
   }
 
-  /**
-   * Name: renderCalendar
-   * Description: Generates and displays the interactive booking calendar for the current month view.
-   */
   function renderCalendar() {
     const year = view.getFullYear();
     const month = view.getMonth();
@@ -251,29 +426,29 @@ import {
     calTitle.textContent = monthName(view);
     calDays.innerHTML = "";
 
-    // Render leading blank days for the calendar grid
     for (let i = 0; i < startDow; i++) {
       const blank = document.createElement("div");
       blank.className = "cal-day is-muted";
       calDays.appendChild(blank);
     }
 
-    // Render each day of the month
     for (let day = 1; day <= daysInMonth; day++) {
       const key = fmtKey(year, month + 1, day);
-      const hasAvail = Boolean(availability[key]);
+
+      // Disabled if past OR all 3 timeslots are already Accepted
+      const disabled = isPastDate(key) || isDayFullyBlocked(key);
 
       const cell = document.createElement("button");
       cell.type = "button";
-      cell.className = `cal-day${hasAvail ? " is-available" : " is-muted"}`;
+      cell.className = `cal-day${disabled ? " is-muted" : " is-available"}`;
       cell.textContent = String(day);
-      if (!hasAvail) cell.disabled = true;
+      cell.disabled = disabled;
 
-      if (dateInput.value === key) {
-        cell.classList.add("is-selected");
-      }
+      if (dateInput.value === key) cell.classList.add("is-selected");
 
       cell.addEventListener("click", () => {
+        if (cell.disabled) return;
+
         calDays.querySelectorAll(".cal-day").forEach((el) => el.classList.remove("is-selected"));
         cell.classList.add("is-selected");
 
@@ -289,19 +464,17 @@ import {
   prevMonthBtn?.addEventListener("click", () => {
     view = new Date(view.getFullYear(), view.getMonth() - 1, 1);
     clearSelection();
+    subscribeAcceptedForViewMonth();
     renderCalendar();
   });
 
   nextMonthBtn?.addEventListener("click", () => {
     view = new Date(view.getFullYear(), view.getMonth() + 1, 1);
     clearSelection();
+    subscribeAcceptedForViewMonth();
     renderCalendar();
   });
 
-  /**
-   * Name: readFieldValue
-   * Description: Safely reads and formats values from various input types for the summary review.
-   */
   function readFieldValue(field, fallback = "-") {
     if (!field) return fallback;
     if (field.tagName === "SELECT") {
@@ -310,10 +483,16 @@ import {
     return field.value || fallback;
   }
 
-  /**
-   * Name: buildReview
-   * Description: Generates the HTML summary of the student's selected appointment details for final review.
-   */
+  function escapeHtml(str = "") {
+    return String(str).replace(/[&<>"']/g, (m) => ({
+      "&": "&amp;",
+      "<": "&lt;",
+      ">": "&gt;",
+      '"': "&quot;",
+      "'": "&#39;"
+    }[m]));
+  }
+
   function buildReview() {
     const data = new FormData(form);
     const nameValue = readFieldValue(profileNameInput, "Student");
@@ -321,7 +500,6 @@ import {
     const yearValue = readFieldValue(profileYearLevelInput, dashYear?.textContent || "Year Level");
     const courseValue = readFieldValue(profileProgramInput, dashCourse?.textContent || "Program");
 
-    // Map the selected data for review
     const items = [
       ["Full Name", nameValue],
       ["Student No.", studentNoValue],
@@ -340,33 +518,35 @@ import {
       <div class="review__section">
         <h3 class="review__title">Student Details</h3>
         ${studentItems
-          .map(
-            ([label, value]) =>
-              `<p class="review__item"><strong>${label}:</strong> ${value || "-"}</p>`
-          )
-          .join("")}
+        .map(([label, value]) =>
+          `<p class="review__item"><strong>${escapeHtml(label)}:</strong> ${escapeHtml(value || "-")}</p>`
+        )
+        .join("")}
       </div>
       <div class="review__section">
         <h3 class="review__title">Appointment Details</h3>
         ${appointmentItems
-          .map(
-            ([label, value]) =>
-              `<p class="review__item"><strong>${label}:</strong> ${value || "-"}</p>`
-          )
-          .join("")}
+        .map(([label, value]) =>
+          `<p class="review__item"><strong>${escapeHtml(label)}:</strong> ${escapeHtml(value || "-")}</p>`
+        )
+        .join("")}
       </div>
     `;
   }
 
   renderCalendar();
+  subscribeAcceptedForViewMonth();
   setActiveStep(0);
 })();
 
 /* Dashboard profile and appointment logic */
 (function studentDashboard() {
   const pendingList = document.getElementById("pendingList");
-
   if (!pendingList) return;
+
+  // ✅ empty by default, new account shows "No pending appointments."
+  let appointments = [];
+  let unsubscribeAppointments = null;
 
   const dashName = document.getElementById("dashName");
   const dashInitials = document.getElementById("dashInitials");
@@ -390,18 +570,7 @@ import {
   const profileEmailInput = document.getElementById("profileEmail");
 
   let currentProfile = null;
-  let currentUser = null;
 
-  // Demo appointment data
-  const appointments = [
-    { date: "2026-02-03", time: "10:00 AM", type: "In-Person", status: "Pending Approval" },
-    { date: "2026-02-10", time: "09:00 AM", type: "Online", status: "Scheduled" },
-  ];
-
-  /**
-   * Name: initials
-   * Description: Extracts the first letters of the first and last name to create a user avatar label.
-   */
   function initials(name) {
     return name
       .split(" ")
@@ -411,30 +580,18 @@ import {
       .join("");
   }
 
-  /**
-   * Name: setStatus
-   * Description: Displays temporary status messages (e.g., "Profile updated") in the profile settings.
-   */
   function setStatus(message) {
     if (!profileStatus) return;
     profileStatus.textContent = message || "";
   }
 
-  /**
-   * Name: formatSubline
-   * Description: Formats student metadata (ID, year, program) into a single display string.
-   */
   function formatSubline({ studentNo, gradeLevel, program }) {
-    const safeId = studentNo ? `<strong>${studentNo}</strong>` : "<strong>-</strong>";
+    const safeId = studentNo || "-";
     const safeLevel = gradeLevel || "Year Level";
     const safeProgram = program || "Program";
     return `Student ID: ${safeId} · ${safeLevel} · ${safeProgram}`;
   }
 
-  /**
-   * Name: fillProfileForm
-   * Description: Populates the profile edit form with the user's current data from Firestore.
-   */
   function fillProfileForm(profile) {
     if (!profileForm) return;
     profileNameInput.value = profile.name || "";
@@ -445,11 +602,7 @@ import {
     profileEmailInput.value = profile.email || "";
   }
 
-  /**
-   * Name: renderProfile
-   * Description: Updates the dashboard UI elements with the user's profile information.
-   */
-  function renderProfile(profile={}, user) {
+  function renderProfile(profile = {}, user) {
     const displayName = profile.name || user?.displayName || "Student";
     const email = profile.email || user?.email || "-";
     const contact = profile.contact || "Not provided";
@@ -462,13 +615,11 @@ import {
     if (dashContact) dashContact.textContent = contact;
     if (dashYear) dashYear.textContent = year;
     if (dashCourse) dashCourse.textContent = course;
-    if (dashSub) dashSub.innerHTML = formatSubline(profile);
+
+    // safer than innerHTML
+    if (dashSub) dashSub.textContent = formatSubline(profile);
   }
 
-  /**
-   * Name: loadProfile
-   * Description: Fetches the student's profile document from Firestore based on their UID.
-   */
   async function loadProfile(user) {
     const baseProfile = {
       name: user?.displayName || "",
@@ -490,6 +641,7 @@ import {
       renderProfile(currentProfile, user);
       fillProfileForm(currentProfile);
     } catch (err) {
+      console.error(err);
       currentProfile = baseProfile;
       renderProfile(currentProfile, user);
       fillProfileForm(currentProfile);
@@ -497,10 +649,6 @@ import {
     }
   }
 
-  /**
-   * Name: saveProfile
-   * Description: Saves updated profile information to Firestore and updates the Auth display name.
-   */
   async function saveProfile() {
     if (!currentUser || !profileForm) return;
     setStatus("");
@@ -514,15 +662,12 @@ import {
       email: currentUser.email || ""
     };
 
-    if (!payload.contact) {
-      delete payload.contact;
-    }
+    if (!payload.contact) delete payload.contact;
 
     try {
       const ref = doc(db, "students", currentUser.uid);
       await setDoc(ref, { ...payload, updatedAt: serverTimestamp() }, { merge: true });
 
-      // Update the user's display name in Firebase Auth for consistency
       if (payload.name && currentUser.displayName !== payload.name) {
         await updateProfile(currentUser, { displayName: payload.name });
       }
@@ -533,50 +678,165 @@ import {
       dashProfile?.classList.remove("is-editing");
       setStatus("Profile updated.");
     } catch (err) {
+      console.error(err);
       setStatus("Unable to save profile right now.");
     }
   }
 
-  /**
-   * Name: statusVariant
-   * Description: Determines the CSS data-variant for appointment status pills.
-   */
   function statusVariant(status) {
-    const text = status.toLowerCase();
+    const text = String(status || "").toLowerCase();
     if (text.includes("pending")) return "warn";
     return "good";
   }
 
-  /**
-   * Name: renderPending
-   * Description: Renders the list of upcoming or pending appointments on the dashboard.
-   */
-  function renderPending() {
-    if (!appointments.length) {
-      pendingList.innerHTML = `<p class="form-hint">No pending appointments.</p>`;
+  function escapeHtml(str = "") {
+    return String(str).replace(/[&<>"']/g, (m) => ({
+      "&": "&amp;",
+      "<": "&lt;",
+      ">": "&gt;",
+      '"': "&quot;",
+      "'": "&#39;"
+    }[m]));
+  }
+
+
+
+  function subscribePendingAppointments(user) {
+    if (unsubscribeAppointments) {
+      unsubscribeAppointments();
+      unsubscribeAppointments = null;
+    }
+
+    appointments = [];
+    renderPending();
+
+    if (!user) return;
+
+    const q = query(
+      collection(db, "appointments"),
+      where("studentId", "==", user.uid)
+    );
+
+    unsubscribeAppointments = onSnapshot(
+      q,
+      (snap) => {
+        appointments = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+
+        // sort newest first (createdAt is Timestamp)
+        appointments.sort((a, b) => {
+          const at = a.createdAt?.seconds || 0;
+          const bt = b.createdAt?.seconds || 0;
+          return bt - at;
+        });
+
+        // Reset to page 1 on new data arrival (optional, but good for "realtime" feeling so they see new stuff)
+        // Or keep current page if preferred. Let's reset to see the new item.
+        // currentPage = 1; 
+        renderPending();
+      },
+      (err) => {
+        console.error(err);
+        pendingList.innerHTML = `<p class="form-hint">Unable to load appointments.</p>`;
+      }
+    );
+  }
+
+  // --- Pagination Logic ---
+  let currentPage = 1;
+  const itemsPerPage = 5;
+
+  const paginationControls = document.getElementById("paginationControls");
+  const prevPageBtn = document.getElementById("prevPageBtn");
+  const nextPageBtn = document.getElementById("nextPageBtn");
+  const pageIndicator = document.getElementById("pageIndicator");
+
+  function renderPagination(totalPages) {
+    if (!paginationControls) return;
+
+    if (appointments.length <= itemsPerPage) {
+      paginationControls.hidden = true;
       return;
     }
 
-    pendingList.innerHTML = appointments
+    paginationControls.hidden = false;
+    pageIndicator.textContent = `Page ${currentPage} of ${totalPages}`;
+
+    if (prevPageBtn) prevPageBtn.disabled = currentPage === 1;
+    if (nextPageBtn) nextPageBtn.disabled = currentPage === totalPages;
+  }
+
+  if (prevPageBtn) {
+    prevPageBtn.addEventListener("click", () => {
+      if (currentPage > 1) {
+        currentPage--;
+        renderPending();
+      }
+    });
+  }
+
+  if (nextPageBtn) {
+    nextPageBtn.addEventListener("click", () => {
+      const totalPages = Math.ceil(appointments.length / itemsPerPage) || 1;
+      if (currentPage < totalPages) {
+        currentPage++;
+        renderPending();
+      }
+    });
+  }
+
+  function renderPending() {
+    if (!appointments.length) {
+      pendingList.innerHTML = `<p class="form-hint">No pending appointments.</p>`;
+      if (paginationControls) paginationControls.hidden = true;
+      return;
+    }
+
+    const totalPages = Math.ceil(appointments.length / itemsPerPage) || 1;
+    if (currentPage > totalPages) currentPage = totalPages;
+    if (currentPage < 1) currentPage = 1;
+
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const pagedItems = appointments.slice(startIndex, startIndex + itemsPerPage);
+
+    pendingList.innerHTML = pagedItems
       .map((item) => {
+        const date = item.date || "-";
+        const time = item.time || "-";
+        const mode = item.mode || "-";
+        const status = item.status || "-";
+
+        const reason = item.reason || "-";
+        const notes = item.notes || "";
+        const studentNo = item.studentNo || "";
+        const studentName = item.studentName || "";
+
         return `
         <article class="dash-item">
-          <div>
-            <p class="dash-item__title">${item.date} · ${item.time}</p>
-            <p class="dash-item__meta">${item.type}</p>
+          <div class="dash-item__content">
+            <p class="dash-item__title">${escapeHtml(date)} · ${escapeHtml(time)}</p>
+            <p class="dash-item__meta">${escapeHtml(mode)}</p>
+
+            <p class="dash-item__detail"><strong>Reason:</strong> ${escapeHtml(reason)}</p>
+
+            ${notes ? `<p class="dash-item__detail"><strong>Message:</strong> ${escapeHtml(notes)}</p>` : ""}
+
+            ${(studentNo || studentName)
+            ? `<p class="dash-item__detail"><strong>Student:</strong> ${escapeHtml(studentNo)} ${studentName ? `· ${escapeHtml(studentName)}` : ""}</p>`
+            : ""}
           </div>
-          <span class="dash-pill" data-variant="${statusVariant(item.status)}">${item.status}</span>
+
+          <span class="dash-pill" data-variant="${statusVariant(status)}">${escapeHtml(status)}</span>
         </article>
       `;
       })
       .join("");
-  }
 
+    renderPagination(totalPages);
+  }
 
   renderProfile();
   renderPending();
 
-  // Profile editing toggle listeners
   if (editProfileBtn && dashProfile) {
     editProfileBtn.addEventListener("click", () => {
       dashProfile.classList.add("is-editing");
@@ -587,9 +847,7 @@ import {
   if (cancelProfileBtn && dashProfile) {
     cancelProfileBtn.addEventListener("click", () => {
       dashProfile.classList.remove("is-editing");
-      if (currentProfile) {
-        fillProfileForm(currentProfile);
-      }
+      if (currentProfile) fillProfileForm(currentProfile);
       setStatus("");
     });
   }
@@ -601,9 +859,124 @@ import {
     });
   }
 
-  // Monitor Auth state to load the correct profile
+  /* Inquiry History management */
+  let myInquiries = [];
+  let unsubscribeInquiries = null;
+
+  const myInquiryList = document.getElementById("myInquiryList");
+  const stInquiryModal = document.getElementById("studentInquiryModal");
+  const stInquiryModalTitle = document.getElementById("stInquiryModalTitle");
+  const stInquiryModalBody = document.getElementById("stInquiryModalBody");
+  const stInquiryModalEyebrow = document.getElementById("stInquiryModalEyebrow");
+
+  function subscribeMyInquiries(user) {
+    if (unsubscribeInquiries) unsubscribeInquiries();
+    if (!user || !myInquiryList) return;
+
+    const q = query(
+      collection(db, "inquiries"),
+      where("studentId", "==", user.uid),
+      orderBy("createdAt", "desc")
+    );
+
+    unsubscribeInquiries = onSnapshot(q, (snap) => {
+      myInquiries = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      renderInquiryHistory();
+    }, (err) => {
+      console.error("Error fetching my inquiries:", err);
+      if (myInquiryList) {
+        myInquiryList.innerHTML = `<p class="admin-empty">Could not load your inquiries.</p>`;
+      }
+    });
+  }
+
+  function renderInquiryHistory() {
+    if (!myInquiryList) return;
+
+    if (myInquiries.length === 0) {
+      myInquiryList.innerHTML = `<p class="admin-empty">You haven't submitted any inquiries yet.</p>`;
+      return;
+    }
+
+    myInquiryList.innerHTML = myInquiries.map(inq => {
+      const date = inq.createdAt?.toDate ? inq.createdAt.toDate() : new Date();
+      const dateStr = date.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+
+      const isReplied = inq.status === "replied";
+      const statusLabel = isReplied ? "Replied" : "Pending";
+      const variant = isReplied ? "done" : "warn";
+
+      return `
+        <article class="dash-item">
+          <div class="dash-item__content">
+            <p class="dash-item__title">${escapeHtml(inq.topic || "General Inquiry")}</p>
+            <p class="dash-item__meta">Sent on ${dateStr}</p>
+            <p class="dash-item__preview">${escapeHtml(inq.message?.substring(0, 100))}${inq.message?.length > 100 ? "..." : ""}</p>
+            
+            <button class="btn btn--sm btn--ghost btn--pill" style="margin-top: 12px;" data-inquiry-view="${inq.id}">
+              ${isReplied ? "View Response" : "View Message"}
+            </button>
+          </div>
+          <span class="dash-pill" data-variant="${variant}">${statusLabel}</span>
+        </article>
+      `;
+    }).join("");
+  }
+
+  function openInquiryDetail(inqId) {
+    const inq = myInquiries.find(i => i.id === inqId);
+    if (!inq || !stInquiryModalBody) return;
+
+    const date = inq.createdAt?.toDate ? inq.createdAt.toDate() : new Date();
+    const dateStr = date.toLocaleString();
+
+    stInquiryModalEyebrow.textContent = `Inquiry from ${dateStr}`;
+    stInquiryModalTitle.textContent = inq.topic || "General Inquiry";
+
+    let contentHTML = `
+      <div class="admin-detail">
+        <div class="admin-detail__block">
+          <h3 style="font-size: 13px; text-transform: uppercase; color: var(--muted); margin-bottom: 8px;">Your Message</h3>
+          <p style="white-space: pre-wrap; font-size: 14px; line-height: 1.6;">${escapeHtml(inq.message)}</p>
+        </div>
+    `;
+
+    if (inq.status === "replied" && inq.adminResponse) {
+      const replyDate = inq.respondedAt?.toDate ? inq.respondedAt.toDate().toLocaleString() : "Recently";
+      contentHTML += `
+        <div class="admin-detail__block" style="background: rgba(31, 185, 129, 0.05); border: 1px solid rgba(31, 185, 129, 0.2); margin-top: 16px;">
+          <h3 style="font-size: 13px; text-transform: uppercase; color: var(--primary); margin-bottom: 8px;">Counselor Response</h3>
+          <p style="white-space: pre-wrap; font-size: 14px; line-height: 1.6;">${escapeHtml(inq.adminResponse)}</p>
+          <p class="dash-item__meta" style="margin-top: 10px; font-size: 11px;">Replied on ${replyDate}</p>
+        </div>
+      `;
+    }
+
+    contentHTML += `</div>`;
+    stInquiryModalBody.innerHTML = contentHTML;
+
+    stInquiryModal.classList.add("is-open");
+    stInquiryModal.setAttribute("aria-hidden", "false");
+  }
+
+  myInquiryList?.addEventListener("click", (e) => {
+    const btn = e.target.closest("[data-inquiry-view]");
+    if (btn) openInquiryDetail(btn.dataset.inquiryView);
+  });
+
+  // Simplified modal close for student side (if not globally handled)
+  stInquiryModal?.querySelectorAll("[data-modal-close]").forEach(btn => {
+    btn.addEventListener("click", () => {
+      stInquiryModal.classList.remove("is-open");
+      stInquiryModal.setAttribute("aria-hidden", "true");
+    });
+  });
+
+  // ✅ Single source of truth for currentUser
   onAuthStateChanged(auth, (user) => {
     currentUser = user;
     loadProfile(user);
+    subscribePendingAppointments(user);
+    subscribeMyInquiries(user);
   });
 })();

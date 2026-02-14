@@ -67,6 +67,7 @@
         <a class="dashboard-tab is-active" href="#admin-analytics" data-dashboard-tab>Analytics</a>
         <a class="dashboard-tab" href="#admin-users" data-dashboard-tab>Enrolled Users</a>
         <a class="dashboard-tab" href="#admin-appointments" data-dashboard-tab>Appointments</a>
+        <a class="dashboard-tab" href="#admin-inquiries" data-dashboard-tab>Inquiries</a>
       </div>
 
       <section class="admin-wrap">
@@ -84,15 +85,14 @@
             </div>
 
             <div class="admin-filter">
-              <label class="admin-label" for="gradeLevel">Grade Level</label>
+              <label class="admin-label" for="gradeLevel">Year Level</label>
               <select class="admin-control" id="gradeLevel" name="gradeLevel">
                 <option value="all" selected>All students</option>
-                <option value="g7">Grade 7</option>
-                <option value="g8">Grade 8</option>
-                <option value="g9">Grade 9</option>
-                <option value="g10">Grade 10</option>
-                <option value="g11">Grade 11</option>
-                <option value="g12">Grade 12</option>
+                <option value="1st year">1st Year</option>
+                <option value="2nd year">2nd Year</option>
+                <option value="3rd year">3rd Year</option>
+                <option value="4th year">4th Year</option>
+                <option value="irregular">Irregular</option>
               </select>
             </div>
 
@@ -219,25 +219,27 @@
               />
             </div>
             <div class="admin-filter">
-              <label class="admin-label" for="userGrade">Grade Level</label>
-              <select class="admin-control" id="userGrade" name="userGrade">
+              <label class="admin-label" for="userYear">Year Level</label>
+              <select class="admin-control" id="userYear" name="userYear">
                 <option value="all" selected>All levels</option>
-                <option value="g7">Grade 7</option>
-                <option value="g8">Grade 8</option>
-                <option value="g9">Grade 9</option>
-                <option value="g10">Grade 10</option>
-                <option value="g11">Grade 11</option>
-                <option value="g12">Grade 12</option>
+                <option value="1st year">1st Year</option>
+                <option value="2nd year">2nd Year</option>
+                <option value="3rd year">3rd Year</option>
+                <option value="4th year">4th Year</option>
+                <option value="irregular">Irregular</option>
               </select>
             </div>
             <div class="admin-filter">
-              <label class="admin-label" for="userProgram">Program</label>
-              <select class="admin-control" id="userProgram" name="userProgram">
-                <option value="all" selected>All programs</option>
-                <option value="stem">STEM</option>
-                <option value="abm">ABM</option>
-                <option value="humss">HUMSS</option>
-                <option value="gas">GAS</option>
+              <label class="admin-label" for="userCourse">Course</label>
+              <select class="admin-control" id="userCourse" name="userCourse">
+                <option value="all" selected>All courses</option>
+                <option value="BIT CPT">BIT CPT</option>
+                <option value="BTVTED CP">BTVTED CP</option>
+                <option value="BTVTED MT">BTVTED MT</option>
+                <option value="BTVTED CT">BTVTED CT</option>
+                <option value="BTVTED FSM">BTVTED FSM</option>
+                <option value="BTVTED AT">BTVTED AT</option>
+                <option value="BTVTED ELX/ELT">BTVTED ELX/ELT</option>
               </select>
             </div>
           </div>
@@ -259,12 +261,35 @@
             <button class="admin-pilltab is-active" type="button" data-appt-filter="pending">
               Pending
             </button>
+            <button class="admin-pilltab" type="button" data-appt-filter="accepted">
+              Accepted
+            </button>
             <button class="admin-pilltab" type="button" data-appt-filter="completed">
               Completed
             </button>
           </div>
 
           <div class="admin-list" id="appointmentList" aria-live="polite"></div>
+
+          <div class="admin-pagination" id="paginationControls" hidden>
+            <button class="btn btn--sm btn--pill btn--ghost" id="prevPageBtn" disabled type="button">← Previous</button>
+            <span class="admin-pagination__info" id="pageIndicator">Page 1</span>
+            <button class="btn btn--sm btn--pill btn--ghost" id="nextPageBtn" type="button">Next →</button>
+          </div>
+        </section>
+
+        <!-- Inquiries Section -->
+        <section class="dashboard-section" id="admin-inquiries" aria-label="Private Inquiries">
+          <header class="admin-panel__head">
+            <div>
+              <h2 class="admin-panel__title">Private Inquiries</h2>
+              <p class="admin-panel__sub">Confidential messages sent by students.</p>
+            </div>
+          </header>
+
+          <div class="admin-list" id="inquiryList" aria-live="polite">
+            <p class="admin-empty">Loading inquiries...</p>
+          </div>
         </section>
       </section>
 
@@ -297,6 +322,45 @@
             </button>
           </header>
           <div class="admin-modal__body" id="appointmentModalBody"></div>
+        </div>
+      </div>
+      <div class="admin-modal" id="inquiryModal" aria-hidden="true">
+        <div class="admin-modal__overlay" data-modal-close></div>
+        <div class="admin-modal__panel" role="dialog" aria-modal="true" aria-labelledby="inquiryModalTitle">
+          <header class="admin-modal__head">
+            <div>
+              <p class="admin-modal__eyebrow" id="inquiryModalEyebrow">Message Detail</p>
+              <h2 class="admin-modal__title" id="inquiryModalTitle">Inquiry</h2>
+            </div>
+            <button class="admin-modal__close" type="button" data-modal-close aria-label="Close">
+              ✕
+            </button>
+          </header>
+          <div class="admin-modal__body" id="inquiryModalBody"></div>
+          
+          <!-- Shared Form/Footer area -->
+          <div class="admin-modal__footer admin-modal__footer--column">
+            <!-- Toggable response input -->
+            <div id="inquiryResponseForm" hidden>
+              <div class="inq-field inq-field--full">
+                <label class="inq-label" for="adminResponseMessage">Counselor Response</label>
+                <textarea 
+                  class="inq-control inq-textarea" 
+                  id="adminResponseMessage" 
+                  rows="6" 
+                  placeholder="Type your response here..."
+                ></textarea>
+              </div>
+            </div>
+
+            <!-- Global Actions -->
+            <div class="admin-modal__actions">
+              <button class="btn btn--pill btn--ghost" type="button" data-modal-close>Close</button>
+              <button class="btn btn--pill btn--primary" id="btnSubmitInquiryResponse" type="button" hidden>
+                Send Response
+              </button>
+            </div>
+          </div>
         </div>
       </div>
     </main>
@@ -356,7 +420,8 @@
       </div>
 
 
-    <script src="admin.js"></script>
+    <script type="module" src="./admin.js"></script>
+
     <script type="module">
       import "./site-auth-ui.js";
       import { watchAuthState, isAdminUser } from "./auth-backend.js";
