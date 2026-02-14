@@ -45,10 +45,7 @@ img {
   display: block;
 }
 
-/* Smooth-scroll offset for sticky header */
-section[id] {
-  scroll-margin-top: calc(var(--nav-h) + 18px);
-}
+/* removed scroll-margin for tabbed view */
 
 /* Header / Nav (floating) */
 .site-header {
@@ -1289,7 +1286,8 @@ section[id] {
 
 .dashboard-tabs {
   position: sticky;
-  top: calc(var(--nav-h) + 16px);
+  top: 100px;
+  /* Below the sticky main header */
   z-index: 40;
   display: flex;
   flex-wrap: wrap;
@@ -1328,7 +1326,12 @@ section[id] {
 }
 
 .dashboard-section {
-  margin-bottom: 44px;
+  display: none;
+  margin-bottom: 24px;
+}
+
+.dashboard-section.is-active {
+  display: block;
 }
 
 /* Wrapper aligned with your container system */

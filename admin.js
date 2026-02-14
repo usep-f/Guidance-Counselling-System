@@ -36,33 +36,24 @@ import {
         const isActive = tab.getAttribute("href") === `#${targetId}`;
         tab.classList.toggle("is-active", isActive);
       });
+
+      sections.forEach((section) => {
+        const isActive = section.id === targetId;
+        section.classList.toggle("is-active", isActive);
+        section.style.display = isActive ? "block" : "none";
+      });
     }
 
     tabs.forEach((tab) => {
       tab.addEventListener("click", (event) => {
         event.preventDefault();
-        const target = document.querySelector(tab.getAttribute("href"));
-        if (target) {
-          target.scrollIntoView({ behavior: "smooth", block: "start" });
-          setActiveTab(target.id);
-        }
+        const targetId = tab.getAttribute("href").substring(1);
+        setActiveTab(targetId);
       });
     });
 
-    // Use IntersectionObserver to highlight tabs as the user scrolls
-    if ("IntersectionObserver" in window) {
-      const observer = new IntersectionObserver(
-        (entries) => {
-          entries.forEach((entry) => {
-            if (entry.isIntersecting) {
-              setActiveTab(entry.target.id);
-            }
-          });
-        },
-        { rootMargin: "-30% 0px -60% 0px" }
-      );
-      sections.forEach((section) => observer.observe(section));
-    }
+    // Set initial tab
+    setActiveTab("admin-analytics");
   }
 
   const emotionsEl = document.getElementById("chartEmotions");
@@ -88,6 +79,8 @@ import {
   const inquiryResponseForm = document.getElementById("inquiryResponseForm");
   const adminResponseMessage = document.getElementById("adminResponseMessage");
   const btnSubmitInquiryResponse = document.getElementById("btnSubmitInquiryResponse");
+  const confirmAcceptModal = document.getElementById("confirmAcceptModal");
+  const btnConfirmAccept = document.getElementById("btnConfirmAccept");
 
   // Pagination controls
   const paginationControls = document.getElementById("paginationControls");
@@ -648,6 +641,11 @@ import {
                   <button class="btn btn--pill btn--ghost" type="button" data-appt-open="${appt.id}">
                     Open Details
                   </button>
+                  ${state === "accepted" ? `
+                    <button class="btn btn--pill btn--ghost" type="button" data-deny="${appt.id}">
+                      Cancel
+                    </button>
+                  ` : ""}
                 `
             : ""}
             </div>
@@ -930,81 +928,78 @@ import {
   // - Accept selected
   // - Auto-cancel other Pending Approval appointments in the same slot
   async function acceptAppointmentTx(appointmentId) {
-    const appt = appointments.find((a) => a.id === appointmentId);
-    if (!appt) return;
-
-    const date = appt.date;
-    const time = appt.time;
-
-    if (!date || !time) {
-      alert("Invalid appointment. Missing date/time.");
-      return;
-    }
-
     const apptRef = doc(db, "appointments", appointmentId);
 
-    try {
-      await runTransaction(db, async (tx) => {
-        const apptSnap = await tx.get(apptRef);
-        if (!apptSnap.exists()) throw new Error("Appointment no longer exists.");
+    // Show confirmation modal first
+    confirmAcceptModal.classList.add("is-open");
+    confirmAcceptModal.setAttribute("aria-hidden", "false");
 
-        const live = apptSnap.data();
-        const liveStatus = String(live.status || "");
-        const liveDate = live.date;
-        const liveTime = live.time;
+    // Setup the confirm button (one-time listener or reset)
+    btnConfirmAccept.onclick = async () => {
+      closeModal(confirmAcceptModal);
+      try {
+        await runTransaction(db, async (tx) => {
+          const apptSnap = await tx.get(apptRef);
+          if (!apptSnap.exists()) throw new Error("Appointment no longer exists.");
 
-        // Block if already not pending-like
-        if (!String(liveStatus).toLowerCase().includes("pending")) {
-          throw new Error("Only pending appointments can be accepted.");
-        }
+          const live = apptSnap.data();
+          const liveStatus = String(live.status || "");
+          const liveDate = live.date;
+          const liveTime = live.time;
 
-        if (!liveDate || !liveTime) {
-          throw new Error("Missing date/time.");
-        }
+          // Block if already not pending-like
+          if (!String(liveStatus).toLowerCase().includes("pending")) {
+            throw new Error("Only pending appointments can be accepted.");
+          }
 
-        // Check if slot already accepted (outside tx query, but guarded by re-check below)
-        const acceptedQ = query(
-          collection(db, "appointments"),
-          where("date", "==", liveDate),
-          where("time", "==", liveTime),
-          where("status", "==", "Accepted")
-        );
+          if (!liveDate || !liveTime) {
+            throw new Error("Missing date/time.");
+          }
 
-        const acceptedSnap = await getDocs(acceptedQ);
-        const acceptedExists = acceptedSnap.docs.some((d) => d.id !== appointmentId);
-        if (acceptedExists) {
-          throw new Error("This slot is already allotted (Accepted).");
-        }
+          // Check if slot already accepted (outside tx query, but guarded by re-check below)
+          const acceptedQ = query(
+            collection(db, "appointments"),
+            where("date", "==", liveDate),
+            where("time", "==", liveTime),
+            where("status", "==", "Accepted")
+          );
 
-        // Accept the selected appointment
-        tx.update(apptRef, { status: "Accepted", updatedAt: serverTimestamp() });
+          const acceptedSnap = await getDocs(acceptedQ);
+          const acceptedExists = acceptedSnap.docs.some((d) => d.id !== appointmentId);
+          if (acceptedExists) {
+            throw new Error("This slot is already allotted (Accepted).");
+          }
 
-        // ✅ PUBLIC AVAILABILITY: Write a simple doc { date, time } blocking this slot
-        const availRef = doc(db, "availability", `${liveDate}_${liveTime}`);
-        tx.set(availRef, {
-          date: liveDate,
-          time: liveTime,
-          appointmentId: appointmentId
+          // Accept the selected appointment
+          tx.update(apptRef, { status: "Accepted", updatedAt: serverTimestamp() });
+
+          // ✅ PUBLIC AVAILABILITY: Write a simple doc { date, time } blocking this slot
+          const availRef = doc(db, "availability", `${liveDate}_${liveTime}`);
+          tx.set(availRef, {
+            date: liveDate,
+            time: liveTime,
+            appointmentId: appointmentId
+          });
+
+          // Auto-cancel other pending requests in same slot
+          const pendingQ = query(
+            collection(db, "appointments"),
+            where("date", "==", liveDate),
+            where("time", "==", liveTime),
+            where("status", "==", "Pending Approval")
+          );
+
+          const pendingSnap = await getDocs(pendingQ);
+          pendingSnap.docs.forEach((d) => {
+            if (d.id === appointmentId) return;
+            tx.update(d.ref, { status: "Cancelled", updatedAt: serverTimestamp() });
+          });
         });
-
-        // Auto-cancel other pending requests in same slot
-        const pendingQ = query(
-          collection(db, "appointments"),
-          where("date", "==", liveDate),
-          where("time", "==", liveTime),
-          where("status", "==", "Pending Approval")
-        );
-
-        const pendingSnap = await getDocs(pendingQ);
-        pendingSnap.docs.forEach((d) => {
-          if (d.id === appointmentId) return;
-          tx.update(d.ref, { status: "Cancelled", updatedAt: serverTimestamp() });
-        });
-      });
-    } catch (err) {
-      console.error(err);
-      alert(err.message || "Unable to accept appointment.");
-    }
+      } catch (err) {
+        console.error(err);
+        alert(err.message || "Unable to accept appointment.");
+      }
+    };
   }
 
   async function denyAppointment(appointmentId) {
@@ -1176,6 +1171,7 @@ import {
       closeModal(userModal);
       closeModal(appointmentModal);
       closeModal(inquiryModal);
+      closeModal(confirmAcceptModal);
     });
   });
 

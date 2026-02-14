@@ -7,6 +7,8 @@ import {
   serverTimestamp,
   collection,
   addDoc,
+  updateDoc,
+  deleteDoc,
   query,
   where,
   orderBy,
@@ -810,6 +812,8 @@ let currentUser = null;
         const studentNo = item.studentNo || "";
         const studentName = item.studentName || "";
 
+        const canCancel = status === "Pending Approval" || status === "Accepted";
+
         return `
         <article class="dash-item">
           <div class="dash-item__content">
@@ -823,6 +827,14 @@ let currentUser = null;
             ${(studentNo || studentName)
             ? `<p class="dash-item__detail"><strong>Student:</strong> ${escapeHtml(studentNo)} ${studentName ? `· ${escapeHtml(studentName)}` : ""}</p>`
             : ""}
+            
+            ${canCancel ? `
+              <div class="dash-item__actions" style="margin-top: 12px;">
+                <button class="btn btn--sm btn--pill btn--ghost" type="button" data-cancel-appt="${item.id}">
+                  Cancel Appointment
+                </button>
+              </div>
+            ` : ""}
           </div>
 
           <span class="dash-pill" data-variant="${statusVariant(status)}">${escapeHtml(status)}</span>
@@ -833,6 +845,36 @@ let currentUser = null;
 
     renderPagination(totalPages);
   }
+
+  async function cancelAppointment(appointmentId) {
+    const appt = appointments.find(a => a.id === appointmentId);
+    if (!appt) return;
+
+    if (!confirm("Are you sure you want to cancel this appointment?")) return;
+
+    try {
+      // 1. If it was already accepted, we must also remove the public availability block
+      if (appt.status === "Accepted" && appt.date && appt.time) {
+        await deleteDoc(doc(db, "availability", `${appt.date}_${appt.time}`));
+      }
+
+      // 2. Update status to Cancelled
+      await updateDoc(doc(db, "appointments", appointmentId), {
+        status: "Cancelled",
+        updatedAt: serverTimestamp()
+      });
+
+      console.log("Appointment cancelled by student.");
+    } catch (err) {
+      console.error("Error cancelling appointment:", err);
+      alert("Unable to cancel appointment. Please try again.");
+    }
+  }
+
+  pendingList.addEventListener("click", (e) => {
+    const btn = e.target.closest("[data-cancel-appt]");
+    if (btn) cancelAppointment(btn.dataset.cancelAppt);
+  });
 
   renderProfile();
   renderPending();
