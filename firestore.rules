@@ -43,5 +43,10 @@ service cloud.firestore {
       allow read: if signedIn() && (resource.data.studentId == request.auth.uid || isAdmin());
       allow write: if isAdmin();
     }
+
+    match /counselor_schedule/{dateKey} {
+      allow read: if signedIn();
+      allow write: if isAdmin();
+    }
   }
 }

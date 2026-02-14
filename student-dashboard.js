@@ -128,10 +128,11 @@ let currentUser = null;
   const panels = Array.from(form.querySelectorAll(".bpanel"));
   let active = 0;
 
-  // Fixed daily timeslots (matches your UI / Firestore time strings)
-  const TIMESLOTS = ["08:30 AM", "01:30 PM", "02:30 PM"];
+  // dateKey -> Array(times) for Counselor defined slots
+  let dynamicSlotsByDate = new Map();
+  let unsubscribeSchedules = null;
 
-  // dateKey -> Set(times) for Accepted appointments
+  // dateKey -> Set(times) for Booked/Accepted appointments
   let blockedByDate = new Map();
   let unsubscribeAccepted = null;
 
@@ -306,8 +307,10 @@ let currentUser = null;
 
   function isDayFullyBlocked(dateKey) {
     const set = blockedByDate.get(dateKey);
+    const dailySlots = dynamicSlotsByDate.get(dateKey) || [];
+    if (dailySlots.length === 0) return true; // If no slots defined, day is "blocked"
     if (!set) return false;
-    return TIMESLOTS.every((t) => set.has(t));
+    return dailySlots.every((t) => set.has(t));
   }
 
   function monthStartEndKeys(dateObj) {
@@ -327,47 +330,49 @@ let currentUser = null;
 
   function subscribeAcceptedForViewMonth() {
     if (unsubscribeAccepted) unsubscribeAccepted();
+    if (unsubscribeSchedules) unsubscribeSchedules();
 
     const { startKey, endKey } = monthStartEndKeys(view);
 
-    const q = query(
+    // 1. Availability Slots (Booked)
+    const q1 = query(
       collection(db, "availability"),
       where("date", ">=", startKey),
       where("date", "<=", endKey)
     );
 
-    unsubscribeAccepted = onSnapshot(
-      q,
-      (snap) => {
-        const nextMap = new Map();
+    unsubscribeAccepted = onSnapshot(q1, (snap) => {
+      const nextMap = new Map();
+      snap.forEach((docSnap) => {
+        const a = docSnap.data();
+        if (!a?.date || !a?.time) return;
 
-        snap.forEach((docSnap) => {
-          const a = docSnap.data();
-          if (!a?.date || !a?.time) return;
-          if (!TIMESLOTS.includes(a.time)) return;
+        if (!nextMap.has(a.date)) nextMap.set(a.date, new Set());
+        nextMap.get(a.date).add(a.time);
+      });
+      blockedByDate = nextMap;
+      refreshBookingUI();
+    });
 
-          if (!nextMap.has(a.date)) nextMap.set(a.date, new Set());
-          nextMap.get(a.date).add(a.time);
-        });
+    // 2. Counselor Schedules (Available Slots)
+    const q2 = query(collection(db, "counselor_schedule"));
 
-        blockedByDate = nextMap;
+    unsubscribeSchedules = onSnapshot(q2, (snap) => {
+      const nextMap = new Map();
+      snap.forEach((docSnap) => {
+        const s = docSnap.data();
+        if (s?.slots) nextMap.set(docSnap.id, s.slots);
+      });
+      dynamicSlotsByDate = nextMap;
+      refreshBookingUI();
+    });
+  }
 
-        // If selected date becomes fully blocked (or is in the past), clear selection
-        if (dateInput.value) {
-          const selected = dateInput.value;
-          if (isPastDate(selected) || isDayFullyBlocked(selected)) {
-            clearSelection();
-          } else {
-            renderSlots(selected);
-          }
-        }
-
-        renderCalendar();
-      },
-      (err) => {
-        console.error("Accepted appointments listener failed:", err);
-      }
-    );
+  function refreshBookingUI() {
+    if (dateInput.value) {
+      renderSlots(dateInput.value);
+    }
+    renderCalendar();
   }
 
   function renderSlots(dateKey) {
@@ -383,12 +388,19 @@ let currentUser = null;
       return;
     }
 
-    if (isDayFullyBlocked(dateKey)) {
-      slotGrid.innerHTML = `<p class="slot-hint">No available slots for this date.</p>`;
+    const currentSlots = dynamicSlotsByDate.get(dateKey) || [];
+
+    if (currentSlots.length === 0) {
+      slotGrid.innerHTML = `<p class="slot-hint">The counselor hasn't set an available schedule for this date yet.</p>`;
       return;
     }
 
-    TIMESLOTS.forEach((slot) => {
+    if (isDayFullyBlocked(dateKey)) {
+      slotGrid.innerHTML = `<p class="slot-hint">All slots for this date are already booked.</p>`;
+      return;
+    }
+
+    currentSlots.forEach((slot) => {
       const button = document.createElement("button");
       button.type = "button";
       button.className = "slot";

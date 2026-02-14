@@ -68,6 +68,7 @@
         <a class="dashboard-tab" href="#admin-users" data-dashboard-tab>Enrolled Users</a>
         <a class="dashboard-tab" href="#admin-appointments" data-dashboard-tab>Appointments</a>
         <a class="dashboard-tab" href="#admin-inquiries" data-dashboard-tab>Inquiries</a>
+        <a class="dashboard-tab" href="#admin-availability" data-dashboard-tab>Availability</a>
       </div>
 
       <section class="admin-wrap">
@@ -289,6 +290,56 @@
 
           <div class="admin-list" id="inquiryList" aria-live="polite">
             <p class="admin-empty">Loading inquiries...</p>
+          </div>
+        </section>
+
+        <!-- Availability Section -->
+        <section class="dashboard-section" id="admin-availability" aria-label="Counselor Availability">
+          <header class="admin-panel__head">
+            <div>
+              <h2 class="admin-panel__title">Availability Manager</h2>
+              <p class="admin-panel__sub">Set your available hours for each day. Students can only book within these slots.</p>
+            </div>
+          </header>
+
+          <div class="admin-grid admin-grid--availability" style="grid-template-columns: 1fr 1fr;">
+            <div class="admin-card">
+              <div class="admin-card__head">
+                <h2 class="admin-card__title">Select Date</h2>
+              </div>
+              <div class="admin-calendar" id="availCalendar">
+                <div class="admin-calendar__head" style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px;">
+                  <button class="btn btn--sm btn--ghost btn--pill" type="button" id="prevAvailMonth">‹</button>
+                  <h3 id="availMonthTitle" style="margin:0; font-size: 16px;">Month YYYY</h3>
+                  <button class="btn btn--sm btn--ghost btn--pill" type="button" id="nextAvailMonth">›</button>
+                </div>
+                <div class="admin-calendar__days" id="availCalendarDays" style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px;"></div>
+              </div>
+            </div>
+
+            <div class="admin-card">
+              <div class="admin-card__head">
+                <h2 class="admin-card__title" id="availSlotTitle">Manage Slots</h2>
+                <p class="admin-card__sub" id="availDateSubtitle">Select a date on the calendar</p>
+              </div>
+              
+              <div class="admin-slot-manager" id="availSlotManager" hidden>
+                <p class="admin-label" style="margin-bottom: 12px;">Toggle slots for this day:</p>
+                <div class="admin-checkgrid" id="masterSlotGrid">
+                  <!-- Will be populated by JS -->
+                </div>
+                
+                <div class="admin-detail__actions" style="margin-top: 24px;">
+                  <button class="btn btn--pill btn--primary" type="button" id="btnSaveSchedule">
+                    Save Schedule
+                  </button>
+                </div>
+              </div>
+              
+              <div id="availNoDateHint">
+                <p class="admin-empty">Please select a date on the calendar to manage its availability slots.</p>
+              </div>
+            </div>
           </div>
         </section>
       </section>

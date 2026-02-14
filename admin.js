@@ -49,6 +49,10 @@ import {
         event.preventDefault();
         const targetId = tab.getAttribute("href").substring(1);
         setActiveTab(targetId);
+
+        if (targetId === "admin-availability") {
+          renderAvailCalendar();
+        }
       });
     });
 
@@ -99,6 +103,18 @@ import {
   const btnReset = document.getElementById("btnReset");
   const btnExport = document.getElementById("btnExport");
 
+  // Availability UI Elements
+  const availCalendarDays = document.getElementById("availCalendarDays");
+  const availMonthTitle = document.getElementById("availMonthTitle");
+  const prevAvailMonth = document.getElementById("prevAvailMonth");
+  const nextAvailMonth = document.getElementById("nextAvailMonth");
+  const availSlotManager = document.getElementById("availSlotManager");
+  const masterSlotGrid = document.getElementById("masterSlotGrid");
+  const availSlotTitle = document.getElementById("availSlotTitle");
+  const availDateSubtitle = document.getElementById("availDateSubtitle");
+  const availNoDateHint = document.getElementById("availNoDateHint");
+  const btnSaveSchedule = document.getElementById("btnSaveSchedule");
+
   const kpiTotalConcerns = document.getElementById("kpiTotalConcerns");
   const kpiTopEmotion = document.getElementById("kpiTopEmotion");
   const kpiTopTrigger = document.getElementById("kpiTopTrigger");
@@ -135,6 +151,19 @@ import {
   // ============================
   let sessionRecords = [];
   let unsubscribeSessionRecords = null;
+
+  // ============================
+  // ✅ COUNSELOR SCHEDULES (New)
+  // ============================
+  let counselorSchedules = [];
+  let unsubscribeCounselorSchedules = null;
+  let availViewDate = new Date();
+  availViewDate.setDate(1);
+  let selectedAvailDate = null;
+  const AVAIL_MASTER_SLOTS = [
+    "08:00 AM", "08:30 AM", "09:00 AM", "09:30 AM", "10:00 AM", "10:30 AM", "11:00 AM", "11:30 AM",
+    "01:00 PM", "01:30 PM", "02:00 PM", "02:30 PM", "03:00 PM", "03:30 PM", "04:00 PM", "04:30 PM", "05:00 PM"
+  ];
 
   function subscribeSessionRecords() {
     if (unsubscribeSessionRecords) unsubscribeSessionRecords();
@@ -1279,6 +1308,164 @@ import {
   renderUserList();
   renderInquiryList();
 
+
+  // ============================
+  // ✅ AVAILABILITY MANAGER LOGIC
+  // ============================
+  function subscribeCounselorSchedules() {
+    if (unsubscribeCounselorSchedules) unsubscribeCounselorSchedules();
+
+    const q = query(collection(db, "counselor_schedule"));
+    unsubscribeCounselorSchedules = onSnapshot(
+      q,
+      (snap) => {
+        counselorSchedules = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+        renderAvailCalendar();
+      },
+      (err) => console.error("Error fetching schedules:", err)
+    );
+  }
+
+  function renderAvailCalendar() {
+    if (!availCalendarDays || !availMonthTitle) return;
+
+    const year = availViewDate.getFullYear();
+    const month = availViewDate.getMonth();
+    const firstDay = new Date(year, month, 1);
+    const startDow = firstDay.getDay();
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+    availMonthTitle.textContent = availViewDate.toLocaleString("en-US", { month: "long", year: "numeric" });
+    availCalendarDays.innerHTML = "";
+
+    // Blank cells
+    for (let i = 0; i < startDow; i++) {
+      const blank = document.createElement("div");
+      blank.className = "admin-cal-day is-muted";
+      availCalendarDays.appendChild(blank);
+    }
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    for (let day = 1; day <= daysInMonth; day++) {
+      const cellDate = new Date(year, month, day);
+      const dateKey = `${year}-${String(month + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+
+      const el = document.createElement("div");
+      el.className = "admin-cal-day";
+      el.textContent = day;
+
+      if (cellDate < today) el.classList.add("is-past");
+      if (cellDate.getTime() === today.getTime()) el.classList.add("is-today");
+
+      const hasSchedule = counselorSchedules.some(s => s.id === dateKey && s.slots?.length > 0);
+      if (hasSchedule) el.classList.add("has-schedule");
+
+      if (selectedAvailDate === dateKey) el.classList.add("is-active");
+
+      el.addEventListener("click", () => {
+        if (cellDate < today) return;
+        selectedAvailDate = dateKey;
+        renderAvailCalendar();
+        openAvailSlotManager(dateKey);
+      });
+
+      availCalendarDays.appendChild(el);
+    }
+  }
+
+  function openAvailSlotManager(dateKey) {
+    if (!availSlotManager || !masterSlotGrid || !availDateSubtitle || !availNoDateHint) return;
+
+    availNoDateHint.hidden = true;
+    availSlotManager.hidden = false;
+
+    // Format date for subtitle
+    const d = new Date(dateKey);
+    availDateSubtitle.textContent = d.toLocaleDateString("en-US", { month: 'long', day: 'numeric', year: 'numeric' });
+
+    const schedule = counselorSchedules.find(s => s.id === dateKey);
+    const activeSlots = schedule?.slots || [];
+
+    masterSlotGrid.innerHTML = AVAIL_MASTER_SLOTS.map(slot => `
+      <label class="admin-check">
+        <input type="checkbox" value="${slot}" ${activeSlots.includes(slot) ? 'checked' : ''} />
+        ${slot}
+      </label>
+    `).join("");
+  }
+
+  async function saveCounselorSchedule() {
+    if (!selectedAvailDate) {
+      alert("Please select a date first.");
+      return;
+    }
+
+    const checked = Array.from(masterSlotGrid.querySelectorAll("input:checked")).map(cb => cb.value);
+
+    // Conflict Detection (Option B)
+    const conflicts = appointments.filter(appt => {
+      const status = String(appt.status || "").toLowerCase();
+      return appt.date === selectedAvailDate &&
+        !checked.includes(appt.time) &&
+        (status === "pending approval" || status === "accepted");
+    });
+
+    if (conflicts.length > 0) {
+      const acceptedCount = conflicts.filter(c => String(c.status || "").toLowerCase() === "accepted").length;
+      const pendingCount = conflicts.filter(c => String(c.status || "").toLowerCase() === "pending approval").length;
+
+      let msg = `You are removing slots that have active appointments:\n`;
+      if (pendingCount > 0) msg += `- ${pendingCount} Pending request(s) will be auto-cancelled.\n`;
+      if (acceptedCount > 0) msg += `- ${acceptedCount} Accepted appointment(s) will be cancelled.\n`;
+      msg += `\nDo you want to proceed and notify these students?`;
+
+      if (!confirm(msg)) return;
+
+      // Batch Handling
+      try {
+        for (const appt of conflicts) {
+          const status = String(appt.status || "").toLowerCase();
+          await updateDoc(doc(db, "appointments", appt.id), {
+            status: "Cancelled",
+            adminNote: "Counselor schedule updated; time slot removed.",
+            updatedAt: serverTimestamp()
+          });
+
+          if (status === "accepted") {
+            await deleteDoc(doc(db, "availability", `${appt.date}_${appt.time}`));
+          }
+        }
+      } catch (err) {
+        console.error("Error handling conflicts:", err);
+        alert("Failed to update conflicting appointments. Schedule not saved.");
+        return;
+      }
+    }
+
+    try {
+      await setDoc(doc(db, "counselor_schedule", selectedAvailDate), {
+        slots: checked,
+        updatedAt: serverTimestamp()
+      });
+      alert(`Schedule saved for ${selectedAvailDate}.`);
+    } catch (err) {
+      console.error("Error saving schedule:", err);
+      alert("Failed to save schedule.");
+    }
+  }
+
+  function changeAvailMonth(offset) {
+    availViewDate.setMonth(availViewDate.getMonth() + offset);
+    renderAvailCalendar();
+  }
+
+  // Event Listeners for Availability
+  prevAvailMonth?.addEventListener("click", () => changeAvailMonth(-1));
+  nextAvailMonth?.addEventListener("click", () => changeAvailMonth(1));
+  btnSaveSchedule?.addEventListener("click", saveCounselorSchedule);
+
   onAuthStateChanged(auth, async (user) => {
     if (user) {
       try {
@@ -1295,6 +1482,7 @@ import {
         subscribeAppointments();
         subscribeInquiries();
         subscribeSessionRecords();
+        subscribeCounselorSchedules();
       } catch (err) {
         console.error("Error verifying admin status:", err);
         window.location.href = "login.html";
