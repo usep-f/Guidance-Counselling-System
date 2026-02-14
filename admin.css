@@ -1640,6 +1640,47 @@ img {
   box-shadow: 0 0 0 4px rgba(31, 185, 129, 0.12);
 }
 
+.admin-range-wrap {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.admin-range {
+  flex: 1;
+  height: 6px;
+  -webkit-appearance: none;
+  appearance: none;
+  background: rgba(15, 47, 42, 0.08);
+  border-radius: 99px;
+  outline: none;
+}
+
+.admin-range::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 18px;
+  height: 18px;
+  background: var(--primary);
+  border-radius: 50%;
+  cursor: pointer;
+  border: 3px solid #fff;
+  box-shadow: var(--shadow-soft);
+  transition: transform 0.2s ease;
+}
+
+.admin-range::-webkit-slider-thumb:hover {
+  transform: scale(1.15);
+}
+
+.admin-range-info {
+  font-size: 14px;
+  font-weight: 800;
+  color: var(--primary);
+  min-width: 40px;
+  text-align: right;
+}
+
 /* KPIs */
 .admin-kpis {
   margin-top: 16px;

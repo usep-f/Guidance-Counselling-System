@@ -999,6 +999,97 @@ let currentUser = null;
     if (btn) openInquiryDetail(btn.dataset.inquiryView);
   });
 
+  /* Session Records / History Monitoring */
+  let myRecords = [];
+  let unsubscribeRecords = null;
+
+  function subscribeSessionRecords(user) {
+    if (unsubscribeRecords) unsubscribeRecords();
+    if (!user) return;
+
+    const q = query(
+      collection(db, "session_records"),
+      where("studentId", "==", user.uid),
+      orderBy("timestamp", "desc")
+    );
+
+    unsubscribeRecords = onSnapshot(q, (snap) => {
+      myRecords = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      renderHistoryMonitoring();
+    });
+  }
+
+  function getStatusDescription(status) {
+    switch (status) {
+      case "Improving": return "Trending upward. Keep following your action steps and attend scheduled sessions.";
+      case "Stable": return "Steady progress. Continue your regular check-ins to maintain balance.";
+      case "Starting": return "Early stages of guidance. Focus on setting clear goals with your counselor.";
+      case "Needs Check-in": return "A follow-up is recommended. Please book a session to discuss recent challenges.";
+      default: return "Keep attending your scheduled sessions and follow your action plan.";
+    }
+  }
+
+  function renderHistoryMonitoring() {
+    const totalSessionsEl = document.getElementById("statTotalSessions");
+    const lastSessionEl = document.getElementById("statLastSession");
+    const wellnessFillEl = document.getElementById("wellnessBarFill");
+    const statusTextEl = document.getElementById("statCurrentStatus");
+    const trendListEl = document.getElementById("trendList");
+    const historyListEl = document.getElementById("sessionHistoryList");
+
+    if (!totalSessionsEl || !myRecords.length) return;
+
+    // 1. KPI Cards
+    totalSessionsEl.textContent = myRecords.length;
+    const latest = myRecords[0]; // descending order
+    if (latest.timestamp) {
+      const d = latest.timestamp.toDate();
+      lastSessionEl.textContent = `Last session: ${d.toLocaleDateString("en-US", { month: 'short', day: 'numeric', year: 'numeric' })}`;
+    }
+
+    // 2. Improvement Bar (Latest Wellness Score)
+    const score = latest.wellnessScore || 0;
+    if (wellnessFillEl) wellnessFillEl.style.width = `${score}%`;
+
+    // 3. Current Status
+    if (statusTextEl) statusTextEl.textContent = getStatusDescription(latest.status);
+
+    // 4. Progress Trend (Last 5 records, ascending)
+    if (trendListEl) {
+      const trendData = [...myRecords].reverse().slice(-5);
+      const trendHTML = trendData.map((rec, idx) => `
+        <div class="trend__row">
+          <span class="trend__label">Session ${myRecords.length - trendData.length + idx + 1}</span>
+          <div class="trend__bar"><span style="width: ${rec.wellnessScore || 0}%"></span></div>
+          <span class="trend__value">${rec.wellnessScore || 0}%</span>
+        </div>
+      `).join("");
+      trendListEl.innerHTML = trendHTML;
+    }
+
+    // 5. Session History List
+    if (historyListEl) {
+      historyListEl.innerHTML = myRecords.map((rec, idx) => {
+        const d = rec.timestamp?.toDate ? rec.timestamp.toDate() : new Date();
+        const dateStr = d.toLocaleDateString("en-US", { month: 'short', day: 'numeric', year: 'numeric' });
+
+        // Find appointment mode if possible (or just use "Counseling Session")
+        const type = "Counseling Session";
+        const status = rec.status || "Stable";
+
+        return `
+          <article class="session-item">
+            <div>
+              <p class="session-item__title">Session #${myRecords.length - idx}</p>
+              <p class="session-item__meta">${dateStr} · ${type}</p>
+            </div>
+            <span class="tag">${status}</span>
+          </article>
+        `;
+      }).join("");
+    }
+  }
+
   // Simplified modal close for student side (if not globally handled)
   stInquiryModal?.querySelectorAll("[data-modal-close]").forEach(btn => {
     btn.addEventListener("click", () => {
@@ -1013,5 +1104,6 @@ let currentUser = null;
     loadProfile(user);
     subscribePendingAppointments(user);
     subscribeMyInquiries(user);
+    subscribeSessionRecords(user);
   });
 })();

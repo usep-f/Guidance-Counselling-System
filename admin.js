@@ -717,6 +717,27 @@ import {
             <label class="admin-check"><input type="checkbox" value="Peer" ${savedTriggers.includes("Peer") ? "checked" : ""} ${isCompleted ? 'disabled' : ''} /> Peer</label>
           </div>
         </div>
+        <div class="admin-detail__block">
+          <h3>Progress Tracking</h3>
+          <div class="admin-detail__grid" style="display: grid; gap: 16px; grid-template-columns: 1fr 1fr;">
+            <div>
+              <label class="admin-label">Progress Status</label>
+              <select id="progressStatus" class="admin-control" ${isCompleted ? 'disabled' : ''}>
+                <option value="Starting" ${record?.status === "Starting" ? "selected" : ""}>Starting</option>
+                <option value="Stable" ${record?.status === "Stable" ? "selected" : ""}>Stable</option>
+                <option value="Improving" ${record?.status === "Improving" ? "selected" : ""}>Improving</option>
+                <option value="Needs Check-in" ${record?.status === "Needs Check-in" ? "selected" : ""}>Needs Check-in</option>
+              </select>
+            </div>
+            <div>
+              <label class="admin-label">Wellness Score</label>
+              <div class="admin-range-wrap">
+                <input type="range" id="wellnessScore" class="admin-range" min="0" max="100" value="${record?.wellnessScore || 50}" ${isCompleted ? 'disabled' : ''}>
+                <span class="admin-range-info" id="wellnessVal">${record?.wellnessScore || 50}%</span>
+              </div>
+            </div>
+          </div>
+        </div>
         ${!isCompleted ? `
         <div class="admin-detail__actions">
           <button class="btn btn--pill btn--primary" type="button" data-complete="${appt.id}">
@@ -729,6 +750,15 @@ import {
 
     appointmentModal.classList.add("is-open");
     appointmentModal.setAttribute("aria-hidden", "false");
+
+    // ✅ Listen for slider updates
+    const scoreSlider = document.getElementById("wellnessScore");
+    const scoreVal = document.getElementById("wellnessVal");
+    if (scoreSlider && scoreVal) {
+      scoreSlider.addEventListener("input", (e) => {
+        scoreVal.textContent = `${e.target.value}%`;
+      });
+    }
   }
 
   /**
@@ -1094,6 +1124,10 @@ import {
     const emotions = Array.from(document.querySelectorAll("#emotionGrid input:checked")).map(cb => cb.value);
     const triggers = Array.from(document.querySelectorAll("#triggerGrid input:checked")).map(cb => cb.value);
 
+    // ✅ Collect Metrics
+    const wellnessScore = Number(document.getElementById("wellnessScore")?.value || 0);
+    const status = document.getElementById("progressStatus")?.value || "Starting";
+
     try {
       // 2. Create the Session Record (Secure Clinical Data)
       await addDoc(collection(db, "session_records"), {
@@ -1105,6 +1139,8 @@ import {
         notes,
         emotions,
         triggers,
+        wellnessScore,
+        status,
         timestamp: serverTimestamp()
       });
 

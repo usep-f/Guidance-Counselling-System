@@ -39,8 +39,9 @@ service cloud.firestore {
     }
 
     match /session_records/{recordId} {
-      // 🔒 CLINICAL PRIVACY: Only admins can read or write session insights
-      allow read, write: if isAdmin();
+      // Allow students to read their own records, only admins can write
+      allow read: if signedIn() && (resource.data.studentId == request.auth.uid || isAdmin());
+      allow write: if isAdmin();
     }
   }
 }
