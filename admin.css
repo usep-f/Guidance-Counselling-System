@@ -1640,6 +1640,47 @@ img {
   box-shadow: 0 0 0 4px rgba(31, 185, 129, 0.12);
 }
 
+.admin-range-wrap {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.admin-range {
+  flex: 1;
+  height: 6px;
+  -webkit-appearance: none;
+  appearance: none;
+  background: rgba(15, 47, 42, 0.08);
+  border-radius: 99px;
+  outline: none;
+}
+
+.admin-range::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 18px;
+  height: 18px;
+  background: var(--primary);
+  border-radius: 50%;
+  cursor: pointer;
+  border: 3px solid #fff;
+  box-shadow: var(--shadow-soft);
+  transition: transform 0.2s ease;
+}
+
+.admin-range::-webkit-slider-thumb:hover {
+  transform: scale(1.15);
+}
+
+.admin-range-info {
+  font-size: 14px;
+  font-weight: 800;
+  color: var(--primary);
+  min-width: 40px;
+  text-align: right;
+}
+
 /* KPIs */
 .admin-kpis {
   margin-top: 16px;
@@ -1899,4 +1940,91 @@ img {
   .barrow__value {
     text-align: left;
   }
+}
+
+/* Availability Calendar */
+.admin-calendar {
+  padding: 8px;
+}
+
+.admin-calendar__head h3 {
+  font-family: 'Syne', sans-serif;
+  color: var(--primary);
+  letter-spacing: -0.02em;
+}
+
+.admin-calendar__days {
+  margin-top: 12px;
+}
+
+.admin-cal-day {
+  aspect-ratio: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  border: 1px solid transparent;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  background: rgba(255, 255, 255, 0.4);
+  color: var(--text-muted);
+}
+
+.admin-cal-day:not(.is-muted):not(.is-past):hover {
+  background: var(--primary-light);
+  color: var(--primary);
+  transform: translateY(-2px);
+}
+
+.admin-cal-day.is-active {
+  background: var(--primary) !important;
+  color: #fff !important;
+  box-shadow: 0 8px 20px rgba(15, 47, 42, 0.2);
+}
+
+.admin-cal-day.has-schedule {
+  border-color: var(--primary);
+  color: var(--primary);
+  background: rgba(15, 47, 42, 0.04);
+}
+
+.admin-cal-day.is-muted {
+  opacity: 0.15;
+  cursor: default;
+  pointer-events: none;
+}
+
+.admin-cal-day.is-past {
+  opacity: 0.4;
+  text-decoration: line-through;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.admin-cal-day.is-today {
+  box-shadow: inset 0 0 0 2px var(--primary-light);
+}
+
+/* Slot Manager Animation */
+.admin-slot-manager {
+  animation: availFadeIn 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes availFadeIn {
+  from {
+    opacity: 0;
+    transform: translateX(20px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+#availNoDateHint {
+  padding: 40px 20px;
+  text-align: center;
 }

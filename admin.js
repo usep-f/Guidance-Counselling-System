@@ -17,7 +17,8 @@ import {
   getDocs,
   runTransaction,
   setDoc,
-  deleteDoc
+  deleteDoc,
+  writeBatch
 } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
 
 (function adminDashboard() {
@@ -49,6 +50,10 @@ import {
         event.preventDefault();
         const targetId = tab.getAttribute("href").substring(1);
         setActiveTab(targetId);
+
+        if (targetId === "admin-availability") {
+          renderAvailCalendar();
+        }
       });
     });
 
@@ -99,6 +104,18 @@ import {
   const btnReset = document.getElementById("btnReset");
   const btnExport = document.getElementById("btnExport");
 
+  // Availability UI Elements
+  const availCalendarDays = document.getElementById("availCalendarDays");
+  const availMonthTitle = document.getElementById("availMonthTitle");
+  const prevAvailMonth = document.getElementById("prevAvailMonth");
+  const nextAvailMonth = document.getElementById("nextAvailMonth");
+  const availSlotManager = document.getElementById("availSlotManager");
+  const masterSlotGrid = document.getElementById("masterSlotGrid");
+  const availSlotTitle = document.getElementById("availSlotTitle");
+  const availDateSubtitle = document.getElementById("availDateSubtitle");
+  const availNoDateHint = document.getElementById("availNoDateHint");
+  const btnSaveSchedule = document.getElementById("btnSaveSchedule");
+
   const kpiTotalConcerns = document.getElementById("kpiTotalConcerns");
   const kpiTopEmotion = document.getElementById("kpiTopEmotion");
   const kpiTopTrigger = document.getElementById("kpiTopTrigger");
@@ -135,6 +152,52 @@ import {
   // ============================
   let sessionRecords = [];
   let unsubscribeSessionRecords = null;
+
+  // ============================
+  // ✅ COUNSELOR SCHEDULES (New)
+  // ============================
+  let counselorSchedules = [];
+  let unsubscribeCounselorSchedules = null;
+  let availViewDate = new Date();
+  availViewDate.setDate(1);
+  let selectedAvailDate = null;
+  const AVAIL_MASTER_SLOTS = [
+    "08:00 AM", "09:00 AM", "10:00 AM", "11:00 AM",
+    "01:00 PM", "02:00 PM", "03:00 PM", "04:00 PM", "05:00 PM"
+  ];
+
+  // ============================
+  // ✅ WEEKLY TEMPLATE (New)
+  // ============================
+  let weeklyTemplate = {
+    monday: [],
+    tuesday: [],
+    wednesday: [],
+    thursday: [],
+    friday: [],
+    saturday: [],
+    sunday: []
+  };
+  let unsubscribeWeeklyTemplate = null;
+
+  // Preset configurations
+  const PRESET_CONFIGS = {
+    full_day: ["08:00 AM", "09:00 AM", "10:00 AM", "11:00 AM",
+      "01:00 PM", "02:00 PM", "03:00 PM", "04:00 PM", "05:00 PM"],
+    morning: ["08:00 AM", "09:00 AM", "10:00 AM", "11:00 AM"],
+    afternoon: ["01:00 PM", "02:00 PM", "03:00 PM", "04:00 PM", "05:00 PM"],
+    clear: []
+  };
+
+  // New UI elements for enhanced availability
+  const availViewTabs = Array.from(document.querySelectorAll("[data-avail-view]"));
+  const availCalendarView = document.getElementById("availCalendarView");
+  const availTemplateView = document.getElementById("availTemplateView");
+  const btnSaveTemplate = document.getElementById("btnSaveTemplate");
+  const btnUseTemplate = document.getElementById("btnUseTemplate");
+  const templateIndicator = document.getElementById("templateIndicator");
+
+
 
   function subscribeSessionRecords() {
     if (unsubscribeSessionRecords) unsubscribeSessionRecords();
@@ -717,6 +780,27 @@ import {
             <label class="admin-check"><input type="checkbox" value="Peer" ${savedTriggers.includes("Peer") ? "checked" : ""} ${isCompleted ? 'disabled' : ''} /> Peer</label>
           </div>
         </div>
+        <div class="admin-detail__block">
+          <h3>Progress Tracking</h3>
+          <div class="admin-detail__grid" style="display: grid; gap: 16px; grid-template-columns: 1fr 1fr;">
+            <div>
+              <label class="admin-label">Progress Status</label>
+              <select id="progressStatus" class="admin-control" ${isCompleted ? 'disabled' : ''}>
+                <option value="Starting" ${record?.status === "Starting" ? "selected" : ""}>Starting</option>
+                <option value="Stable" ${record?.status === "Stable" ? "selected" : ""}>Stable</option>
+                <option value="Improving" ${record?.status === "Improving" ? "selected" : ""}>Improving</option>
+                <option value="Needs Check-in" ${record?.status === "Needs Check-in" ? "selected" : ""}>Needs Check-in</option>
+              </select>
+            </div>
+            <div>
+              <label class="admin-label">Wellness Score</label>
+              <div class="admin-range-wrap">
+                <input type="range" id="wellnessScore" class="admin-range" min="0" max="100" value="${record?.wellnessScore || 50}" ${isCompleted ? 'disabled' : ''}>
+                <span class="admin-range-info" id="wellnessVal">${record?.wellnessScore || 50}%</span>
+              </div>
+            </div>
+          </div>
+        </div>
         ${!isCompleted ? `
         <div class="admin-detail__actions">
           <button class="btn btn--pill btn--primary" type="button" data-complete="${appt.id}">
@@ -729,6 +813,15 @@ import {
 
     appointmentModal.classList.add("is-open");
     appointmentModal.setAttribute("aria-hidden", "false");
+
+    // ✅ Listen for slider updates
+    const scoreSlider = document.getElementById("wellnessScore");
+    const scoreVal = document.getElementById("wellnessVal");
+    if (scoreSlider && scoreVal) {
+      scoreSlider.addEventListener("input", (e) => {
+        scoreVal.textContent = `${e.target.value}%`;
+      });
+    }
   }
 
   /**
@@ -1094,6 +1187,10 @@ import {
     const emotions = Array.from(document.querySelectorAll("#emotionGrid input:checked")).map(cb => cb.value);
     const triggers = Array.from(document.querySelectorAll("#triggerGrid input:checked")).map(cb => cb.value);
 
+    // ✅ Collect Metrics
+    const wellnessScore = Number(document.getElementById("wellnessScore")?.value || 0);
+    const status = document.getElementById("progressStatus")?.value || "Starting";
+
     try {
       // 2. Create the Session Record (Secure Clinical Data)
       await addDoc(collection(db, "session_records"), {
@@ -1105,6 +1202,8 @@ import {
         notes,
         emotions,
         triggers,
+        wellnessScore,
+        status,
         timestamp: serverTimestamp()
       });
 
@@ -1243,6 +1342,482 @@ import {
   renderUserList();
   renderInquiryList();
 
+
+  // ============================
+  // ✅ ENHANCED AVAILABILITY MANAGER
+  // ============================
+
+  // Subscribe to weekly template
+  function subscribeWeeklyTemplate() {
+    if (unsubscribeWeeklyTemplate) unsubscribeWeeklyTemplate();
+
+    const templateDoc = doc(db, "weekly_schedule_template", "default");
+    unsubscribeWeeklyTemplate = onSnapshot(
+      templateDoc,
+      (snap) => {
+        if (snap.exists()) {
+          const data = snap.data();
+          weeklyTemplate = {
+            monday: data.monday || [],
+            tuesday: data.tuesday || [],
+            wednesday: data.wednesday || [],
+            thursday: data.thursday || [],
+            friday: data.friday || [],
+            saturday: data.saturday || [],
+            sunday: data.sunday || []
+          };
+        } else {
+          // Initialize with empty template
+          weeklyTemplate = {
+            monday: [],
+            tuesday: [],
+            wednesday: [],
+            thursday: [],
+            friday: [],
+            saturday: [],
+            sunday: []
+          };
+        }
+        renderWeeklyTemplateEditor();
+        renderAvailCalendar(); // Refresh calendar to show template indicators
+      },
+      (err) => console.error("Error fetching weekly template:", err)
+    );
+  }
+
+  // Get effective schedule for a date (template or override)
+  function getEffectiveSchedule(dateKey) {
+    // Check if there's an explicit schedule for this date
+    const explicitSchedule = counselorSchedules.find(s => s.id === dateKey);
+    if (explicitSchedule && explicitSchedule.slots) {
+      return { slots: explicitSchedule.slots, source: 'custom' };
+    }
+
+    // Otherwise, use weekly template
+    const date = new Date(dateKey);
+    const dayNames = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
+    const dayName = dayNames[date.getDay()];
+    return { slots: weeklyTemplate[dayName] || [], source: 'template' };
+  }
+
+  // Render weekly template editor
+  function renderWeeklyTemplateEditor() {
+    const days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
+
+    days.forEach(day => {
+      const container = document.querySelector(`[data-template-slots="${day}"]`);
+      const rangeStart = document.querySelector(`[data-template-range-start="${day}"]`);
+      const rangeEnd = document.querySelector(`[data-template-range-end="${day}"]`);
+
+      if (!container) return;
+
+      // Populate time range dropdowns
+      if (rangeStart && rangeEnd) {
+        rangeStart.innerHTML = '<option value="">Start</option>' +
+          AVAIL_MASTER_SLOTS.map(slot => `<option value="${slot}">${slot}</option>`).join('');
+        rangeEnd.innerHTML = '<option value="">End</option>' +
+          AVAIL_MASTER_SLOTS.map(slot => `<option value="${slot}">${slot}</option>`).join('');
+      }
+
+      // Render slot checkboxes
+      const activeSlots = weeklyTemplate[day] || [];
+      container.innerHTML = AVAIL_MASTER_SLOTS.map(slot => `
+        <label class="admin-check">
+          <input type="checkbox" value="${slot}" ${activeSlots.includes(slot) ? 'checked' : ''} />
+          ${slot}
+        </label>
+      `).join('');
+    });
+  }
+
+  // Apply preset to a specific day in template
+  function applyTemplatePreset(day, presetType) {
+    const container = document.querySelector(`[data-template-slots="${day}"]`);
+    if (!container) return;
+
+    const slots = PRESET_CONFIGS[presetType] || [];
+    const checkboxes = container.querySelectorAll('input[type="checkbox"]');
+
+    checkboxes.forEach(cb => {
+      cb.checked = slots.includes(cb.value);
+    });
+  }
+
+  // Apply time range to a specific day in template
+  function applyTemplateTimeRange(day) {
+    const rangeStart = document.querySelector(`[data-template-range-start="${day}"]`);
+    const rangeEnd = document.querySelector(`[data-template-range-end="${day}"]`);
+    const container = document.querySelector(`[data-template-slots="${day}"]`);
+
+    if (!rangeStart || !rangeEnd || !container) return;
+
+    const startTime = rangeStart.value;
+    const endTime = rangeEnd.value;
+
+    if (!startTime || !endTime) {
+      alert('Please select both start and end times.');
+      return;
+    }
+
+    const startIndex = AVAIL_MASTER_SLOTS.indexOf(startTime);
+    const endIndex = AVAIL_MASTER_SLOTS.indexOf(endTime);
+
+    if (startIndex === -1 || endIndex === -1 || startIndex > endIndex) {
+      alert('Invalid time range.');
+      return;
+    }
+
+    const slotsInRange = AVAIL_MASTER_SLOTS.slice(startIndex, endIndex + 1);
+    const checkboxes = container.querySelectorAll('input[type="checkbox"]');
+
+    checkboxes.forEach(cb => {
+      cb.checked = slotsInRange.includes(cb.value);
+    });
+  }
+
+  // Save weekly template
+  async function saveWeeklyTemplate() {
+    const days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
+    const templateData = {};
+
+    days.forEach(day => {
+      const container = document.querySelector(`[data-template-slots="${day}"]`);
+      if (container) {
+        const checked = Array.from(container.querySelectorAll('input:checked')).map(cb => cb.value);
+        templateData[day] = checked;
+      }
+    });
+
+    try {
+      // Save the template
+      await setDoc(doc(db, "weekly_schedule_template", "default"), {
+        ...templateData,
+        updatedAt: serverTimestamp()
+      });
+
+      // Auto-apply template to future dates (next 60 days)
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const daysToGenerate = 60; // Generate 2 months ahead
+      const dayNames = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
+
+      const batch = writeBatch(db);
+      let batchCount = 0;
+
+      for (let i = 0; i < daysToGenerate; i++) {
+        const futureDate = new Date(today);
+        futureDate.setDate(today.getDate() + i);
+
+        const dateKey = `${futureDate.getFullYear()}-${String(futureDate.getMonth() + 1).padStart(2, "0")}-${String(futureDate.getDate()).padStart(2, "0")}`;
+        const dayName = dayNames[futureDate.getDay()];
+        const slotsForDay = templateData[dayName] || [];
+
+        const scheduleRef = doc(db, "counselor_schedule", dateKey);
+
+        if (slotsForDay.length > 0) {
+          // Create/update schedule with slots
+          batch.set(scheduleRef, {
+            slots: slotsForDay,
+            updatedAt: serverTimestamp(),
+            fromTemplate: true // Mark as template-generated
+          });
+        } else {
+          // Delete schedule if no slots (day is cleared)
+          batch.delete(scheduleRef);
+        }
+
+        batchCount++;
+
+        // Firestore batch limit is 500, commit if we reach it
+        if (batchCount >= 500) {
+          await batch.commit();
+          batchCount = 0;
+        }
+      }
+
+      // Commit remaining batch
+      if (batchCount > 0) {
+        await batch.commit();
+      }
+
+      alert('Weekly template saved and applied to future dates successfully!');
+    } catch (err) {
+      console.error("Error saving template:", err);
+      alert('Failed to save template: ' + err.message);
+    }
+  }
+
+  // Apply preset to calendar view (single date)
+  function applyCalendarPreset(presetType) {
+    if (!masterSlotGrid) return;
+
+    const slots = PRESET_CONFIGS[presetType] || [];
+    const checkboxes = masterSlotGrid.querySelectorAll('input[type="checkbox"]');
+
+    checkboxes.forEach(cb => {
+      cb.checked = slots.includes(cb.value);
+    });
+  }
+
+  // Apply time range to calendar view (single date)
+  function applyCalendarTimeRange() {
+    if (!rangeStartTime || !rangeEndTime || !masterSlotGrid) return;
+
+    const startTime = rangeStartTime.value;
+    const endTime = rangeEndTime.value;
+
+    if (!startTime || !endTime) {
+      alert('Please select both start and end times.');
+      return;
+    }
+
+    const startIndex = AVAIL_MASTER_SLOTS.indexOf(startTime);
+    const endIndex = AVAIL_MASTER_SLOTS.indexOf(endTime);
+
+    if (startIndex === -1 || endIndex === -1 || startIndex > endIndex) {
+      alert('Invalid time range.');
+      return;
+    }
+
+    const slotsInRange = AVAIL_MASTER_SLOTS.slice(startIndex, endIndex + 1);
+    const checkboxes = masterSlotGrid.querySelectorAll('input[type="checkbox"]');
+
+    checkboxes.forEach(cb => {
+      cb.checked = slotsInRange.includes(cb.value);
+    });
+  }
+
+  // Use template for selected date
+  function useTemplateForDate() {
+    if (!selectedAvailDate || !masterSlotGrid) return;
+
+    const effective = getEffectiveSchedule(selectedAvailDate);
+    const templateSlots = effective.slots;
+
+    const checkboxes = masterSlotGrid.querySelectorAll('input[type="checkbox"]');
+    checkboxes.forEach(cb => {
+      cb.checked = templateSlots.includes(cb.value);
+    });
+  }
+
+  // Switch between calendar and template views
+  function switchAvailView(viewMode) {
+    if (viewMode === 'calendar') {
+      availCalendarView.hidden = false;
+      availTemplateView.hidden = true;
+    } else {
+      availCalendarView.hidden = true;
+      availTemplateView.hidden = false;
+      renderWeeklyTemplateEditor();
+    }
+
+    availViewTabs.forEach(tab => {
+      tab.classList.toggle('is-active', tab.dataset.availView === viewMode);
+    });
+  }
+
+  // ============================
+  // ✅ AVAILABILITY MANAGER LOGIC
+  // ============================
+  function subscribeCounselorSchedules() {
+    if (unsubscribeCounselorSchedules) unsubscribeCounselorSchedules();
+
+    const q = query(collection(db, "counselor_schedule"));
+    unsubscribeCounselorSchedules = onSnapshot(
+      q,
+      (snap) => {
+        counselorSchedules = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+        renderAvailCalendar();
+      },
+      (err) => console.error("Error fetching schedules:", err)
+    );
+  }
+
+  function renderAvailCalendar() {
+    if (!availCalendarDays || !availMonthTitle) return;
+
+    const year = availViewDate.getFullYear();
+    const month = availViewDate.getMonth();
+    const firstDay = new Date(year, month, 1);
+    const startDow = firstDay.getDay();
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+    availMonthTitle.textContent = availViewDate.toLocaleString("en-US", { month: "long", year: "numeric" });
+    availCalendarDays.innerHTML = "";
+
+    // Blank cells
+    for (let i = 0; i < startDow; i++) {
+      const blank = document.createElement("div");
+      blank.className = "admin-cal-day is-muted";
+      availCalendarDays.appendChild(blank);
+    }
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    for (let day = 1; day <= daysInMonth; day++) {
+      const cellDate = new Date(year, month, day);
+      const dateKey = `${year}-${String(month + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+
+      const el = document.createElement("div");
+      el.className = "admin-cal-day";
+      el.textContent = day;
+
+      if (cellDate < today) el.classList.add("is-past");
+      if (cellDate.getTime() === today.getTime()) el.classList.add("is-today");
+
+      const hasSchedule = counselorSchedules.some(s => s.id === dateKey && s.slots?.length > 0);
+      if (hasSchedule) el.classList.add("has-schedule");
+
+      if (selectedAvailDate === dateKey) el.classList.add("is-active");
+
+      el.addEventListener("click", () => {
+        if (cellDate < today) return;
+        selectedAvailDate = dateKey;
+        renderAvailCalendar();
+        openAvailSlotManager(dateKey);
+      });
+
+      availCalendarDays.appendChild(el);
+    }
+  }
+
+  function openAvailSlotManager(dateKey) {
+    if (!availSlotManager || !masterSlotGrid || !availDateSubtitle || !availNoDateHint) return;
+
+    availNoDateHint.hidden = true;
+    availSlotManager.hidden = false;
+
+    // Format date for subtitle
+    const d = new Date(dateKey);
+    availDateSubtitle.textContent = d.toLocaleDateString("en-US", { month: 'long', day: 'numeric', year: 'numeric' });
+
+    // Get effective schedule (template or custom)
+    const effective = getEffectiveSchedule(dateKey);
+    const activeSlots = effective.slots;
+
+    // Show template indicator if using template
+    if (templateIndicator) {
+      if (effective.source === 'template' && activeSlots.length > 0) {
+        templateIndicator.style.display = 'block';
+      } else {
+        templateIndicator.style.display = 'none';
+      }
+    }
+
+
+    masterSlotGrid.innerHTML = AVAIL_MASTER_SLOTS.map(slot => `
+      <label class="admin-check">
+        <input type="checkbox" value="${slot}" ${activeSlots.includes(slot) ? 'checked' : ''} />
+        ${slot}
+      </label>
+    `).join('');
+  }
+
+  async function saveCounselorSchedule() {
+    if (!selectedAvailDate) {
+      alert("Please select a date first.");
+      return;
+    }
+
+    const checked = Array.from(masterSlotGrid.querySelectorAll("input:checked")).map(cb => cb.value);
+
+    // Conflict Detection (Option B)
+    const conflicts = appointments.filter(appt => {
+      const status = String(appt.status || "").toLowerCase();
+      return appt.date === selectedAvailDate &&
+        !checked.includes(appt.time) &&
+        (status === "pending approval" || status === "accepted");
+    });
+
+    if (conflicts.length > 0) {
+      const acceptedCount = conflicts.filter(c => String(c.status || "").toLowerCase() === "accepted").length;
+      const pendingCount = conflicts.filter(c => String(c.status || "").toLowerCase() === "pending approval").length;
+
+      let msg = `You are removing slots that have active appointments:\n`;
+      if (pendingCount > 0) msg += `- ${pendingCount} Pending request(s) will be auto-cancelled.\n`;
+      if (acceptedCount > 0) msg += `- ${acceptedCount} Accepted appointment(s) will be cancelled.\n`;
+      msg += `\nDo you want to proceed and notify these students?`;
+
+      if (!confirm(msg)) return;
+
+      // Batch Handling
+      try {
+        for (const appt of conflicts) {
+          const status = String(appt.status || "").toLowerCase();
+          await updateDoc(doc(db, "appointments", appt.id), {
+            status: "Cancelled",
+            adminNote: "Counselor schedule updated; time slot removed.",
+            updatedAt: serverTimestamp()
+          });
+
+          if (status === "accepted") {
+            await deleteDoc(doc(db, "availability", `${appt.date}_${appt.time}`));
+          }
+        }
+      } catch (err) {
+        console.error("Error handling conflicts:", err);
+        alert("Failed to update conflicting appointments. Schedule not saved.");
+        return;
+      }
+    }
+
+    try {
+      await setDoc(doc(db, "counselor_schedule", selectedAvailDate), {
+        slots: checked,
+        updatedAt: serverTimestamp()
+      });
+      alert(`Schedule saved for ${selectedAvailDate}.`);
+    } catch (err) {
+      console.error("Error saving schedule:", err);
+      alert("Failed to save schedule.");
+    }
+  }
+
+  function changeAvailMonth(offset) {
+    availViewDate.setMonth(availViewDate.getMonth() + offset);
+    renderAvailCalendar();
+  }
+
+  // Event Listeners for Availability
+  prevAvailMonth?.addEventListener("click", () => changeAvailMonth(-1));
+  nextAvailMonth?.addEventListener("click", () => changeAvailMonth(1));
+  btnSaveSchedule?.addEventListener("click", saveCounselorSchedule);
+
+  // ✅ NEW: Enhanced Availability Event Listeners
+
+  // View switching (Calendar vs Template)
+  availViewTabs.forEach(tab => {
+    tab.addEventListener("click", () => {
+      switchAvailView(tab.dataset.availView);
+    });
+  });
+
+  // Calendar view: Quick presets
+  document.addEventListener("click", (e) => {
+    const presetBtn = e.target.closest("[data-preset]");
+    if (presetBtn && !presetBtn.closest("#availTemplateView")) {
+      applyCalendarPreset(presetBtn.dataset.preset);
+    }
+  });
+
+  // Calendar view: Use template button
+  btnUseTemplate?.addEventListener("click", useTemplateForDate);
+
+  // Template view: Preset buttons
+  document.addEventListener("click", (e) => {
+    const templatePresetBtn = e.target.closest("[data-template-preset]");
+    if (templatePresetBtn) {
+      const day = templatePresetBtn.dataset.templatePreset;
+      const presetType = templatePresetBtn.dataset.presetType;
+      applyTemplatePreset(day, presetType);
+    }
+  });
+
+  // Template view: Save template
+  btnSaveTemplate?.addEventListener("click", saveWeeklyTemplate);
+
+
   onAuthStateChanged(auth, async (user) => {
     if (user) {
       try {
@@ -1259,6 +1834,8 @@ import {
         subscribeAppointments();
         subscribeInquiries();
         subscribeSessionRecords();
+        subscribeCounselorSchedules();
+        subscribeWeeklyTemplate(); // ✅ NEW: Subscribe to weekly template
       } catch (err) {
         console.error("Error verifying admin status:", err);
         window.location.href = "login.html";
