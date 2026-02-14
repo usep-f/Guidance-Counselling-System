@@ -1512,21 +1512,26 @@ import {
         const dayName = dayNames[futureDate.getDay()];
         const slotsForDay = templateData[dayName] || [];
 
-        // Only create/update if there are slots for this day
+        const scheduleRef = doc(db, "counselor_schedule", dateKey);
+
         if (slotsForDay.length > 0) {
-          const scheduleRef = doc(db, "counselor_schedule", dateKey);
+          // Create/update schedule with slots
           batch.set(scheduleRef, {
             slots: slotsForDay,
             updatedAt: serverTimestamp(),
             fromTemplate: true // Mark as template-generated
           });
-          batchCount++;
+        } else {
+          // Delete schedule if no slots (day is cleared)
+          batch.delete(scheduleRef);
+        }
 
-          // Firestore batch limit is 500, commit if we reach it
-          if (batchCount >= 500) {
-            await batch.commit();
-            batchCount = 0;
-          }
+        batchCount++;
+
+        // Firestore batch limit is 500, commit if we reach it
+        if (batchCount >= 500) {
+          await batch.commit();
+          batchCount = 0;
         }
       }
 
