@@ -37,5 +37,10 @@ service cloud.firestore {
       // ✅ Allow Admin to update (reply)
       allow update: if isAdmin();
     }
+
+    match /session_records/{recordId} {
+      // 🔒 CLINICAL PRIVACY: Only admins can read or write session insights
+      allow read, write: if isAdmin();
+    }
   }
 }
