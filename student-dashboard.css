@@ -6,7 +6,8 @@
 
 .dashboard-tabs {
   position: sticky;
-  top: calc(var(--nav-h) + 16px);
+  top: 100px;
+  /* Below the sticky main header */
   z-index: 40;
   display: flex;
   flex-wrap: wrap;
@@ -44,17 +45,17 @@
 }
 
 .dashboard-section {
-  margin-bottom: 44px;
+  display: none;
+  margin-bottom: 24px;
+}
+
+.dashboard-section.is-active {
+  display: block;
 }
 
 @media (max-width: 720px) {
   .dashboard-tabs {
-    position: static;
     display: none;
-  }
-
-  .dashboard-tab {
-    flex: 1 1 140px;
   }
 }
 

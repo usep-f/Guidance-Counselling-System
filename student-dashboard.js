@@ -32,31 +32,24 @@ let currentUser = null;
       const isActive = tab.getAttribute("href") === `#${targetId}`;
       tab.classList.toggle("is-active", isActive);
     });
+
+    sections.forEach((section) => {
+      const isActive = section.id === targetId;
+      section.classList.toggle("is-active", isActive);
+      section.style.display = isActive ? "block" : "none";
+    });
   }
 
   tabs.forEach((tab) => {
     tab.addEventListener("click", (event) => {
       event.preventDefault();
-      const target = document.querySelector(tab.getAttribute("href"));
-      if (target) {
-        target.scrollIntoView({ behavior: "smooth", block: "start" });
-        setActive(target.id);
-      }
+      const targetId = tab.getAttribute("href").substring(1);
+      setActive(targetId);
     });
   });
 
-  if ("IntersectionObserver" in window) {
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) setActive(entry.target.id);
-        });
-      },
-      { rootMargin: "-30% 0px -60% 0px" }
-    );
-
-    sections.forEach((section) => observer.observe(section));
-  }
+  // Set initial tab
+  setActive("dashboard-profile");
 })();
 
 /* Inquiry submission (Firestore) */
