@@ -642,7 +642,39 @@
             </section>
           </div>
         </div>
+
+        <!-- NEW: Inquiry History -->
+        <div class="page-card" style="margin-top: 24px;">
+           <header class="page-hero" style="padding: 0; margin-bottom: 16px; text-align: left;">
+              <h2 class="page-title" style="font-size: 24px;">My Inquiry History</h2>
+              <p class="page-subtitle">Track your sent messages and counselor responses.</p>
+           </header>
+           
+           <div class="dash-list" id="myInquiryList">
+              <p class="admin-empty">Loading your inquiries...</p>
+           </div>
+        </div>
       </section>
+
+      <!-- Inquiry Detail Modal -->
+      <div class="admin-modal" id="studentInquiryModal" aria-hidden="true">
+        <div class="admin-modal__overlay" data-modal-close></div>
+        <div class="admin-modal__panel" role="dialog" aria-modal="true">
+          <header class="admin-modal__head">
+            <div>
+              <p class="admin-modal__eyebrow" id="stInquiryModalEyebrow">Inquiry Detail</p>
+              <h2 class="admin-modal__title" id="stInquiryModalTitle">Message</h2>
+            </div>
+            <button class="admin-modal__close" type="button" data-modal-close aria-label="Close">
+              ✕
+            </button>
+          </header>
+          <div class="admin-modal__body" id="stInquiryModalBody"></div>
+          <footer class="admin-modal__footer">
+            <button class="btn btn--pill btn--ghost" type="button" data-modal-close>Close</button>
+          </footer>
+        </div>
+      </div>
 
       <section class="page dashboard-section" id="dashboard-history">
         <header class="page-hero">

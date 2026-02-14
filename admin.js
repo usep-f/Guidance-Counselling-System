@@ -8,6 +8,7 @@ import {
   collection,
   query,
   where,
+  orderBy,
   onSnapshot,
   doc,
   updateDoc,
@@ -78,6 +79,14 @@ import {
   const appointmentModal = document.getElementById("appointmentModal");
   const appointmentModalTitle = document.getElementById("appointmentModalTitle");
   const appointmentModalBody = document.getElementById("appointmentModalBody");
+  const inquiryList = document.getElementById("inquiryList");
+  const inquiryModal = document.getElementById("inquiryModal");
+  const inquiryModalTitle = document.getElementById("inquiryModalTitle");
+  const inquiryModalBody = document.getElementById("inquiryModalBody");
+  const inquiryModalEyebrow = document.getElementById("inquiryModalEyebrow");
+  const inquiryResponseForm = document.getElementById("inquiryResponseForm");
+  const adminResponseMessage = document.getElementById("adminResponseMessage");
+  const btnSubmitInquiryResponse = document.getElementById("btnSubmitInquiryResponse");
 
   // Pagination controls
   const paginationControls = document.getElementById("paginationControls");
@@ -253,6 +262,160 @@ import {
         `;
       })
       .join("");
+  }
+
+  // ============================
+  // ✅ INQUIRIES (Firestore)
+  // ============================
+  let inquiries = [];
+  let unsubscribeInquiries = null;
+
+  function subscribeInquiries() {
+    if (unsubscribeInquiries) unsubscribeInquiries();
+
+    const q = query(collection(db, "inquiries"), orderBy("createdAt", "desc"));
+    unsubscribeInquiries = onSnapshot(
+      q,
+      (snap) => {
+        inquiries = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+        renderInquiryList();
+      },
+      (err) => {
+        console.error("Error fetching inquiries:", err);
+        if (inquiryList) {
+          inquiryList.innerHTML = `<p class="admin-empty">Unable to load inquiries.</p>`;
+        }
+      }
+    );
+  }
+
+  function renderInquiryList() {
+    if (!inquiryList) return;
+
+    if (inquiries.length === 0) {
+      inquiryList.innerHTML = `<p class="admin-empty">No inquiries found.</p>`;
+      return;
+    }
+
+    inquiryList.innerHTML = inquiries
+      .map((inq) => {
+        const date = inq.createdAt?.toDate ? inq.createdAt.toDate() : new Date();
+        const dateStr = date.toLocaleDateString("en-US", {
+          month: "short",
+          day: "numeric",
+          year: "numeric"
+        });
+        const timeStr = date.toLocaleTimeString("en-US", {
+          hour: "numeric",
+          minute: "2-digit"
+        });
+
+        const statusLabel = inq.status === "replied" ? "Replied" : "Pending";
+        const statusVariant = inq.status === "replied" ? "done" : "warn";
+
+        return `
+        <div class="admin-item" data-inquiry-id="${inq.id}">
+          <div class="admin-item__main">
+            <div class="admin-item__info">
+              <span class="admin-pill" data-variant="${statusVariant}" style="margin-bottom: 8px;">${statusLabel}</span>
+              <span class="admin-item__label">${inq.topic || "General"}</span>
+              <h3 class="admin-item__title">${inq.studentName || "Anonymous"}</h3>
+              <p class="admin-item__sub">
+                ${inq.studentNo || "No ID"} · ${dateStr} at ${timeStr}
+              </p>
+            </div>
+            <div class="admin-item__preview">
+               ${inq.message ? inq.message.substring(0, 80) + (inq.message.length > 80 ? "..." : "") : "No content"}
+            </div>
+          </div>
+          <div class="admin-item__actions">
+            <button class="btn btn--sm btn--pill btn--ghost" data-inquiry-view="${inq.id}">
+              View & Reply
+            </button>
+          </div>
+        </div>
+      `;
+      })
+      .join("");
+  }
+
+  let activeInquiryId = null;
+
+  function openInquiryModal(inqId) {
+    const inq = inquiries.find((i) => i.id === inqId);
+    if (!inq) return;
+
+    activeInquiryId = inqId;
+
+    const date = inq.createdAt?.toDate ? inq.createdAt.toDate() : new Date();
+    const dateStr = date.toLocaleString("en-US", {
+      month: "long",
+      day: "numeric",
+      year: "numeric",
+      hour: "numeric",
+      minute: "2-digit"
+    });
+
+    inquiryModalEyebrow.textContent = `Message from ${inq.studentName || "Anonymous"} (${inq.studentNo || "N/A"})`;
+    inquiryModalTitle.textContent = inq.topic || "General Inquiry";
+
+    let bodyHTML = `
+      <div class="admin-detail">
+        <div class="admin-detail__meta">
+          <span><strong>Sent on:</strong> ${dateStr}</span>
+        </div>
+        <div class="admin-detail__block">
+          <p style="white-space: pre-wrap; line-height: 1.6; color: var(--color-text-body);">
+            ${inq.message || "No content provided."}
+          </p>
+        </div>
+    `;
+
+    if (inq.status === "replied" && inq.adminResponse) {
+      bodyHTML += `
+        <div class="admin-detail__block" style="background: rgba(31, 185, 129, 0.05); border-color: rgba(31, 185, 129, 0.2);">
+          <h3 style="color: var(--primary);">Counselor Response</h3>
+          <p style="white-space: pre-wrap; line-height: 1.6;">${inq.adminResponse}</p>
+          <small style="opacity: 0.6;">Replied on ${inq.respondedAt?.toDate ? inq.respondedAt.toDate().toLocaleString() : "just now"}</small>
+        </div>
+      `;
+      inquiryResponseForm.hidden = true;
+      btnSubmitInquiryResponse.hidden = true;
+    } else {
+      inquiryResponseForm.hidden = false;
+      btnSubmitInquiryResponse.hidden = false;
+      adminResponseMessage.value = ""; // Clear for new reply
+    }
+
+    bodyHTML += `</div>`;
+    inquiryModalBody.innerHTML = bodyHTML;
+
+    inquiryModal.classList.add("is-open");
+    inquiryModal.setAttribute("aria-hidden", "false");
+  }
+
+  async function submitInquiryResponse() {
+    if (!activeInquiryId) return;
+    const response = adminResponseMessage.value.trim();
+    if (!response) {
+      alert("Please enter a response.");
+      return;
+    }
+
+    try {
+      const inqRef = doc(db, "inquiries", activeInquiryId);
+      await updateDoc(inqRef, {
+        adminResponse: response,
+        respondedAt: serverTimestamp(),
+        status: "replied"
+      });
+
+      closeModal(inquiryModal);
+      activeInquiryId = null;
+    } catch (err) {
+      console.error("Error submitting response:", err);
+      alert("Failed to send response.");
+    }
   }
 
   function matchesUserFilters(user) {
@@ -736,7 +899,6 @@ import {
   }
 
   // Event listeners for dashboard controls
-  // Event listeners for dashboard controls
   elTime.addEventListener("change", update);
   elYear.addEventListener("change", update);
   elSearch.addEventListener("input", update);
@@ -838,24 +1000,38 @@ import {
     });
   }
 
+  inquiryList?.addEventListener("click", (event) => {
+    const viewBtn = event.target.closest("[data-inquiry-view]");
+    if (viewBtn) {
+      openInquiryModal(viewBtn.dataset.inquiryView);
+    }
+  });
+
+  btnSubmitInquiryResponse?.addEventListener("click", submitInquiryResponse);
+
   document.querySelectorAll("[data-modal-close]").forEach((btn) => {
     btn.addEventListener("click", () => {
       closeModal(userModal);
       closeModal(appointmentModal);
+      closeModal(inquiryModal);
     });
   });
 
   renderUserList();
+  renderInquiryList();
 
   onAuthStateChanged(auth, (user) => {
     if (user) {
       subscribeStudents();
       subscribeAppointments();
+      subscribeInquiries();
     } else {
       students = [];
       appointments = [];
+      inquiries = [];
       renderUserList();
       renderAppointments();
+      renderInquiryList();
     }
   });
 })();

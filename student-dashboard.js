@@ -57,18 +57,70 @@ let currentUser = null;
   }
 })();
 
-/* Inquiry feedback (demo) */
+/* Inquiry submission (Firestore) */
 (function () {
   const form = document.getElementById("inquiryForm");
   const hint = document.getElementById("inquiryHint");
 
   if (!form || !hint) return;
 
-  form.addEventListener("submit", (event) => {
+  form.addEventListener("submit", async (event) => {
     event.preventDefault();
-    hint.textContent =
-      "Inquiry submitted (demo). The counselor will review your message within 1–2 school days.";
-    form.reset();
+
+    if (!currentUser) {
+      alert("Please log in to submit an inquiry.");
+      return;
+    }
+
+    const topic = document.getElementById("inquiryTopic")?.value;
+    const message = document.getElementById("inquiryMessage")?.value;
+
+    if (!topic || !message) {
+      alert("Please fill in all fields.");
+      return;
+    }
+
+    try {
+      // Get student details (best effort)
+      let studentNo = "";
+      let studentName = currentUser.displayName || "Student";
+
+      try {
+        const snap = await getDoc(doc(db, "students", currentUser.uid));
+        if (snap.exists()) {
+          const d = snap.data();
+          studentNo = d.studentNo || "";
+          studentName = d.name || studentName;
+        }
+      } catch (e) {
+        console.warn("Could not fetch profile for inquiry", e);
+      }
+
+      await addDoc(collection(db, "inquiries"), {
+        studentId: currentUser.uid,
+        studentName,
+        studentNo,
+        topic,
+        message,
+        status: "unread",
+        isReplied: false,
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp()
+      });
+
+      hint.textContent = "Inquiry sent! The counselor will review your message soon.";
+      hint.style.color = "var(--color-primary)";
+      form.reset();
+
+      // Clear success message after 5 seconds
+      setTimeout(() => {
+        hint.textContent = "";
+      }, 5000);
+
+    } catch (err) {
+      console.error("Error sending inquiry:", err);
+      alert("Unable to send inquiry. Please try again.");
+    }
   });
 })();
 
@@ -807,10 +859,124 @@ let currentUser = null;
     });
   }
 
+  /* Inquiry History management */
+  let myInquiries = [];
+  let unsubscribeInquiries = null;
+
+  const myInquiryList = document.getElementById("myInquiryList");
+  const stInquiryModal = document.getElementById("studentInquiryModal");
+  const stInquiryModalTitle = document.getElementById("stInquiryModalTitle");
+  const stInquiryModalBody = document.getElementById("stInquiryModalBody");
+  const stInquiryModalEyebrow = document.getElementById("stInquiryModalEyebrow");
+
+  function subscribeMyInquiries(user) {
+    if (unsubscribeInquiries) unsubscribeInquiries();
+    if (!user || !myInquiryList) return;
+
+    const q = query(
+      collection(db, "inquiries"),
+      where("studentId", "==", user.uid),
+      orderBy("createdAt", "desc")
+    );
+
+    unsubscribeInquiries = onSnapshot(q, (snap) => {
+      myInquiries = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      renderInquiryHistory();
+    }, (err) => {
+      console.error("Error fetching my inquiries:", err);
+      if (myInquiryList) {
+        myInquiryList.innerHTML = `<p class="admin-empty">Could not load your inquiries.</p>`;
+      }
+    });
+  }
+
+  function renderInquiryHistory() {
+    if (!myInquiryList) return;
+
+    if (myInquiries.length === 0) {
+      myInquiryList.innerHTML = `<p class="admin-empty">You haven't submitted any inquiries yet.</p>`;
+      return;
+    }
+
+    myInquiryList.innerHTML = myInquiries.map(inq => {
+      const date = inq.createdAt?.toDate ? inq.createdAt.toDate() : new Date();
+      const dateStr = date.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+
+      const isReplied = inq.status === "replied";
+      const statusLabel = isReplied ? "Replied" : "Pending";
+      const variant = isReplied ? "done" : "warn";
+
+      return `
+        <article class="dash-item">
+          <div class="dash-item__content">
+            <p class="dash-item__title">${escapeHtml(inq.topic || "General Inquiry")}</p>
+            <p class="dash-item__meta">Sent on ${dateStr}</p>
+            <p class="dash-item__preview">${escapeHtml(inq.message?.substring(0, 100))}${inq.message?.length > 100 ? "..." : ""}</p>
+            
+            <button class="btn btn--sm btn--ghost btn--pill" style="margin-top: 12px;" data-inquiry-view="${inq.id}">
+              ${isReplied ? "View Response" : "View Message"}
+            </button>
+          </div>
+          <span class="dash-pill" data-variant="${variant}">${statusLabel}</span>
+        </article>
+      `;
+    }).join("");
+  }
+
+  function openInquiryDetail(inqId) {
+    const inq = myInquiries.find(i => i.id === inqId);
+    if (!inq || !stInquiryModalBody) return;
+
+    const date = inq.createdAt?.toDate ? inq.createdAt.toDate() : new Date();
+    const dateStr = date.toLocaleString();
+
+    stInquiryModalEyebrow.textContent = `Inquiry from ${dateStr}`;
+    stInquiryModalTitle.textContent = inq.topic || "General Inquiry";
+
+    let contentHTML = `
+      <div class="admin-detail">
+        <div class="admin-detail__block">
+          <h3 style="font-size: 13px; text-transform: uppercase; color: var(--muted); margin-bottom: 8px;">Your Message</h3>
+          <p style="white-space: pre-wrap; font-size: 14px; line-height: 1.6;">${escapeHtml(inq.message)}</p>
+        </div>
+    `;
+
+    if (inq.status === "replied" && inq.adminResponse) {
+      const replyDate = inq.respondedAt?.toDate ? inq.respondedAt.toDate().toLocaleString() : "Recently";
+      contentHTML += `
+        <div class="admin-detail__block" style="background: rgba(31, 185, 129, 0.05); border: 1px solid rgba(31, 185, 129, 0.2); margin-top: 16px;">
+          <h3 style="font-size: 13px; text-transform: uppercase; color: var(--primary); margin-bottom: 8px;">Counselor Response</h3>
+          <p style="white-space: pre-wrap; font-size: 14px; line-height: 1.6;">${escapeHtml(inq.adminResponse)}</p>
+          <p class="dash-item__meta" style="margin-top: 10px; font-size: 11px;">Replied on ${replyDate}</p>
+        </div>
+      `;
+    }
+
+    contentHTML += `</div>`;
+    stInquiryModalBody.innerHTML = contentHTML;
+
+    stInquiryModal.classList.add("is-open");
+    stInquiryModal.setAttribute("aria-hidden", "false");
+  }
+
+  myInquiryList?.addEventListener("click", (e) => {
+    const btn = e.target.closest("[data-inquiry-view]");
+    if (btn) openInquiryDetail(btn.dataset.inquiryView);
+  });
+
+  // Simplified modal close for student side (if not globally handled)
+  stInquiryModal?.querySelectorAll("[data-modal-close]").forEach(btn => {
+    btn.addEventListener("click", () => {
+      stInquiryModal.classList.remove("is-open");
+      stInquiryModal.setAttribute("aria-hidden", "true");
+    });
+  });
+
   // ✅ Single source of truth for currentUser
   onAuthStateChanged(auth, (user) => {
     currentUser = user;
     loadProfile(user);
     subscribePendingAppointments(user);
+    subscribeMyInquiries(user);
   });
 })();

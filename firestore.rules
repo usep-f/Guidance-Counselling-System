@@ -1,18 +1,41 @@
-rules_version='2'
-
+rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    match /{document=**} {
-      // This rule allows anyone with your database reference to view, edit,
-      // and delete all data in your database. It is useful for getting
-      // started, but it is configured to expire after 30 days because it
-      // leaves your app open to attackers. At that time, all client
-      // requests to your database will be denied.
-      //
-      // Make sure to write security rules for your app before that time, or
-      // else all client requests to your database will be denied until you
-      // update your rules.
-      allow read, write: if request.time < timestamp.date(2026, 2, 27);
+
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function isAdmin() {
+      return signedIn() && request.auth.token.admin == true;
+    }
+
+    match /appointments/{appointmentId} {
+      allow create: if signedIn() && request.resource.data.studentId == request.auth.uid;
+      
+      // ✅ FIX: Allow read if it's YOUR appointment OR you are an Admin
+      allow read: if signedIn() && (resource.data.studentId == request.auth.uid || isAdmin());
+
+      allow update, delete: if isAdmin();
+    }
+
+    match /students/{uid} {
+      allow read, write: if signedIn() && request.auth.uid == uid;
+      allow read: if isAdmin();
+    }
+
+    match /availability/{docId} {
+      allow read: if signedIn();
+      allow write: if isAdmin();
+    }
+
+    match /inquiries/{inquiryId} {
+      // Allow any logged-in student to create an inquiry for themselves
+      allow create: if signedIn() && request.resource.data.studentId == request.auth.uid;
+      // Allow only the owner or an admin to read it
+      allow read: if signedIn() && (resource.data.studentId == request.auth.uid || isAdmin());
+      // ✅ Allow Admin to update (reply)
+      allow update: if isAdmin();
     }
   }
 }

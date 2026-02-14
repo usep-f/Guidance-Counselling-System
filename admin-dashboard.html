@@ -67,6 +67,7 @@
         <a class="dashboard-tab is-active" href="#admin-analytics" data-dashboard-tab>Analytics</a>
         <a class="dashboard-tab" href="#admin-users" data-dashboard-tab>Enrolled Users</a>
         <a class="dashboard-tab" href="#admin-appointments" data-dashboard-tab>Appointments</a>
+        <a class="dashboard-tab" href="#admin-inquiries" data-dashboard-tab>Inquiries</a>
       </div>
 
       <section class="admin-wrap">
@@ -273,6 +274,20 @@
             <button class="btn btn--sm btn--pill btn--ghost" id="nextPageBtn" type="button">Next →</button>
           </div>
         </section>
+
+        <!-- Inquiries Section -->
+        <section class="dashboard-section" id="admin-inquiries" aria-label="Private Inquiries">
+          <header class="admin-panel__head">
+            <div>
+              <h2 class="admin-panel__title">Private Inquiries</h2>
+              <p class="admin-panel__sub">Confidential messages sent by students.</p>
+            </div>
+          </header>
+
+          <div class="admin-list" id="inquiryList" aria-live="polite">
+            <p class="admin-empty">Loading inquiries...</p>
+          </div>
+        </section>
       </section>
 
       <div class="admin-modal" id="userModal" aria-hidden="true">
@@ -304,6 +319,45 @@
             </button>
           </header>
           <div class="admin-modal__body" id="appointmentModalBody"></div>
+        </div>
+      </div>
+      <div class="admin-modal" id="inquiryModal" aria-hidden="true">
+        <div class="admin-modal__overlay" data-modal-close></div>
+        <div class="admin-modal__panel" role="dialog" aria-modal="true" aria-labelledby="inquiryModalTitle">
+          <header class="admin-modal__head">
+            <div>
+              <p class="admin-modal__eyebrow" id="inquiryModalEyebrow">Message Detail</p>
+              <h2 class="admin-modal__title" id="inquiryModalTitle">Inquiry</h2>
+            </div>
+            <button class="admin-modal__close" type="button" data-modal-close aria-label="Close">
+              ✕
+            </button>
+          </header>
+          <div class="admin-modal__body" id="inquiryModalBody"></div>
+          
+          <!-- Shared Form/Footer area -->
+          <div class="admin-modal__footer admin-modal__footer--column">
+            <!-- Toggable response input -->
+            <div id="inquiryResponseForm" hidden>
+              <div class="inq-field inq-field--full">
+                <label class="inq-label" for="adminResponseMessage">Counselor Response</label>
+                <textarea 
+                  class="inq-control inq-textarea" 
+                  id="adminResponseMessage" 
+                  rows="6" 
+                  placeholder="Type your response here..."
+                ></textarea>
+              </div>
+            </div>
+
+            <!-- Global Actions -->
+            <div class="admin-modal__actions">
+              <button class="btn btn--pill btn--ghost" type="button" data-modal-close>Close</button>
+              <button class="btn btn--pill btn--primary" id="btnSubmitInquiryResponse" type="button" hidden>
+                Send Response
+              </button>
+            </div>
+          </div>
         </div>
       </div>
     </main>
