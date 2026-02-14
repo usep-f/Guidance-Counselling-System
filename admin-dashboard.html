@@ -298,46 +298,210 @@
           <header class="admin-panel__head">
             <div>
               <h2 class="admin-panel__title">Availability Manager</h2>
-              <p class="admin-panel__sub">Set your available hours for each day. Students can only book within these slots.</p>
+              <p class="admin-panel__sub">Set your recurring weekly schedule or manage specific dates.</p>
             </div>
           </header>
 
-          <div class="admin-grid admin-grid--availability" style="grid-template-columns: 1fr 1fr;">
-            <div class="admin-card">
-              <div class="admin-card__head">
-                <h2 class="admin-card__title">Select Date</h2>
-              </div>
-              <div class="admin-calendar" id="availCalendar">
-                <div class="admin-calendar__head" style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px;">
-                  <button class="btn btn--sm btn--ghost btn--pill" type="button" id="prevAvailMonth">‹</button>
-                  <h3 id="availMonthTitle" style="margin:0; font-size: 16px;">Month YYYY</h3>
-                  <button class="btn btn--sm btn--ghost btn--pill" type="button" id="nextAvailMonth">›</button>
-                </div>
-                <div class="admin-calendar__days" id="availCalendarDays" style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px;"></div>
-              </div>
-            </div>
+          <!-- Sub-tabs for Calendar vs Weekly Template -->
+          <div class="admin-pilltabs" role="tablist" aria-label="Availability view mode" style="margin-bottom: 24px;">
+            <button class="admin-pilltab is-active" type="button" data-avail-view="calendar">
+              Calendar View
+            </button>
+            <button class="admin-pilltab" type="button" data-avail-view="template">
+              Weekly Template
+            </button>
+          </div>
 
-            <div class="admin-card">
-              <div class="admin-card__head">
-                <h2 class="admin-card__title" id="availSlotTitle">Manage Slots</h2>
-                <p class="admin-card__sub" id="availDateSubtitle">Select a date on the calendar</p>
+          <!-- Calendar View (existing functionality enhanced) -->
+          <div id="availCalendarView" class="avail-view">
+            <div class="admin-grid admin-grid--availability" style="grid-template-columns: 1fr 1fr;">
+              <div class="admin-card">
+                <div class="admin-card__head">
+                  <h2 class="admin-card__title">Select Date</h2>
+                  <p class="admin-card__sub">Click a date to manage its slots</p>
+                </div>
+                <div class="admin-calendar" id="availCalendar">
+                  <div class="admin-calendar__head" style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px;">
+                    <button class="btn btn--sm btn--ghost btn--pill" type="button" id="prevAvailMonth">‹</button>
+                    <h3 id="availMonthTitle" style="margin:0; font-size: 16px;">Month YYYY</h3>
+                    <button class="btn btn--sm btn--ghost btn--pill" type="button" id="nextAvailMonth">›</button>
+                  </div>
+                  <div class="admin-calendar__days" id="availCalendarDays" style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px;"></div>
+                </div>
               </div>
-              
-              <div class="admin-slot-manager" id="availSlotManager" hidden>
-                <p class="admin-label" style="margin-bottom: 12px;">Toggle slots for this day:</p>
-                <div class="admin-checkgrid" id="masterSlotGrid">
-                  <!-- Will be populated by JS -->
+
+              <div class="admin-card">
+                <div class="admin-card__head">
+                  <h2 class="admin-card__title" id="availSlotTitle">Manage Slots</h2>
+                  <p class="admin-card__sub" id="availDateSubtitle">Select a date on the calendar</p>
                 </div>
                 
-                <div class="admin-detail__actions" style="margin-top: 24px;">
-                  <button class="btn btn--pill btn--primary" type="button" id="btnSaveSchedule">
-                    Save Schedule
-                  </button>
+                <div class="admin-slot-manager" id="availSlotManager" hidden>
+                  <!-- Quick Presets -->
+                  <div class="preset-buttons" style="margin-bottom: 16px;">
+                    <p class="admin-label" style="margin-bottom: 8px;">Quick Presets:</p>
+                    <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                      <button class="btn btn--sm btn--ghost btn--pill" type="button" data-preset="full_day">Full Day</button>
+                      <button class="btn btn--sm btn--ghost btn--pill" type="button" data-preset="morning">Morning</button>
+                      <button class="btn btn--sm btn--ghost btn--pill" type="button" data-preset="afternoon">Afternoon</button>
+                      <button class="btn btn--sm btn--ghost btn--pill" type="button" data-preset="clear">Clear All</button>
+                    </div>
+                  </div>
+
+                  <!-- Template Indicator & Use Template Button -->
+                  <div id="templateIndicator" style="margin-bottom: 12px; display: none;">
+                    <div style="padding: 8px 12px; background: rgba(59, 130, 246, 0.1); border-left: 3px solid #3b82f6; border-radius: 4px; font-size: 14px;">
+                      <span style="font-weight: 500;">💡 Template Available</span>
+                      <button class="btn btn--sm btn--ghost btn--pill" type="button" id="btnUseTemplate" style="margin-left: 8px;">Use Template</button>
+                    </div>
+                  </div>
+
+                  <!-- Slot Checkboxes -->
+                  <p class="admin-label" style="margin-bottom: 12px;">Available slots:</p>
+                  <div class="admin-checkgrid" id="masterSlotGrid">
+                    <!-- Will be populated by JS -->
+                  </div>
+                  
+                  <div class="admin-detail__actions" style="margin-top: 24px;">
+                    <button class="btn btn--pill btn--primary" type="button" id="btnSaveSchedule">
+                      Save Schedule
+                    </button>
+                  </div>
+                </div>
+                
+                <div id="availNoDateHint">
+                  <p class="admin-empty">Please select a date on the calendar to manage its availability slots.</p>
                 </div>
               </div>
-              
-              <div id="availNoDateHint">
-                <p class="admin-empty">Please select a date on the calendar to manage its availability slots.</p>
+            </div>
+          </div>
+
+          <!-- Weekly Template View (new) -->
+          <div id="availTemplateView" class="avail-view" hidden>
+            <div class="admin-card">
+              <div class="admin-card__head">
+                <h2 class="admin-card__title">Weekly Schedule Template</h2>
+                <p class="admin-card__sub">Set your recurring availability for each day of the week. This will auto-apply to all future dates.</p>
+              </div>
+
+              <div class="weekly-template-grid" style="display: grid; gap: 24px;">
+                <!-- Monday -->
+                <div class="template-day-card">
+                  <h3 class="template-day-title" style="font-size: 16px; font-weight: 600; margin-bottom: 12px;">Monday</h3>
+                  
+                  <div class="preset-buttons" style="margin-bottom: 12px;">
+                    <div style="display: flex; gap: 6px; flex-wrap: wrap;">
+                      <button class="btn btn--sm btn--ghost btn--pill" type="button" data-template-preset="monday" data-preset-type="full_day">Full Day</button>
+                      <button class="btn btn--sm btn--ghost btn--pill" type="button" data-template-preset="monday" data-preset-type="morning">Morning</button>
+                      <button class="btn btn--sm btn--ghost btn--pill" type="button" data-template-preset="monday" data-preset-type="afternoon">Afternoon</button>
+                      <button class="btn btn--sm btn--ghost btn--pill" type="button" data-template-preset="monday" data-preset-type="clear">Clear</button>
+                    </div>
+                  </div>
+
+                  <div class="admin-checkgrid" data-template-slots="monday"></div>
+                </div>
+
+                <!-- Tuesday -->
+                <div class="template-day-card">
+                  <h3 class="template-day-title" style="font-size: 16px; font-weight: 600; margin-bottom: 12px;">Tuesday</h3>
+                  
+                  <div class="preset-buttons" style="margin-bottom: 12px;">
+                    <div style="display: flex; gap: 6px; flex-wrap: wrap;">
+                      <button class="btn btn--sm btn--ghost btn--pill" type="button" data-template-preset="tuesday" data-preset-type="full_day">Full Day</button>
+                      <button class="btn btn--sm btn--ghost btn--pill" type="button" data-template-preset="tuesday" data-preset-type="morning">Morning</button>
+                      <button class="btn btn--sm btn--ghost btn--pill" type="button" data-template-preset="tuesday" data-preset-type="afternoon">Afternoon</button>
+                      <button class="btn btn--sm btn--ghost btn--pill" type="button" data-template-preset="tuesday" data-preset-type="clear">Clear</button>
+                    </div>
+                  </div>
+
+                  <div class="admin-checkgrid" data-template-slots="tuesday"></div>
+                </div>
+
+                <!-- Wednesday -->
+                <div class="template-day-card">
+                  <h3 class="template-day-title" style="font-size: 16px; font-weight: 600; margin-bottom: 12px;">Wednesday</h3>
+                  
+                  <div class="preset-buttons" style="margin-bottom: 12px;">
+                    <div style="display: flex; gap: 6px; flex-wrap: wrap;">
+                      <button class="btn btn--sm btn--ghost btn--pill" type="button" data-template-preset="wednesday" data-preset-type="full_day">Full Day</button>
+                      <button class="btn btn--sm btn--ghost btn--pill" type="button" data-template-preset="wednesday" data-preset-type="morning">Morning</button>
+                      <button class="btn btn--sm btn--ghost btn--pill" type="button" data-template-preset="wednesday" data-preset-type="afternoon">Afternoon</button>
+                      <button class="btn btn--sm btn--ghost btn--pill" type="button" data-template-preset="wednesday" data-preset-type="clear">Clear</button>
+                    </div>
+                  </div>
+
+                  <div class="admin-checkgrid" data-template-slots="wednesday"></div>
+                </div>
+
+                <!-- Thursday -->
+                <div class="template-day-card">
+                  <h3 class="template-day-title" style="font-size: 16px; font-weight: 600; margin-bottom: 12px;">Thursday</h3>
+                  
+                  <div class="preset-buttons" style="margin-bottom: 12px;">
+                    <div style="display: flex; gap: 6px; flex-wrap: wrap;">
+                      <button class="btn btn--sm btn--ghost btn--pill" type="button" data-template-preset="thursday" data-preset-type="full_day">Full Day</button>
+                      <button class="btn btn--sm btn--ghost btn--pill" type="button" data-template-preset="thursday" data-preset-type="morning">Morning</button>
+                      <button class="btn btn--sm btn--ghost btn--pill" type="button" data-template-preset="thursday" data-preset-type="afternoon">Afternoon</button>
+                      <button class="btn btn--sm btn--ghost btn--pill" type="button" data-template-preset="thursday" data-preset-type="clear">Clear</button>
+                    </div>
+                  </div>
+
+                  <div class="admin-checkgrid" data-template-slots="thursday"></div>
+                </div>
+
+                <!-- Friday -->
+                <div class="template-day-card">
+                  <h3 class="template-day-title" style="font-size: 16px; font-weight: 600; margin-bottom: 12px;">Friday</h3>
+                  
+                  <div class="preset-buttons" style="margin-bottom: 12px;">
+                    <div style="display: flex; gap: 6px; flex-wrap: wrap;">
+                      <button class="btn btn--sm btn--ghost btn--pill" type="button" data-template-preset="friday" data-preset-type="full_day">Full Day</button>
+                      <button class="btn btn--sm btn--ghost btn--pill" type="button" data-template-preset="friday" data-preset-type="morning">Morning</button>
+                      <button class="btn btn--sm btn--ghost btn--pill" type="button" data-template-preset="friday" data-preset-type="afternoon">Afternoon</button>
+                      <button class="btn btn--sm btn--ghost btn--pill" type="button" data-template-preset="friday" data-preset-type="clear">Clear</button>
+                    </div>
+                  </div>
+
+                  <div class="admin-checkgrid" data-template-slots="friday"></div>
+                </div>
+
+                <!-- Saturday -->
+                <div class="template-day-card">
+                  <h3 class="template-day-title" style="font-size: 16px; font-weight: 600; margin-bottom: 12px;">Saturday</h3>
+                  
+                  <div class="preset-buttons" style="margin-bottom: 12px;">
+                    <div style="display: flex; gap: 6px; flex-wrap: wrap;">
+                      <button class="btn btn--sm btn--ghost btn--pill" type="button" data-template-preset="saturday" data-preset-type="full_day">Full Day</button>
+                      <button class="btn btn--sm btn--ghost btn--pill" type="button" data-template-preset="saturday" data-preset-type="morning">Morning</button>
+                      <button class="btn btn--sm btn--ghost btn--pill" type="button" data-template-preset="saturday" data-preset-type="afternoon">Afternoon</button>
+                      <button class="btn btn--sm btn--ghost btn--pill" type="button" data-template-preset="saturday" data-preset-type="clear">Clear</button>
+                    </div>
+                  </div>
+
+                  <div class="admin-checkgrid" data-template-slots="saturday"></div>
+                </div>
+
+                <!-- Sunday -->
+                <div class="template-day-card">
+                  <h3 class="template-day-title" style="font-size: 16px; font-weight: 600; margin-bottom: 12px;">Sunday</h3>
+                  
+                  <div class="preset-buttons" style="margin-bottom: 12px;">
+                    <div style="display: flex; gap: 6px; flex-wrap: wrap;">
+                      <button class="btn btn--sm btn--ghost btn--pill" type="button" data-template-preset="sunday" data-preset-type="full_day">Full Day</button>
+                      <button class="btn btn--sm btn--ghost btn--pill" type="button" data-template-preset="sunday" data-preset-type="morning">Morning</button>
+                      <button class="btn btn--sm btn--ghost btn--pill" type="button" data-template-preset="sunday" data-preset-type="afternoon">Afternoon</button>
+                      <button class="btn btn--sm btn--ghost btn--pill" type="button" data-template-preset="sunday" data-preset-type="clear">Clear</button>
+                    </div>
+                  </div>
+
+                  <div class="admin-checkgrid" data-template-slots="sunday"></div>
+                </div>
+              </div>
+
+              <div class="admin-detail__actions" style="margin-top: 32px; padding-top: 24px; border-top: 1px solid rgba(0,0,0,0.1);">
+                <button class="btn btn--pill btn--primary" type="button" id="btnSaveTemplate">
+                  Save Weekly Template
+                </button>
               </div>
             </div>
           </div>

@@ -48,5 +48,10 @@ service cloud.firestore {
       allow read: if signedIn();
       allow write: if isAdmin();
     }
+
+    match /weekly_schedule_template/{templateId} {
+      allow read: if signedIn();
+      allow write: if isAdmin();
+    }
   }
 }
