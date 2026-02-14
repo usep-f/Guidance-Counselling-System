@@ -3,7 +3,7 @@
    ========================= */
 
 import { db, auth } from "./firebase-config.js";
-import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
+import { onAuthStateChanged, getIdTokenResult } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
 import {
   collection,
   query,
@@ -11,6 +11,7 @@ import {
   orderBy,
   onSnapshot,
   doc,
+  addDoc,
   updateDoc,
   serverTimestamp,
   getDocs,
@@ -133,6 +134,28 @@ import {
   // ============================
   let students = [];
   let unsubscribeStudents = null;
+
+  // ============================
+  // ✅ REAL SESSION RECORDS (New)
+  // ============================
+  let sessionRecords = [];
+  let unsubscribeSessionRecords = null;
+
+  function subscribeSessionRecords() {
+    if (unsubscribeSessionRecords) unsubscribeSessionRecords();
+
+    const q = query(collection(db, "session_records"), orderBy("timestamp", "desc"));
+    unsubscribeSessionRecords = onSnapshot(
+      q,
+      (snap) => {
+        sessionRecords = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+        update(); // Re-run analytics when records change
+      },
+      (err) => {
+        console.error("Error fetching session records:", err);
+      }
+    );
+  }
 
   function subscribeStudents() {
     if (unsubscribeStudents) unsubscribeStudents();
@@ -558,18 +581,20 @@ import {
     const filteredRows = appointments.filter((appt) => {
       const state = normalizeStatus(appt.status);
 
-      // Hide cancelled everywhere for now (you can add a Cancelled tab later)
+      // Hide cancelled everywhere for now
       if (state === "cancelled") return false;
 
       if (activeAppointmentFilter === "pending") {
-        // Pending tab shows BOTH pending approval and accepted (matches your earlier behavior)
-        return state.includes("pending") || state === "accepted";
+        return state === "pending approval";
+      }
+      if (activeAppointmentFilter === "accepted") {
+        return state === "accepted";
       }
       return state === "completed";
     });
 
     if (!filteredRows.length) {
-      appointmentList.innerHTML = `<p class="admin-empty">No appointments available.</p>`;
+      appointmentList.innerHTML = `<p class="admin-empty">No appointments found.</p>`;
       if (paginationControls) paginationControls.hidden = true;
       return;
     }
@@ -592,8 +617,8 @@ import {
         const state = normalizeStatus(appt.status);
 
         // Actions only for pending approval
-        const showActions = state.includes("pending");
-        const canOpen = state !== "cancelled";
+        const showActions = state === "pending approval";
+        const canOpen = state === "accepted" || state === "completed";
 
         const title = appt.studentName || appt.studentNo || appt.studentId || "Student";
         const meta = `${appt.studentNo || "-"} · ${appt.studentId || "-"}`;
@@ -651,6 +676,10 @@ import {
 
     const title = appt.studentName || appt.studentNo || appt.studentId || "Student";
     appointmentModalTitle.textContent = `${title} · ${appt.date || "-"}`;
+
+    // check if it's already completed to hide "complete" action
+    const isCompleted = normalizeStatus(appt.status) === "completed";
+
     appointmentModalBody.innerHTML = `
       <div class="admin-detail">
         <div class="admin-detail__block">
@@ -663,30 +692,32 @@ import {
         </div>
         <div class="admin-detail__block">
           <h3>Counselor Notes</h3>
-          <textarea class="admin-textarea" rows="5" placeholder="Type session notes here..."></textarea>
+          <textarea id="sessionNotes" class="admin-textarea" rows="5" placeholder="Type session notes here..."></textarea>
         </div>
         <div class="admin-detail__block">
           <h3>Emotional States</h3>
-          <div class="admin-checkgrid">
-            <label class="admin-check"><input type="checkbox" /> Stress</label>
-            <label class="admin-check"><input type="checkbox" /> Anxiety</label>
-            <label class="admin-check"><input type="checkbox" /> Depression</label>
+          <div class="admin-checkgrid" id="emotionGrid">
+            <label class="admin-check"><input type="checkbox" value="Stress" /> Stress</label>
+            <label class="admin-check"><input type="checkbox" value="Anxiety" /> Anxiety</label>
+            <label class="admin-check"><input type="checkbox" value="Depression" /> Depression</label>
           </div>
         </div>
         <div class="admin-detail__block">
           <h3>Environmental Triggers</h3>
-          <div class="admin-checkgrid">
-            <label class="admin-check"><input type="checkbox" /> Family</label>
-            <label class="admin-check"><input type="checkbox" /> Financial</label>
-            <label class="admin-check"><input type="checkbox" /> Academic</label>
-            <label class="admin-check"><input type="checkbox" /> Peer</label>
+          <div class="admin-checkgrid" id="triggerGrid">
+            <label class="admin-check"><input type="checkbox" value="Family" /> Family</label>
+            <label class="admin-check"><input type="checkbox" value="Financial" /> Financial</label>
+            <label class="admin-check"><input type="checkbox" value="Academic" /> Academic</label>
+            <label class="admin-check"><input type="checkbox" value="Peer" /> Peer</label>
           </div>
         </div>
+        ${!isCompleted ? `
         <div class="admin-detail__actions">
           <button class="btn btn--pill btn--primary" type="button" data-complete="${appt.id}">
             Mark as Complete
           </button>
         </div>
+        ` : ""}
       </div>
     `;
 
@@ -694,30 +725,138 @@ import {
     appointmentModal.setAttribute("aria-hidden", "false");
   }
 
+  /**
+   * Analytics Helpers
+   */
+  function topKey(obj) {
+    let top = "None";
+    let max = 0;
+    for (const k in obj) {
+      if (obj[k] > max) {
+        max = obj[k];
+        top = k;
+      }
+    }
+    return top;
+  }
+
+  function renderBars(container, counts, order) {
+    if (!container) return;
+    const max = Math.max(...Object.values(counts), 1);
+
+    container.innerHTML = order
+      .map((key) => {
+        const val = counts[key] || 0;
+        const percent = (val / max) * 100;
+        return `
+        <div class="barrow">
+          <span class="barrow__label">${key}</span>
+          <div class="bartrack">
+            <div class="barfill" style="width: ${percent}%"></div>
+          </div>
+          <span class="barrow__value">${val}</span>
+        </div>
+      `;
+      })
+      .join("");
+  }
+
+  function renderTable(data) {
+    if (!tableEl) return;
+    if (!data.length) {
+      tableEl.innerHTML = `<tr><td colspan="6" class="admin-empty">No recent activity.</td></tr>`;
+      return;
+    }
+
+    tableEl.innerHTML = data
+      .map(
+        (row) => `
+      <tr>
+        <td>${row.date}</td>
+        <td>${row.student}</td>
+        <td>${row.emotion}</td>
+        <td>${row.trigger}</td>
+        <td>${row.severity}</td>
+        <td>
+          <span class="admin-pill" data-variant="done">${row.status}</span>
+        </td>
+      </tr>
+    `
+      )
+      .join("");
+  }
+
   function update() {
-    const rows = demo.filter(matchesFilters);
+    // 1. FILTERS (from inputs)
+    const timeVal = elTime?.value || "30";
+    const yearVal = elYear?.value || "all";
+    const searchVal = (elSearch?.value || "").trim().toLowerCase();
 
-    const emotionCounts = countBy(rows, "emotion");
-    const triggerCounts = countBy(rows, "trigger");
+    // 2. Aggregate Data from sessionRecords
+    const filteredRecords = sessionRecords.filter(rec => {
+      // Time filter
+      if (timeVal !== "all") {
+        const days = Number(timeVal);
+        const now = new Date();
+        const d = rec.timestamp?.toDate ? rec.timestamp.toDate() : new Date();
+        const diff = (now - d) / (1000 * 60 * 60 * 24);
+        if (diff > days) return false;
+      }
 
+      // Year Level filter (requires student profile data join or stored year)
+      if (yearVal !== "all") {
+        if ((rec.gradeLevel || "").toLowerCase() !== yearVal.toLowerCase()) return false;
+      }
+
+      // Search filter
+      if (searchVal) {
+        const haystack = `${rec.studentName} ${rec.studentNo}`.toLowerCase();
+        if (!haystack.includes(searchVal)) return false;
+      }
+
+      return true;
+    });
+
+    // 3. Count Emotions & Triggers
+    const emotionCounts = { "Stress": 0, "Anxiety": 0, "Depression": 0 };
+    const triggerCounts = { "Family": 0, "Financial": 0, "Academic": 0, "Peer": 0 };
+
+    filteredRecords.forEach(rec => {
+      if (Array.isArray(rec.emotions)) {
+        rec.emotions.forEach(e => { if (e in emotionCounts) emotionCounts[e]++; });
+      }
+      if (Array.isArray(rec.triggers)) {
+        rec.triggers.forEach(t => { if (t in triggerCounts) triggerCounts[t]++; });
+      }
+    });
+
+    // 4. Render Bars
     const emotionOrder = ["Stress", "Anxiety", "Depression"];
     const triggerOrder = ["Family", "Financial", "Academic", "Peer"];
-
     renderBars(emotionsEl, emotionCounts, emotionOrder);
     renderBars(triggersEl, triggerCounts, triggerOrder);
-    renderTable(rows);
 
-    const totalConcerns = rows.length;
-    kpiTotalConcerns.textContent = String(totalConcerns);
+    // 5. Update KPI Cards
+    kpiTotalConcerns.textContent = String(filteredRecords.length);
     kpiTopEmotion.textContent = topKey(emotionCounts);
     kpiTopTrigger.textContent = topKey(triggerCounts);
 
-    const pending = rows.filter(r => String(r.status || "").toLowerCase().includes("pending")).length;
-    kpiPending.textContent = String(pending);
-
-    const rangeText =
-      elTime.value === "all" ? "Across all time" : `Across last ${elTime.value} days`;
+    const rangeText = timeVal === "all" ? "Across all time" : `Across last ${timeVal} days`;
     kpiTotalConcernsHint.textContent = rangeText;
+
+    // 6. Update Pending KPI (from real appointments)
+    const pendingCount = appointments.filter(a => normalizeStatus(a.status) === "pending approval").length;
+    kpiPending.textContent = String(pendingCount);
+
+    // 7. Render Recent Table (from filteredRecords)
+    renderTable(filteredRecords.map(rec => ({
+      date: rec.timestamp?.toDate ? rec.timestamp.toDate().toLocaleDateString() : "-",
+      student: rec.studentName || "-",
+      emotion: (rec.emotions || []).join(", ") || "-",
+      trigger: (rec.triggers || []).join(", ") || "-",
+      severity: rec.notes ? "Detailed" : "Logged",
+      status: "Recorded"
+    })));
   }
 
   function reset() {
@@ -887,14 +1026,38 @@ import {
   }
 
   async function completeAppointment(appointmentId) {
+    const appt = appointments.find(a => a.id === appointmentId);
+    if (!appt) return;
+
+    // 1. Collect Clinical Data from UI
+    const notes = document.getElementById("sessionNotes")?.value || "";
+    const emotions = Array.from(document.querySelectorAll("#emotionGrid input:checked")).map(cb => cb.value);
+    const triggers = Array.from(document.querySelectorAll("#triggerGrid input:checked")).map(cb => cb.value);
+
     try {
+      // 2. Create the Session Record (Secure Clinical Data)
+      await addDoc(collection(db, "session_records"), {
+        appointmentId,
+        studentId: appt.studentId || "",
+        studentName: appt.studentName || "",
+        studentNo: appt.studentNo || "",
+        gradeLevel: appt.gradeLevel || "",
+        notes,
+        emotions,
+        triggers,
+        timestamp: serverTimestamp()
+      });
+
+      // 3. Update Appointment Status to Completed
       await updateDoc(doc(db, "appointments", appointmentId), {
         status: "Completed",
         updatedAt: serverTimestamp()
       });
+
+      console.log("Session record created and appointment completed.");
     } catch (err) {
-      console.error(err);
-      alert("Unable to mark as complete.");
+      console.error("Error completing appointment:", err);
+      alert("Unable to mark as complete. Details: " + err.message);
     }
   }
 
@@ -982,13 +1145,12 @@ import {
 
   if (nextPageBtn) {
     nextPageBtn.addEventListener("click", () => {
-      // Calculate total pages again (needs to match render logic)
-      // A cleaner way is to store filtered list or just recount.
-      // For now, let's recount similar to renderAppointments.
+      // Calculate total pages again based on 3-tab filter
       const filtered = appointments.filter((appt) => {
         const state = normalizeStatus(appt.status);
         if (state === "cancelled") return false;
-        if (activeAppointmentFilter === "pending") return state.includes("pending") || state === "accepted";
+        if (activeAppointmentFilter === "pending") return state === "pending approval";
+        if (activeAppointmentFilter === "accepted") return state === "accepted";
         return state === "completed";
       });
       const totalPages = Math.ceil(filtered.length / itemsPerPage) || 1;
@@ -1020,18 +1182,35 @@ import {
   renderUserList();
   renderInquiryList();
 
-  onAuthStateChanged(auth, (user) => {
+  onAuthStateChanged(auth, async (user) => {
     if (user) {
-      subscribeStudents();
-      subscribeAppointments();
-      subscribeInquiries();
+      try {
+        // Force token refresh to ensure custom claims (admin: true) are loaded
+        const tokenResult = await getIdTokenResult(user, true);
+        if (tokenResult.claims.admin !== true) {
+          console.warn("User is not an admin. Redirecting...");
+          window.location.href = "login.html";
+          return;
+        }
+
+        // Only start subscriptions if verified as admin
+        subscribeStudents();
+        subscribeAppointments();
+        subscribeInquiries();
+        subscribeSessionRecords();
+      } catch (err) {
+        console.error("Error verifying admin status:", err);
+        window.location.href = "login.html";
+      }
     } else {
       students = [];
       appointments = [];
       inquiries = [];
+      sessionRecords = [];
       renderUserList();
       renderAppointments();
       renderInquiryList();
+      update();
     }
   });
 })();
