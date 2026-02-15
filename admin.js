@@ -916,9 +916,15 @@ import {
         if (diff > days) return false;
       }
 
-      // Year Level filter (requires student profile data join or stored year)
+      // Year Level filter - join with student profile if gradeLevel not in record
       if (yearVal !== "all") {
-        if ((rec.gradeLevel || "").toLowerCase() !== yearVal.toLowerCase()) return false;
+        let studentYear = rec.gradeLevel || "";
+        // If gradeLevel not in record, look it up from student profile
+        if (!studentYear && rec.studentId) {
+          const student = students.find(s => s.id === rec.studentId);
+          studentYear = student?.gradeLevel || "";
+        }
+        if (studentYear.toLowerCase() !== yearVal.toLowerCase()) return false;
       }
 
       // Search filter

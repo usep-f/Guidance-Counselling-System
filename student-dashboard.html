@@ -200,11 +200,11 @@
                         required
                       >
                         <option value="" disabled>Select year level</option>
-                        <option value="1st year">1st year</option>
-                        <option value="2nd year">2nd year</option>
-                        <option value="3rd year">3rd year</option>
-                        <option value="4th year">4th year</option>
-                        <option value="irregular">irregular</option>
+                        <option value="1st Year">1st Year</option>
+                        <option value="2nd Year">2nd Year</option>
+                        <option value="3rd Year">3rd Year</option>
+                        <option value="4th Year">4th Year</option>
+                        <option value="Irregular">Irregular</option>
                       </select>
                     </label>
                     <label class="dash-field">
@@ -276,7 +276,6 @@
                   hotlines or school authorities.
                 </p>
               </aside>
-
             </div>
           </div>
         </div>
@@ -537,15 +536,26 @@
           </aside>
         </section>
 
-        <section class="support-box booking-pending" aria-label="Pending appointments">
+        <section
+          class="support-box booking-pending"
+          aria-label="Pending appointments"
+        >
           <div class="dash-cardhead">
             <h2>Pending Appointments</h2>
           </div>
 
           <div class="dash-pagination" id="paginationControls" hidden>
-            <button class="btn btn--sm btn--pill btn--ghost" id="prevPageBtn" disabled>← Previous</button>
+            <button
+              class="btn btn--sm btn--pill btn--ghost"
+              id="prevPageBtn"
+              disabled
+            >
+              ← Previous
+            </button>
             <span class="dash-pagination__info" id="pageIndicator">Page 1</span>
-            <button class="btn btn--sm btn--pill btn--ghost" id="nextPageBtn">Next →</button>
+            <button class="btn btn--sm btn--pill btn--ghost" id="nextPageBtn">
+              Next →
+            </button>
           </div>
 
           <div class="dash-list" id="pendingList">
@@ -644,15 +654,22 @@
         </div>
 
         <!-- NEW: Inquiry History -->
-        <div class="page-card" style="margin-top: 24px;">
-           <header class="page-hero" style="padding: 0; margin-bottom: 16px; text-align: left;">
-              <h2 class="page-title" style="font-size: 24px;">My Inquiry History</h2>
-              <p class="page-subtitle">Track your sent messages and counselor responses.</p>
-           </header>
-           
-           <div class="dash-list" id="myInquiryList">
-              <p class="admin-empty">Loading your inquiries...</p>
-           </div>
+        <div class="page-card" style="margin-top: 24px">
+          <header
+            class="page-hero"
+            style="padding: 0; margin-bottom: 16px; text-align: left"
+          >
+            <h2 class="page-title" style="font-size: 24px">
+              My Inquiry History
+            </h2>
+            <p class="page-subtitle">
+              Track your sent messages and counselor responses.
+            </p>
+          </header>
+
+          <div class="dash-list" id="myInquiryList">
+            <p class="admin-empty">Loading your inquiries...</p>
+          </div>
         </div>
       </section>
 
@@ -662,16 +679,31 @@
         <div class="admin-modal__panel" role="dialog" aria-modal="true">
           <header class="admin-modal__head">
             <div>
-              <p class="admin-modal__eyebrow" id="stInquiryModalEyebrow">Inquiry Detail</p>
-              <h2 class="admin-modal__title" id="stInquiryModalTitle">Message</h2>
+              <p class="admin-modal__eyebrow" id="stInquiryModalEyebrow">
+                Inquiry Detail
+              </p>
+              <h2 class="admin-modal__title" id="stInquiryModalTitle">
+                Message
+              </h2>
             </div>
-            <button class="admin-modal__close" type="button" data-modal-close aria-label="Close">
+            <button
+              class="admin-modal__close"
+              type="button"
+              data-modal-close
+              aria-label="Close"
+            >
               ✕
             </button>
           </header>
           <div class="admin-modal__body" id="stInquiryModalBody"></div>
           <footer class="admin-modal__footer">
-            <button class="btn btn--pill btn--ghost" type="button" data-modal-close>Close</button>
+            <button
+              class="btn btn--pill btn--ghost"
+              type="button"
+              data-modal-close
+            >
+              Close
+            </button>
           </footer>
         </div>
       </div>
@@ -680,8 +712,8 @@
         <header class="page-hero">
           <h2 class="page-title">History Monitoring</h2>
           <p class="page-subtitle">
-            View your counseling session history and a personal progress overview
-            tracked directly by your counselor.
+            View your counseling session history and a personal progress
+            overview tracked directly by your counselor.
           </p>
         </header>
 
@@ -716,7 +748,11 @@
             <div class="support-box">
               <h2>Overall Improvement</h2>
               <div class="bar">
-                <div class="bar__fill" id="wellnessBarFill" style="width: 0%"></div>
+                <div
+                  class="bar__fill"
+                  id="wellnessBarFill"
+                  style="width: 0%"
+                ></div>
               </div>
               <p
                 style="
@@ -754,7 +790,11 @@
             </div>
 
             <!-- Mini trend list -->
-            <div class="support-box" id="trendContainer" style="grid-column: 1 / -1">
+            <div
+              class="support-box"
+              id="trendContainer"
+              style="grid-column: 1 / -1"
+            >
               <h2>Progress Trend</h2>
 
               <div class="trend" id="trendList">
