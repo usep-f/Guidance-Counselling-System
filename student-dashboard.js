@@ -859,8 +859,14 @@ let currentUser = null;
 
     try {
       // 1. If it was already accepted, we must also remove the public availability block
-      if (appt.status === "Accepted" && appt.date && appt.time) {
-        await deleteDoc(doc(db, "availability", `${appt.date}_${appt.time}`));
+      const status = String(appt.status || "").toLowerCase();
+      if ((status === "accepted" || status === "pending approval") && appt.date && appt.time) {
+        try {
+          await deleteDoc(doc(db, "availability", `${appt.date}_${appt.time}`));
+        } catch (delErr) {
+          console.warn("Could not delete availability block:", delErr);
+          // Continue anyway - appointment will still be cancelled
+        }
       }
 
       // 2. Update status to Cancelled
