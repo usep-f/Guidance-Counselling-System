@@ -411,7 +411,7 @@ import {
           </div>
           <div class="admin-item__actions">
             <button class="btn btn--sm btn--pill btn--ghost" data-inquiry-view="${inq.id}">
-              View & Reply
+              ${inq.status === "replied" ? "View" : "View & Reply"}
             </button>
           </div>
         </div>
@@ -452,7 +452,8 @@ import {
         </div>
     `;
 
-    if (inq.status === "replied" && inq.adminResponse) {
+    const isReplied = String(inq.status || "").toLowerCase() === "replied" || Boolean(inq.adminResponse);
+    if (isReplied) {
       bodyHTML += `
         <div class="admin-detail__block" style="background: rgba(31, 185, 129, 0.05); border-color: rgba(31, 185, 129, 0.2);">
           <h3 style="color: var(--primary);">Counselor Response</h3>
@@ -460,12 +461,25 @@ import {
           <small style="opacity: 0.6;">Replied on ${inq.respondedAt?.toDate ? inq.respondedAt.toDate().toLocaleString() : "just now"}</small>
         </div>
       `;
-      inquiryResponseForm.hidden = true;
-      btnSubmitInquiryResponse.hidden = true;
+
+      if (inquiryResponseForm) {
+        inquiryResponseForm.hidden = true;
+        inquiryResponseForm.style.display = "none";
+      }
+      if (btnSubmitInquiryResponse) {
+        btnSubmitInquiryResponse.hidden = true;
+        btnSubmitInquiryResponse.style.display = "none";
+      }
     } else {
-      inquiryResponseForm.hidden = false;
-      btnSubmitInquiryResponse.hidden = false;
-      adminResponseMessage.value = ""; // Clear for new reply
+      if (inquiryResponseForm) {
+        inquiryResponseForm.hidden = false;
+        inquiryResponseForm.style.display = "block";
+      }
+      if (btnSubmitInquiryResponse) {
+        btnSubmitInquiryResponse.hidden = false;
+        btnSubmitInquiryResponse.style.display = "inline-block";
+      }
+      if (adminResponseMessage) adminResponseMessage.value = ""; // Clear for new reply
     }
 
     bodyHTML += `</div>`;

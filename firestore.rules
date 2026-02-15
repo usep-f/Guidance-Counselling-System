@@ -16,7 +16,11 @@ service cloud.firestore {
       // ✅ FIX: Allow read if it's YOUR appointment OR you are an Admin
       allow read: if signedIn() && (resource.data.studentId == request.auth.uid || isAdmin());
 
-      allow update, delete: if isAdmin();
+      // ✅ Allow students to update their own appointments (e.g., cancel), admins can always update
+      allow update: if signedIn() && (resource.data.studentId == request.auth.uid || isAdmin());
+      
+      // Delete restricted to admins only
+      allow delete: if isAdmin();
     }
 
     match /students/{uid} {
