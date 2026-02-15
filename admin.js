@@ -21,6 +21,49 @@ import {
   writeBatch
 } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
 
+/* ========================= 
+   TOAST NOTIFICATION SYSTEM
+   ========================= */
+function showToast(message, type = 'info', title = '', duration = 3500) {
+  const container = document.getElementById('toastContainer');
+  if (!container) return;
+
+  const toast = document.createElement('div');
+  toast.className = `toast is-${type}`;
+  toast.setAttribute('role', 'status');
+  toast.setAttribute('aria-live', 'polite');
+
+  const iconMap = {
+    success: '✓',
+    error: '✕',
+    info: 'ℹ'
+  };
+
+  const titleText = title || (type === 'success' ? 'Success' : type === 'error' ? 'Error' : 'Info');
+
+  toast.innerHTML = `
+    <div class="toast__icon">${iconMap[type] || '•'}</div>
+    <div class="toast__content">
+      <p class="toast__title">${titleText}</p>
+      <p class="toast__message">${message}</p>
+    </div>
+    <button class="toast__close" type="button" aria-label="Close">×</button>
+  `;
+
+  const closeBtn = toast.querySelector('.toast__close');
+  const removeToast = () => {
+    toast.classList.add('is-removing');
+    setTimeout(() => toast.remove(), 300);
+  };
+
+  closeBtn.addEventListener('click', removeToast);
+  container.appendChild(toast);
+
+  if (duration > 0) {
+    setTimeout(removeToast, duration);
+  }
+}
+
 (function adminDashboard() {
   const tabs = Array.from(document.querySelectorAll("[data-dashboard-tab]"));
   if (tabs.length) {
@@ -1560,10 +1603,10 @@ import {
         await batch.commit();
       }
 
-      alert('Weekly template saved and applied to future dates successfully!');
+      showToast('Weekly template saved and applied to future dates successfully!', 'success', 'Template Saved');
     } catch (err) {
       console.error("Error saving template:", err);
-      alert('Failed to save template: ' + err.message);
+      showToast('Failed to save template: ' + err.message, 'error', 'Error');
     }
   }
 
@@ -1587,7 +1630,7 @@ import {
     const endTime = rangeEndTime.value;
 
     if (!startTime || !endTime) {
-      alert('Please select both start and end times.');
+      showToast('Please select both start and end times.', 'error', 'Missing Input');
       return;
     }
 
@@ -1595,7 +1638,7 @@ import {
     const endIndex = AVAIL_MASTER_SLOTS.indexOf(endTime);
 
     if (startIndex === -1 || endIndex === -1 || startIndex > endIndex) {
-      alert('Invalid time range.');
+      showToast('Invalid time range.', 'error', 'Invalid Input');
       return;
     }
 
@@ -1736,7 +1779,7 @@ import {
 
   async function saveCounselorSchedule() {
     if (!selectedAvailDate) {
-      alert("Please select a date first.");
+      showToast("Please select a date first.", 'info', 'No Date Selected');
       return;
     }
 
@@ -1787,10 +1830,10 @@ import {
         slots: checked,
         updatedAt: serverTimestamp()
       });
-      alert(`Schedule saved for ${selectedAvailDate}.`);
+      showToast(`Schedule saved for ${selectedAvailDate}.`, 'success', 'Schedule Saved');
     } catch (err) {
       console.error("Error saving schedule:", err);
-      alert("Failed to save schedule.");
+      showToast("Failed to save schedule.", 'error', 'Error');
     }
   }
 
