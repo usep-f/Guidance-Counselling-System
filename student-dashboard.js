@@ -31,6 +31,7 @@ let currentUser = null;
     tabs.forEach((tab) => {
       const isActive = tab.getAttribute("href") === `#${targetId}`;
       tab.classList.toggle("is-active", isActive);
+      tab.setAttribute("aria-selected", String(isActive));
     });
 
     sections.forEach((section) => {
@@ -48,8 +49,19 @@ let currentUser = null;
     });
   });
 
-  // Set initial tab
-  setActive("dashboard-profile");
+  // Set initial tab based on URL hash, or default to profile
+  const initialHash = window.location.hash.substring(1);
+  const validIds = tabs.map((tab) => tab.getAttribute("href").substring(1));
+  const initialTab = validIds.includes(initialHash) ? initialHash : "dashboard-profile";
+  setActive(initialTab);
+
+  // Handle hash changes (back/forward navigation)
+  window.addEventListener("hashchange", () => {
+    const newHash = window.location.hash.substring(1);
+    if (validIds.includes(newHash)) {
+      setActive(newHash);
+    }
+  });
 })();
 
 /* Inquiry submission (Firestore) */
