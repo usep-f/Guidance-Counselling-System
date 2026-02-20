@@ -13,24 +13,39 @@ service cloud.firestore {
     match /appointments/{appointmentId} {
       allow create: if signedIn() && request.resource.data.studentId == request.auth.uid;
       
-      // ✅ FIX: Allow read if it's YOUR appointment OR you are an Admin
       allow read: if signedIn() && (resource.data.studentId == request.auth.uid || isAdmin());
 
-      // ✅ Allow students to update their own appointments (e.g., cancel), admins can always update
-      allow update: if signedIn() && (resource.data.studentId == request.auth.uid || isAdmin());
+      allow update: if signedIn() && (
+        isAdmin() || 
+        (
+          resource.data.studentId == request.auth.uid && 
+          request.resource.data.studentId == request.auth.uid &&
+          (
+            request.resource.data.status == resource.data.status || 
+            request.resource.data.status == "Cancelled"
+          )
+        )
+      );
       
-      // Delete restricted to admins only
       allow delete: if isAdmin();
     }
 
     match /students/{uid} {
-      allow read, write: if signedIn() && request.auth.uid == uid;
-      allow read: if isAdmin();
+      allow read: if signedIn() && (request.auth.uid == uid || isAdmin());
+      allow create: if signedIn() && request.auth.uid == uid;
+      allow update: if signedIn() && request.auth.uid == uid && 
+                   (request.resource.data.studentNo == resource.data.studentNo);
     }
 
     match /availability/{docId} {
       allow read: if signedIn();
-      allow write: if signedIn();  // Allow any user to delete/update availability (used during cancellation)
+      allow create: if isAdmin();
+      allow update: if isAdmin();
+      allow delete: if isAdmin() || (
+        signedIn() && 
+        resource.data.appointmentId != null && 
+        get(/databases/$(database)/documents/appointments/$(resource.data.appointmentId)).data.studentId == request.auth.uid
+      );
     }
 
     match /inquiries/{inquiryId} {
