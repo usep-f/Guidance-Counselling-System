@@ -57,6 +57,7 @@ document.addEventListener("click", (e) => {
 });
 
 let currentUser = null;
+let authStateSequence = 0; // Sequence counter to prevent race conditions
 
 /**
  * Name: openLoginUX
@@ -82,12 +83,14 @@ function setPostAuthRedirect(href) {
 
 // Global listener for Firebase Auth changes
 watchAuthState(async (user) => {
+  const currentSeq = ++authStateSequence;
   currentUser = user || null;
   let landing = null;
 
   // Update the primary navigation Call-To-Action (CTA) button
   if (navCta && navCta.id !== "logoutBtn") {
     if (!user) {
+      if (currentSeq !== authStateSequence) return;
       // Show generic Login/Register button for guests
       navCta.classList.remove("nav-cta--user");
       navCta.innerHTML = `Login / Register <span class="btn__icon" aria-hidden="true">→</span>`;
@@ -99,6 +102,8 @@ watchAuthState(async (user) => {
     } else {
       // Show user profile avatar and label for authenticated users
       const label = await getAccountLabel(user);
+      if (currentSeq !== authStateSequence) return;
+
       const initials = buildInitials(label || "User");
       navCta.classList.add("nav-cta--user");
       navCta.innerHTML = `
@@ -109,8 +114,9 @@ watchAuthState(async (user) => {
       `;
 
       landing = await getLandingPageForUser(user);
-      navCta.setAttribute("href", landing);
+      if (currentSeq !== authStateSequence) return;
 
+      navCta.setAttribute("href", landing);
       navCta.onclick = null;
     }
   }
@@ -120,12 +126,14 @@ watchAuthState(async (user) => {
     if (user) {
       if (!landing) {
         landing = await getLandingPageForUser(user);
+        if (currentSeq !== authStateSequence) return;
       }
       dashboardLink.setAttribute("href", landing);
       dashboardLink.textContent = "Dashboard";
       dashboardLink.classList.add("is-visible");
       dashboardLink.onclick = null;
     } else {
+      if (currentSeq !== authStateSequence) return;
       dashboardLink.setAttribute("href", "index.html#login");
       dashboardLink.textContent = "Login";
       dashboardLink.classList.add("is-visible");
@@ -137,18 +145,21 @@ watchAuthState(async (user) => {
   }
 
   // Toggle global logout button visibility
-  if (logoutBtn) {
-    logoutBtn.style.display = user ? "inline-flex" : "none";
-  }
+  if (currentSeq === authStateSequence) {
+    if (logoutBtn) {
+      logoutBtn.style.display = user ? "inline-flex" : "none";
+    }
 
-  // Resolve auth resolution and reveal page content
-  document.documentElement.classList.remove("auth-pending");
+    // Resolve auth resolution and reveal page content
+    document.documentElement.classList.remove("auth-pending");
+  }
 });
 
 if (logoutBtn) {
   logoutBtn.addEventListener("click", async () => {
     try {
       await logout();
+      sessionStorage.clear(); // Clear navigation state and other temporary data
       window.location.href = "index.html";
     } catch (err) {
       alert(err.message);

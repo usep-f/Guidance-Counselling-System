@@ -952,7 +952,7 @@
       watchAuthState((user) => {
         if (!user) {
           sessionStorage.setItem("postAuthRedirect", "student-dashboard.html");
-          window.location.href = "index.html#login";
+          window.location.href = "index.html";
           return;
         }
 

@@ -47,7 +47,7 @@
           <a class="nav-link" href="index.html#contact">Contact</a>
         </div>
 
-        <a class="btn btn--pill btn--primary nav-cta" href="index.html#login">
+        <a class="btn btn--pill btn--primary nav-cta" id="logoutBtn" href="index.html#login">
           Logout
           <span class="btn__icon" aria-hidden="true">→</span>
         </a>
@@ -663,13 +663,13 @@
       watchAuthState(async (user) => {
         if (!user) {
           sessionStorage.setItem("postAuthRedirect", "admin-dashboard.html");
-          window.location.href = "index.html#login";
+          window.location.href = "index.html";
           return;
         }
 
         const ok = await isAdminUser(user);
         if (!ok) {
-          window.location.href = "dashboard.html";
+          window.location.href = "student-dashboard.html";
           return;
         }
 

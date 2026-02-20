@@ -5,7 +5,8 @@ import {
   registerStudent,
   getLandingPageForUser,
   isAdminUser,
-  logout
+  logout,
+  watchAuthState
 } from "./auth-backend.js";
 
 // Auth modal elements
@@ -90,12 +91,14 @@ function openAuthModal(defaultView = "login") {
   if (firstInput) firstInput.focus();
 }
 
+let isAuthProcessing = false;
+
 /**
  * Name: closeAuthModal
  * Description: Closes the authentication modal and resets relevant UI states.
  */
 function closeAuthModal() {
-  if (!authModal) return;
+  if (!authModal || isAuthProcessing) return;
 
   authModal.classList.remove("is-open");
   authModal.setAttribute("aria-hidden", "true");
@@ -112,6 +115,7 @@ function closeAuthModal() {
  * Description: Switches between the 'login' and 'register' views within the auth modal.
  */
 function setAuthView(viewName) {
+  if (isAuthProcessing) return;
   clearAuthError();
   clearAuthSuccess();
 
@@ -133,6 +137,7 @@ function setAuthView(viewName) {
  * Description: Updates the selected role (Student/Admin) for the login process.
  */
 function setRole(role) {
+  if (isAuthProcessing) return;
   roleBtns.forEach((btn) => btn.classList.toggle("is-active", btn.dataset.role === role));
   if (loginRoleInput) loginRoleInput.value = role;
   clearAuthError();
@@ -155,7 +160,7 @@ openAuthBtns.forEach((btn) => {
 closeAuthBtns.forEach((btn) => btn.addEventListener("click", closeAuthModal));
 
 document.addEventListener("keydown", (e) => {
-  if (e.key === "Escape" && authModal?.classList.contains("is-open")) {
+  if (e.key === "Escape" && authModal?.classList.contains("is-open") && !isAuthProcessing) {
     closeAuthModal();
   }
 });
@@ -172,11 +177,32 @@ switchBtns.forEach((btn) => {
 /**
  * Name: goAfterAuth
  * Description: Redirects the user to their landing page or a previously requested protected route.
+ * Validates the redirect to ensure role-appropriate destination.
  */
-function goAfterAuth(defaultUrl) {
+function goAfterAuth(defaultUrl, isAdmin) {
   const redirect = sessionStorage.getItem("postAuthRedirect");
-  if (redirect) sessionStorage.removeItem("postAuthRedirect");
-  window.location.href = redirect || defaultUrl;
+  if (redirect) {
+    sessionStorage.removeItem("postAuthRedirect");
+
+    // VALIDATION: Prevent Admins from going to student pages (and vice-versa)
+    const isTargetingAdmin = redirect.includes("admin-dashboard.html");
+    const isTargetingStudent = redirect.includes("student-dashboard.html");
+
+    if (isAdmin && isTargetingStudent) {
+      // Admin should not go to student dashboard
+      window.location.href = defaultUrl;
+      return;
+    }
+    if (!isAdmin && isTargetingAdmin) {
+      // Student should not go to admin dashboard
+      window.location.href = defaultUrl;
+      return;
+    }
+
+    window.location.href = redirect;
+    return;
+  }
+  window.location.href = defaultUrl;
 }
 
 // Login submit (role-enforced)
@@ -188,6 +214,18 @@ if (loginForm) {
 
     const email = document.getElementById("loginEmail").value.trim();
     const password = document.getElementById("loginPassword").value;
+    const submitBtn = loginForm.querySelector('button[type="submit"]');
+    const originalBtnText = submitBtn.innerHTML;
+
+    // Loading state
+    isAuthProcessing = true;
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = `Verifying... <span class="btn__spinner"></span>`;
+
+    // Disable inputs and close buttons to prevent user interference
+    const inputs = loginForm.querySelectorAll('input, button');
+    inputs.forEach(el => el.disabled = true);
+    closeAuthBtns.forEach(btn => btn.disabled = true);
 
     try {
       const user = await loginWithEmail(email, password);
@@ -209,14 +247,27 @@ if (loginForm) {
           showAuthError("This account is an admin. Please switch to Admin login.");
         }
 
+        // Restore form state
+        isAuthProcessing = false;
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = originalBtnText;
+        inputs.forEach(el => el.disabled = false);
+        closeAuthBtns.forEach(btn => btn.disabled = false);
         return; // keep modal open
       }
 
       const landing = await getLandingPageForUser(user);
+      isAuthProcessing = false;
       closeAuthModal();
-      goAfterAuth(landing);
+      goAfterAuth(landing, realIsAdmin);
     } catch (err) {
       showAuthError(err.message);
+      // Restore form state
+      isAuthProcessing = false;
+      submitBtn.disabled = false;
+      submitBtn.innerHTML = originalBtnText;
+      inputs.forEach(el => el.disabled = false);
+      closeAuthBtns.forEach(btn => btn.disabled = false);
     }
   });
 }
@@ -235,6 +286,17 @@ if (registerForm) {
     const program = document.getElementById("regProgram").value.trim();
     const password = document.getElementById("regPassword").value;
 
+    const submitBtn = registerForm.querySelector('button[type="submit"]');
+    const originalBtnText = submitBtn.innerHTML;
+
+    isAuthProcessing = true;
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = `Creating Account... <span class="btn__spinner"></span>`;
+
+    const inputs = registerForm.querySelectorAll('input, button, select');
+    inputs.forEach(el => el.disabled = true);
+    closeAuthBtns.forEach(btn => btn.disabled = true);
+
     try {
       const user = await registerStudent({
         email,
@@ -249,17 +311,25 @@ if (registerForm) {
       showAuthSuccess("Registration successful. Redirecting to your dashboard...");
 
       setTimeout(() => {
+        isAuthProcessing = false;
         closeAuthModal();
-        goAfterAuth(landing);
+        goAfterAuth(landing, false);
       }, 900);
     } catch (err) {
       showAuthError(err.message);
+      isAuthProcessing = false;
+      submitBtn.disabled = false;
+      submitBtn.innerHTML = originalBtnText;
+      inputs.forEach(el => el.disabled = false);
+      closeAuthBtns.forEach(btn => btn.disabled = false);
     }
   });
 }
 
 // Auto-open modal when arriving from other pages (index.html#login)
-window.addEventListener("load", () => {
+watchAuthState((user) => {
+  if (user) return; // Don't open if already logged in
+
   if (window.location.hash === "#login") {
     openAuthModal("login");
   }

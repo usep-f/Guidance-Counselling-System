@@ -1888,7 +1888,7 @@ function showToast(message, type = 'info', title = '', duration = 3500) {
         const tokenResult = await getIdTokenResult(user, true);
         if (tokenResult.claims.admin !== true) {
           console.warn("User is not an admin. Redirecting...");
-          window.location.href = "login.html";
+          window.location.href = "student-dashboard.html";
           return;
         }
 
@@ -1901,7 +1901,7 @@ function showToast(message, type = 'info', title = '', duration = 3500) {
         subscribeWeeklyTemplate(); // ✅ NEW: Subscribe to weekly template
       } catch (err) {
         console.error("Error verifying admin status:", err);
-        window.location.href = "login.html";
+        window.location.href = "index.html";
       }
     } else {
       students = [];
