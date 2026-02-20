@@ -1,5 +1,5 @@
 // auth-backend.js
-import { auth,db } from "./firebase-config.js";
+import { auth, db } from "./firebase-config.js";
 
 import {
   onAuthStateChanged,
@@ -9,7 +9,8 @@ import {
   signInWithEmailAndPassword,
   signOut,
   updateProfile,
-  getIdTokenResult
+  getIdTokenResult,
+  sendPasswordResetEmail
 } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
 
 import {
@@ -94,6 +95,14 @@ export async function isAdminUser(user) {
   // true => forces token refresh, important right after claims are set
   const tokenResult = await getIdTokenResult(user, true);
   return tokenResult?.claims?.admin === true;
+}
+
+/**
+ * Name: sendPasswordReset
+ * Description: Sends a password reset email to the specified user.
+ */
+export async function sendPasswordReset(email) {
+  await sendPasswordResetEmail(auth, email);
 }
 
 /**

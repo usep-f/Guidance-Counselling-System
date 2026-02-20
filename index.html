@@ -583,6 +583,12 @@
               />
             </div>
 
+            <div class="auth-extra">
+              <button class="auth-link auth-link--sm" type="button" data-auth-switch="forgot-password">
+                Forgot Password?
+              </button>
+            </div>
+
             <button
               class="btn btn--pill btn--primary auth-submit"
               type="submit"
@@ -598,6 +604,37 @@
                 data-auth-switch="register"
               >
                 Register here
+              </button>
+            </p>
+          </form>
+        </div>
+
+        <!-- FORGOT PASSWORD VIEW -->
+        <div class="auth-view" data-auth-view="forgot-password">
+          <form class="auth-form" id="forgotPasswordForm">
+            <div class="auth-field">
+              <label class="auth-label" for="forgotEmail">Email Address</label>
+              <input
+                class="auth-input"
+                id="forgotEmail"
+                name="email"
+                type="email"
+                placeholder="you@school.edu"
+                required
+              />
+            </div>
+
+            <button
+              class="btn btn--pill btn--primary auth-submit"
+              type="submit"
+            >
+              Send Reset Link <span class="btn__icon" aria-hidden="true">→</span>
+            </button>
+
+            <p class="auth-switch">
+              Remembered?
+              <button class="auth-link" type="button" data-auth-switch="login">
+                Back to Login
               </button>
             </p>
           </form>

@@ -1455,6 +1455,24 @@ section[id] {
   margin-top: 6px;
 }
 
+.auth-extra {
+  margin: 4px 0 20px;
+  text-align: right;
+}
+
+.auth-link--sm {
+  font-size: 13px;
+  color: var(--muted);
+  opacity: 0.8;
+  transition: opacity 150ms ease, color 150ms ease;
+}
+
+.auth-link--sm:hover {
+  opacity: 1;
+  color: var(--primary);
+  text-decoration: underline;
+}
+
 .auth-switch {
   margin: 12px 0 0 0;
   font-size: 14px;

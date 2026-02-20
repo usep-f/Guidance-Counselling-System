@@ -6,7 +6,8 @@ import {
   getLandingPageForUser,
   isAdminUser,
   logout,
-  watchAuthState
+  watchAuthState,
+  sendPasswordReset
 } from "./auth-backend.js";
 
 // Auth modal elements
@@ -20,7 +21,8 @@ const authSubtitle = document.getElementById("authSubtitle");
 
 const views = {
   login: document.querySelector("[data-auth-view='login']"),
-  register: document.querySelector("[data-auth-view='register']")
+  register: document.querySelector("[data-auth-view='register']"),
+  forgotPassword: document.querySelector("[data-auth-view='forgot-password']")
 };
 
 const roleBtns = document.querySelectorAll(".auth-role__btn");
@@ -28,6 +30,7 @@ const switchBtns = document.querySelectorAll("[data-auth-switch]");
 
 const loginForm = document.getElementById("loginForm");
 const registerForm = document.getElementById("registerForm");
+const forgotPasswordForm = document.getElementById("forgotPasswordForm");
 
 const authError = document.getElementById("authError");
 const authSuccess = document.getElementById("authSuccess");
@@ -119,16 +122,24 @@ function setAuthView(viewName) {
   clearAuthError();
   clearAuthSuccess();
 
-  const isLogin = viewName === "login";
+  if (views.login) views.login.classList.toggle("is-active", viewName === "login");
+  if (views.register) views.register.classList.toggle("is-active", viewName === "register");
+  if (views.forgotPassword) views.forgotPassword.classList.toggle("is-active", viewName === "forgot-password");
 
-  if (views.login) views.login.classList.toggle("is-active", isLogin);
-  if (views.register) views.register.classList.toggle("is-active", !isLogin);
+  if (authTitle) {
+    if (viewName === "login") authTitle.textContent = "Login";
+    else if (viewName === "register") authTitle.textContent = "Register";
+    else if (viewName === "forgot-password") authTitle.textContent = "Forgot Password";
+  }
 
-  if (authTitle) authTitle.textContent = isLogin ? "Login" : "Register";
   if (authSubtitle) {
-    authSubtitle.textContent = isLogin
-      ? "Choose your account type and enter your credentials."
-      : "Create your student account to start booking appointments.";
+    if (viewName === "login") {
+      authSubtitle.textContent = "Choose your account type and enter your credentials.";
+    } else if (viewName === "register") {
+      authSubtitle.textContent = "Create your student account to start booking appointments.";
+    } else if (viewName === "forgot-password") {
+      authSubtitle.textContent = "Enter your email address to receive a password reset link.";
+    }
   }
 }
 
@@ -315,6 +326,50 @@ if (registerForm) {
         closeAuthModal();
         goAfterAuth(landing, false);
       }, 900);
+    } catch (err) {
+      showAuthError(err.message);
+      isAuthProcessing = false;
+      submitBtn.disabled = false;
+      submitBtn.innerHTML = originalBtnText;
+      inputs.forEach(el => el.disabled = false);
+      closeAuthBtns.forEach(btn => btn.disabled = false);
+    }
+  });
+}
+
+// Forgot Password submit
+if (forgotPasswordForm) {
+  forgotPasswordForm.addEventListener("submit", async (e) => {
+    e.preventDefault();
+
+    clearAuthError();
+    clearAuthSuccess();
+
+    const email = document.getElementById("forgotEmail").value.trim();
+    const submitBtn = forgotPasswordForm.querySelector('button[type="submit"]');
+    const originalBtnText = submitBtn.innerHTML;
+
+    isAuthProcessing = true;
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = `Sending... <span class="btn__spinner"></span>`;
+
+    const inputs = forgotPasswordForm.querySelectorAll('input, button');
+    inputs.forEach(el => el.disabled = true);
+    closeAuthBtns.forEach(btn => btn.disabled = true);
+
+    try {
+      await sendPasswordReset(email);
+      showAuthSuccess("Password reset link sent! Please check your email inbox.");
+
+      // Auto-switch back to login after a delay
+      setTimeout(() => {
+        setAuthView("login");
+        isAuthProcessing = false;
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = originalBtnText;
+        inputs.forEach(el => el.disabled = false);
+        closeAuthBtns.forEach(btn => btn.disabled = false);
+      }, 3000);
     } catch (err) {
       showAuthError(err.message);
       isAuthProcessing = false;
