@@ -4,5 +4,5 @@
  */
 
 export const CHATBOT_CONFIG = {
-    apiKey: "AIzaSyAB0u_AXVnRa50AWvFQwrfOND0c7O-J8gQ"
+    apiKey: "YOUR_NEW_GEMINI_API_KEY_HERE"
 };

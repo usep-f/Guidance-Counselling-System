@@ -6,6 +6,7 @@ admin-tools/*.json
 admin-tools/serviceAccountKey.json
 admin-tools/set-admin-claim.cjs
 .firebase
+chatbot_config.js
 
 # Local env files (if you use them)
 .env

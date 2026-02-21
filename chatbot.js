@@ -1,4 +1,4 @@
-import { CHATBOT_CONFIG } from './chatbot-config.js';
+import { CHATBOT_CONFIG } from './chatbot_config.js';
 
 class GuidanceChatbot {
     constructor() {
@@ -144,7 +144,7 @@ class GuidanceChatbot {
             return "Note: No API key configured. I'm a simple assistant here to guide you through the Guidance Counseling System. (You can set the API key in chatbot.js or provide it via a secure method).";
         }
 
-        const url = `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${this.apiKey}`;
+        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${this.apiKey}`;
 
         const systemInstruction = `
             You are a helpful guidance counselor assistant for the Guidance Counseling Management System. 
@@ -156,11 +156,14 @@ class GuidanceChatbot {
             Knowledge Base: ${JSON.stringify(this.knowledge)}
         `;
 
+        // Inject system instruction into the first user message to ensure compatibility with v1 API
+        const requestContents = JSON.parse(JSON.stringify(this.messages));
+        if (requestContents.length > 0 && requestContents[0].role === 'user') {
+            requestContents[0].parts[0].text = systemInstruction + '\n\nUSER QUESTION:\n' + requestContents[0].parts[0].text;
+        }
+
         const requestBody = {
-            contents: this.messages,
-            system_instruction: {
-                parts: [{ text: systemInstruction }]
-            }
+            contents: requestContents
         };
 
         const response = await fetch(url, {
