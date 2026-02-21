@@ -1107,6 +1107,7 @@ function showToast(message, type = 'info', title = '', duration = 3500) {
         });
 
         renderAppointments();
+        update(); // Re-run analytics to update KPI pending count
       },
       (err) => {
         console.error(err);
