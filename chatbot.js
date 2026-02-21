@@ -21,6 +21,7 @@ class GuidanceChatbot {
 
         this.renderUI();
         this.attachEvents();
+        this.loadMessages();
     }
 
     renderUI() {
@@ -76,6 +77,7 @@ class GuidanceChatbot {
         } else {
             this.bubble.innerHTML = '<span>💬</span>';
         }
+        sessionStorage.setItem('guidance_chatbot_open', this.isOpen);
     }
 
     async handleUserMessage() {
@@ -88,6 +90,7 @@ class GuidanceChatbot {
 
         // Add to history
         this.messages.push({ role: 'user', parts: [{ text }] });
+        this.saveMessages();
 
         // Show typing indicator
         const typingId = this.showTyping();
@@ -97,6 +100,7 @@ class GuidanceChatbot {
             this.removeTyping(typingId);
             this.addMessage(response, 'bot');
             this.messages.push({ role: 'model', parts: [{ text: response }] });
+            this.saveMessages();
         } catch (error) {
             this.removeTyping(typingId);
             this.addMessage("I'm sorry, I'm having trouble connecting right now. Please try again later.", 'bot');
@@ -110,6 +114,36 @@ class GuidanceChatbot {
         msg.textContent = text;
         this.messagesContainer.appendChild(msg);
         this.scrollToBottom();
+    }
+
+    loadMessages() {
+        const saved = sessionStorage.getItem('guidance_chatbot_messages');
+        if (saved) {
+            try {
+                const parsed = JSON.parse(saved);
+                if (Array.isArray(parsed) && parsed.length > 0) {
+                    this.messages = parsed;
+                    this.messages.forEach(msg => {
+                        if (msg.parts && msg.parts.length > 0) {
+                            const text = msg.parts[0].text;
+                            const side = msg.role === 'user' ? 'user' : 'bot';
+                            this.addMessage(text, side);
+                        }
+                    });
+                }
+            } catch (e) {
+                console.error('Failed to parse chatbot history', e);
+            }
+        }
+
+        const wasOpen = sessionStorage.getItem('guidance_chatbot_open') === 'true';
+        if (wasOpen) {
+            this.toggleChat(true);
+        }
+    }
+
+    saveMessages() {
+        sessionStorage.setItem('guidance_chatbot_messages', JSON.stringify(this.messages));
     }
 
     showTyping() {
