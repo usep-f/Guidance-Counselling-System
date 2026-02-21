@@ -33,7 +33,6 @@ class GuidanceChatbot {
             <div class="chatbot-window" id="chatWindow">
                 <div class="chatbot-header">
                     <h3 class="chatbot-title">Guidance Assistant</h3>
-                    <span id="chatClose" style="cursor:pointer; font-size: 1.2rem;">✕</span>
                 </div>
                 <div class="chatbot-messages" id="chatMessages">
                     <div class="chat-msg msg-bot">
@@ -55,12 +54,10 @@ class GuidanceChatbot {
         this.messagesContainer = document.getElementById('chatMessages');
         this.input = document.getElementById('chatInput');
         this.form = document.getElementById('chatForm');
-        this.closeBtn = document.getElementById('chatClose');
     }
 
     attachEvents() {
         this.bubble.addEventListener('click', () => this.toggleChat());
-        this.closeBtn.addEventListener('click', () => this.toggleChat(false));
 
         this.form.addEventListener('submit', (e) => {
             e.preventDefault();
