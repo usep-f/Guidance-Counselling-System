@@ -1,762 +1,590 @@
 <!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Guidance Homepage</title>
-    <link rel="stylesheet" href="style.css" />
-  </head>
 
-  <body>
-    <!-- NAVBAR -->
-    <header class="site-header" id="top">
-      <nav class="navbar">
-        <a class="brand" href="#top" aria-label="Guidance System Home">
-          <span class="brand__logo" aria-hidden="true"></span>
-          <span class="brand__text">Guidance System</span>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Guidance Homepage</title>
+  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="chatbot.css" />
+</head>
+
+<body>
+  <!-- NAVBAR -->
+  <header class="site-header" id="top">
+    <nav class="navbar">
+      <a class="brand" href="#top" aria-label="Guidance System Home">
+        <span class="brand__logo" aria-hidden="true"></span>
+        <span class="brand__text">Guidance System</span>
+      </a>
+
+      <button class="nav-toggle" type="button" aria-label="Toggle navigation" aria-expanded="false">
+        <span class="nav-toggle__bar"></span>
+        <span class="nav-toggle__bar"></span>
+        <span class="nav-toggle__bar"></span>
+      </button>
+
+      <div class="nav-links" data-nav>
+        <a class="nav-link nav-link--dashboard" data-dashboard-link href="#">
+          Dashboard
         </a>
+        <a class="nav-link" href="#home">Home</a>
+        <a class="nav-link" href="#about">About Us</a>
+        <a class="nav-link" href="#services">Services</a>
+        <a class="nav-link" href="#how">How it Works</a>
+        <a class="nav-link" href="#contact">Contact</a>
+      </div>
 
-        <button
-          class="nav-toggle"
-          type="button"
-          aria-label="Toggle navigation"
-          aria-expanded="false"
-        >
-          <span class="nav-toggle__bar"></span>
-          <span class="nav-toggle__bar"></span>
-          <span class="nav-toggle__bar"></span>
-        </button>
+      <a class="btn btn--pill btn--primary nav-cta" href="#login">
+        Login / Register
+        <span class="btn__icon" aria-hidden="true">→</span>
+      </a>
 
-        <div class="nav-links" data-nav>
-          <a class="nav-link nav-link--dashboard" data-dashboard-link href="#">
-            Dashboard
+      <button class="btn btn--pill btn--ghost" id="logoutBtn" type="button" style="display: none">
+        Logout
+      </button>
+    </nav>
+  </header>
+
+  <!-- HERO -->
+  <main id="home">
+    <section class="hero">
+      <div class="hero__inner">
+        <div class="hero__left">
+          <h1 class="hero__title">
+            Your Mental<br />
+            Wellness<br />
+            Matters
+          </h1>
+
+          <p class="hero__desc">
+            Securely schedule appointments and track your counseling history
+            in a safe, supportive environment.
+          </p>
+
+          <a class="btn btn--pill btn--primary" href="student-dashboard.html#dashboard-booking"
+            data-requires-auth="true">
+            <span class="btn__icon" aria-hidden="true">🗓</span>
+            Book Appointment
+            <span class="btn__icon" aria-hidden="true">→</span>
           </a>
-          <a class="nav-link" href="#home">Home</a>
-          <a class="nav-link" href="#about">About Us</a>
-          <a class="nav-link" href="#services">Services</a>
-          <a class="nav-link" href="#how">How it Works</a>
-          <a class="nav-link" href="#contact">Contact</a>
+
+          <div class="hero__meta">
+            <div class="meta-item">
+              <span class="meta-item__icon" aria-hidden="true">🛡</span>
+              <span class="meta-item__text">100% Confidential</span>
+            </div>
+            <div class="meta-item">
+              <span class="meta-item__icon" aria-hidden="true">🕒</span>
+              <span class="meta-item__text">24/7 Support</span>
+            </div>
+          </div>
         </div>
 
-        <a class="btn btn--pill btn--primary nav-cta" href="#login">
-          Login / Register
-          <span class="btn__icon" aria-hidden="true">→</span>
-        </a>
+        <div class="hero__right">
+          <div class="hero-card">
+            <img class="hero-card__img" src="assets\hero-page-image.webp" alt="Hero placeholder" />
+          </div>
+        </div>
+      </div>
+    </section>
 
-        <button
-          class="btn btn--pill btn--ghost"
-          id="logoutBtn"
-          type="button"
-          style="display: none"
-        >
-          Logout
-        </button>
-      </nav>
-    </header>
+    <section id="about" class="about">
+      <div class="about__inner">
+        <div class="about__media">
+          <div class="about__image-card">
+            <img class="about__img" src="assets\student-devt.webp" alt="About us placeholder" />
+          </div>
+        </div>
 
-    <!-- HERO -->
-    <main id="home">
-      <section class="hero">
-        <div class="hero__inner">
-          <div class="hero__left">
-            <h1 class="hero__title">
-              Your Mental<br />
-              Wellness<br />
-              Matters
-            </h1>
+        <div class="about__content">
+          <p class="about__eyebrow">ABOUT US</p>
 
-            <p class="hero__desc">
-              Securely schedule appointments and track your counseling history
-              in a safe, supportive environment.
+          <h2 class="about__title">
+            Supporting Holistic<br />
+            Student Development
+          </h2>
+
+          <div class="about__text">
+            <p>
+              Our School Guidance Counseling Management System is designed to
+              make mental health support accessible, organized, and
+              stress-free for every student.
             </p>
+            <p>
+              We believe that every student deserves a safe space to express
+              their concerns, track their progress, and receive professional
+              guidance without barriers.
+            </p>
+            <p>
+              Through our platform, students can easily schedule appointments,
+              submit private inquiries, and maintain a comprehensive history
+              of their counseling journey all in one secure place.
+            </p>
+          </div>
 
-            <a
-              class="btn btn--pill btn--primary"
-              href="student-dashboard.html#dashboard-booking"
-              data-requires-auth="true"
-            >
-              <span class="btn__icon" aria-hidden="true">🗓</span>
-              Book Appointment
-              <span class="btn__icon" aria-hidden="true">→</span>
+          <div class="about__stats">
+            <div class="about-stat">
+              <p class="about-stat__num">500+</p>
+              <p class="about-stat__label">Students Helped</p>
+            </div>
+
+            <span class="about__divider" aria-hidden="true"></span>
+
+            <div class="about-stat">
+              <p class="about-stat__num">98%</p>
+              <p class="about-stat__label">Satisfaction Rate</p>
+            </div>
+
+            <span class="about__divider" aria-hidden="true"></span>
+
+            <div class="about-stat">
+              <p class="about-stat__num">24/7</p>
+              <p class="about-stat__label">Availability</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="services" class="services">
+      <div class="services__inner">
+        <header class="services__header">
+          <h2 class="services__title">Our Services</h2>
+          <p class="services__subtitle">
+            Comprehensive support designed to make your mental wellness
+            journey smooth<br />
+            and accessible
+          </p>
+        </header>
+
+        <div class="services__grid">
+          <article class="service-card">
+            <div class="service-card__icon" data-variant="teal" aria-hidden="true">
+              📅
+            </div>
+            <h3 class="service-card__title">Easy Scheduling</h3>
+            <p class="service-card__desc">
+              Book your counseling appointments with just a few clicks. Choose
+              your preferred time slot and receive instant confirmation.
+            </p>
+            <a class="service-card__link" href="student-dashboard.html#dashboard-booking" data-requires-auth="true">
+              Learn more <span aria-hidden="true">→</span>
+            </a>
+          </article>
+
+          <article class="service-card">
+            <div class="service-card__icon" data-variant="green" aria-hidden="true">
+              💬
+            </div>
+            <h3 class="service-card__title">Private Inquiries</h3>
+            <p class="service-card__desc">
+              Submit confidential questions or concerns anytime. Your privacy
+              is our top priority with end-to-end encryption.
+            </p>
+            <a class="service-card__link" href="student-dashboard.html#dashboard-inquiry" data-requires-auth="true">
+              Learn more <span aria-hidden="true">→</span>
+            </a>
+          </article>
+
+          <article class="service-card">
+            <div class="service-card__icon" data-variant="blue" aria-hidden="true">
+              🗂
+            </div>
+            <h3 class="service-card__title">History Monitoring</h3>
+            <p class="service-card__desc">
+              Track your counseling journey with detailed session history,
+              progress notes, and personalized recommendations.
+            </p>
+            <a class="service-card__link" href="student-dashboard.html#dashboard-history" data-requires-auth="true">
+              Learn more <span aria-hidden="true">→</span>
+            </a>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section id="how" class="how">
+      <div class="how__inner">
+        <header class="how__header">
+          <h2 class="how__title">How It Works</h2>
+          <p class="how__subtitle">
+            Getting started is simple. Follow these four easy steps to begin
+            your counseling<br />
+            journey
+          </p>
+        </header>
+
+        <div class="how-stepper" aria-label="How it works steps">
+          <div class="how-stepper__line" aria-hidden="true"></div>
+
+          <div class="how-stepper__grid">
+            <div class="how-step is-active">
+              <div class="how-step__circle">1</div>
+              <h3 class="how-step__title">Create Account</h3>
+              <p class="how-step__desc">
+                Sign up with your school credentials in less than a minute
+              </p>
+            </div>
+
+            <div class="how-step">
+              <div class="how-step__circle">2</div>
+              <h3 class="how-step__title">Choose Schedule</h3>
+              <p class="how-step__desc">
+                Select your preferred date and time from available slots
+              </p>
+            </div>
+
+            <div class="how-step">
+              <div class="how-step__circle">3</div>
+              <h3 class="how-step__title">Intake Form</h3>
+              <p class="how-step__desc">
+                Fill out a brief form to help us understand your needs
+              </p>
+            </div>
+
+            <div class="how-step">
+              <div class="how-step__circle">4</div>
+              <h3 class="how-step__title">Attend Session</h3>
+              <p class="how-step__desc">
+                Meet with your counselor and begin your wellness journey
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div class="how__cta">
+          <a class="btn btn--pill btn--primary" href="student-dashboard.html#dashboard-profile"
+            data-requires-auth="true">Get Started Now</a>
+        </div>
+      </div>
+    </section>
+
+    <section id="contact" class="contact">
+      <div class="contact__inner">
+        <header class="contact__header">
+          <h2 class="contact__title">Meet the Counselor</h2>
+          <p class="contact__subtitle">
+            Reach out for guidance, support, and counseling. Your privacy and
+            wellbeing come first.
+          </p>
+        </header>
+
+        <div class="contact__grid">
+          <article class="counselor-card">
+            <div class="counselor-card__media">
+              <img class="counselor-card__img" src="assets\sample-profile.jpg" alt="Counselor placeholder" />
+            </div>
+
+            <div class="counselor-card__body">
+              <h3 class="counselor-card__name">Guidance Counselor Name</h3>
+              <p class="counselor-card__role">Guidance Counselor</p>
+
+              <p class="counselor-card__bio">
+                A brief background about the counselor goes here. Keep it
+                short, friendly, and reassuring. Mention how students can
+                approach and what support is available.
+              </p>
+
+              <div class="counselor-card__tags" aria-label="Areas of support">
+                <span class="tag">Academic</span>
+                <span class="tag">Personal</span>
+                <span class="tag">Career</span>
+                <span class="tag">Wellness</span>
+              </div>
+
+              <a class="btn btn--pill btn--primary" href="student-dashboard.html#dashboard-booking"
+                data-requires-auth="true">Book Appointment</a>
+              <a class="btn btn--pill btn--ghost" href="student-dashboard.html#dashboard-inquiry"
+                data-requires-auth="true">Send Inquiry</a>
+
+              <p class="counselor-card__note">
+                <span aria-hidden="true">🛡</span> Confidential support. For
+                emergencies, contact local hotlines or school authorities.
+              </p>
+            </div>
+          </article>
+
+          <aside class="office-card" aria-label="Office contact details">
+            <div class="office-card__section">
+              <h3 class="office-card__title">Contact</h3>
+              <div class="office-row">
+                <span class="office-row__label">Email</span>
+                <a class="office-row__value" href="mailto:guidance@example.com">guidance@example.com</a>
+              </div>
+              <div class="office-row">
+                <span class="office-row__label">Phone</span>
+                <a class="office-row__value" href="tel:+630000000000">+63 000 000 0000</a>
+              </div>
+              <div class="office-row">
+                <span class="office-row__label">Response</span>
+                <span class="office-row__value">Within 1–2 school days</span>
+              </div>
+            </div>
+
+            <div class="office-card__divider" aria-hidden="true"></div>
+
+            <div class="office-card__section">
+              <h3 class="office-card__title">Office Hours</h3>
+              <div class="office-row">
+                <span class="office-row__label">Mon–Fri</span>
+                <span class="office-row__value">8:00 AM – 5:00 PM</span>
+              </div>
+              <div class="office-row">
+                <span class="office-row__label">Sat–Sun</span>
+                <span class="office-row__value">Closed</span>
+              </div>
+            </div>
+
+            <div class="office-card__divider" aria-hidden="true"></div>
+
+            <div class="office-card__section">
+              <h3 class="office-card__title">Location</h3>
+              <p class="office-card__text">
+                Building Name, Room 000<br />
+                School Address Line 1<br />
+                City, Province
+              </p>
+
+              <div class="map-preview">
+                <div class="map-preview__box" aria-hidden="true">
+                  Map Preview (placeholder)
+                </div>
+                <a class="map-preview__link" href="#" target="_blank" rel="noopener">
+                  View on Google Maps <span aria-hidden="true">→</span>
+                </a>
+              </div>
+            </div>
+          </aside>
+        </div>
+      </div>
+    </section>
+
+    <section id="login" class="section-placeholder"></section>
+
+    <footer class="footer" aria-label="Site footer">
+      <div class="footer__inner">
+        <div class="footer__top">
+          <div class="footer__col footer__brand">
+            <a class="footer-brand" href="#top" aria-label="Guidance System Home">
+              <span class="footer-brand__logo" aria-hidden="true"></span>
+              <span class="footer-brand__text">Guidance System</span>
             </a>
 
-            <div class="hero__meta">
-              <div class="meta-item">
-                <span class="meta-item__icon" aria-hidden="true">🛡</span>
-                <span class="meta-item__text">100% Confidential</span>
-              </div>
-              <div class="meta-item">
-                <span class="meta-item__icon" aria-hidden="true">🕒</span>
-                <span class="meta-item__text">24/7 Support</span>
-              </div>
-            </div>
-          </div>
-
-          <div class="hero__right">
-            <div class="hero-card">
-              <img
-                class="hero-card__img"
-                src="assets\hero-page-image.webp"
-                alt="Hero placeholder"
-              />
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <section id="about" class="about">
-        <div class="about__inner">
-          <div class="about__media">
-            <div class="about__image-card">
-              <img
-                class="about__img"
-                src="assets\student-devt.webp"
-                alt="About us placeholder"
-              />
-            </div>
-          </div>
-
-          <div class="about__content">
-            <p class="about__eyebrow">ABOUT US</p>
-
-            <h2 class="about__title">
-              Supporting Holistic<br />
-              Student Development
-            </h2>
-
-            <div class="about__text">
-              <p>
-                Our School Guidance Counseling Management System is designed to
-                make mental health support accessible, organized, and
-                stress-free for every student.
-              </p>
-              <p>
-                We believe that every student deserves a safe space to express
-                their concerns, track their progress, and receive professional
-                guidance without barriers.
-              </p>
-              <p>
-                Through our platform, students can easily schedule appointments,
-                submit private inquiries, and maintain a comprehensive history
-                of their counseling journey all in one secure place.
-              </p>
-            </div>
-
-            <div class="about__stats">
-              <div class="about-stat">
-                <p class="about-stat__num">500+</p>
-                <p class="about-stat__label">Students Helped</p>
-              </div>
-
-              <span class="about__divider" aria-hidden="true"></span>
-
-              <div class="about-stat">
-                <p class="about-stat__num">98%</p>
-                <p class="about-stat__label">Satisfaction Rate</p>
-              </div>
-
-              <span class="about__divider" aria-hidden="true"></span>
-
-              <div class="about-stat">
-                <p class="about-stat__num">24/7</p>
-                <p class="about-stat__label">Availability</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <section id="services" class="services">
-        <div class="services__inner">
-          <header class="services__header">
-            <h2 class="services__title">Our Services</h2>
-            <p class="services__subtitle">
-              Comprehensive support designed to make your mental wellness
-              journey smooth<br />
-              and accessible
+            <p class="footer__desc">
+              Supporting student mental wellness through accessible,
+              confidential counseling services.
             </p>
-          </header>
+          </div>
 
-          <div class="services__grid">
-            <article class="service-card">
-              <div
-                class="service-card__icon"
-                data-variant="teal"
-                aria-hidden="true"
-              >
-                📅
-              </div>
-              <h3 class="service-card__title">Easy Scheduling</h3>
-              <p class="service-card__desc">
-                Book your counseling appointments with just a few clicks. Choose
-                your preferred time slot and receive instant confirmation.
-              </p>
-              <a
-                class="service-card__link"
-                href="student-dashboard.html#dashboard-booking"
-                data-requires-auth="true"
-              >
-                Learn more <span aria-hidden="true">→</span>
-              </a>
-            </article>
+          <div class="footer__col">
+            <h3 class="footer__title">Quick Links</h3>
+            <ul class="footer__list">
+              <li><a class="footer__link" href="#home">Home</a></li>
+              <li><a class="footer__link" href="#services">Services</a></li>
+              <li><a class="footer__link" href="#about">About Us</a></li>
+              <li><a class="footer__link" href="#contact">Contact</a></li>
+            </ul>
+          </div>
 
-            <article class="service-card">
-              <div
-                class="service-card__icon"
-                data-variant="green"
-                aria-hidden="true"
-              >
-                💬
-              </div>
-              <h3 class="service-card__title">Private Inquiries</h3>
-              <p class="service-card__desc">
-                Submit confidential questions or concerns anytime. Your privacy
-                is our top priority with end-to-end encryption.
-              </p>
-              <a
-                class="service-card__link"
-                href="student-dashboard.html#dashboard-inquiry"
-                data-requires-auth="true"
-              >
-                Learn more <span aria-hidden="true">→</span>
-              </a>
-            </article>
+          <div class="footer__col">
+            <h3 class="footer__title">Resources</h3>
+            <ul class="footer__list">
+              <li>
+                <a class="footer__link" href="privacy.html">Privacy Policy</a>
+              </li>
+              <li>
+                <a class="footer__link" href="terms.html">Terms of Use</a>
+              </li>
+              <li><a class="footer__link" href="faq.html">FAQ</a></li>
+              <li><a class="footer__link" href="support.html">Support</a></li>
+            </ul>
+          </div>
 
-            <article class="service-card">
-              <div
-                class="service-card__icon"
-                data-variant="blue"
-                aria-hidden="true"
-              >
-                🗂
-              </div>
-              <h3 class="service-card__title">History Monitoring</h3>
-              <p class="service-card__desc">
-                Track your counseling journey with detailed session history,
-                progress notes, and personalized recommendations.
-              </p>
-              <a
-                class="service-card__link"
-                href="student-dashboard.html#dashboard-history"
-                data-requires-auth="true"
-              >
-                Learn more <span aria-hidden="true">→</span>
-              </a>
-            </article>
+          <div class="footer__col">
+            <h3 class="footer__title">Connect With Us</h3>
+            <div class="footer__social">
+              <a class="social-btn" href="#" aria-label="Facebook"><span aria-hidden="true">f</span></a>
+              <a class="social-btn" href="#" aria-label="Twitter / X"><span aria-hidden="true">x</span></a>
+              <a class="social-btn" href="#" aria-label="Instagram"><span aria-hidden="true">⌁</span></a>
+              <a class="social-btn" href="#" aria-label="LinkedIn"><span aria-hidden="true">in</span></a>
+            </div>
           </div>
         </div>
-      </section>
 
-      <section id="how" class="how">
-        <div class="how__inner">
-          <header class="how__header">
-            <h2 class="how__title">How It Works</h2>
-            <p class="how__subtitle">
-              Getting started is simple. Follow these four easy steps to begin
-              your counseling<br />
-              journey
-            </p>
-          </header>
+        <div class="footer__divider" aria-hidden="true"></div>
 
-          <div class="how-stepper" aria-label="How it works steps">
-            <div class="how-stepper__line" aria-hidden="true"></div>
-
-            <div class="how-stepper__grid">
-              <div class="how-step is-active">
-                <div class="how-step__circle">1</div>
-                <h3 class="how-step__title">Create Account</h3>
-                <p class="how-step__desc">
-                  Sign up with your school credentials in less than a minute
-                </p>
-              </div>
-
-              <div class="how-step">
-                <div class="how-step__circle">2</div>
-                <h3 class="how-step__title">Choose Schedule</h3>
-                <p class="how-step__desc">
-                  Select your preferred date and time from available slots
-                </p>
-              </div>
-
-              <div class="how-step">
-                <div class="how-step__circle">3</div>
-                <h3 class="how-step__title">Intake Form</h3>
-                <p class="how-step__desc">
-                  Fill out a brief form to help us understand your needs
-                </p>
-              </div>
-
-              <div class="how-step">
-                <div class="how-step__circle">4</div>
-                <h3 class="how-step__title">Attend Session</h3>
-                <p class="how-step__desc">
-                  Meet with your counselor and begin your wellness journey
-                </p>
-              </div>
-            </div>
-          </div>
-
-          <div class="how__cta">
-            <a
-              class="btn btn--pill btn--primary"
-              href="student-dashboard.html#dashboard-profile"
-              data-requires-auth="true"
-              >Get Started Now</a
-            >
-          </div>
+        <div class="footer__bottom">
+          <p class="footer__copyright">
+            © 2025 School Guidance System. All rights reserved.
+          </p>
+          <p class="footer__credit">Powered by KTech Solutions</p>
         </div>
-      </section>
+      </div>
+    </footer>
+  </main>
 
-      <section id="contact" class="contact">
-        <div class="contact__inner">
-          <header class="contact__header">
-            <h2 class="contact__title">Meet the Counselor</h2>
-            <p class="contact__subtitle">
-              Reach out for guidance, support, and counseling. Your privacy and
-              wellbeing come first.
-            </p>
-          </header>
+  <!-- AUTH MODAL -->
+  <div class="auth-modal" id="authModal" aria-hidden="true">
+    <div class="auth-modal__overlay" data-auth-close></div>
 
-          <div class="contact__grid">
-            <article class="counselor-card">
-              <div class="counselor-card__media">
-                <img
-                  class="counselor-card__img"
-                  src="assets\sample-profile.jpg"
-                  alt="Counselor placeholder"
-                />
-              </div>
-
-              <div class="counselor-card__body">
-                <h3 class="counselor-card__name">Guidance Counselor Name</h3>
-                <p class="counselor-card__role">Guidance Counselor</p>
-
-                <p class="counselor-card__bio">
-                  A brief background about the counselor goes here. Keep it
-                  short, friendly, and reassuring. Mention how students can
-                  approach and what support is available.
-                </p>
-
-                <div class="counselor-card__tags" aria-label="Areas of support">
-                  <span class="tag">Academic</span>
-                  <span class="tag">Personal</span>
-                  <span class="tag">Career</span>
-                  <span class="tag">Wellness</span>
-                </div>
-
-                <a
-                  class="btn btn--pill btn--primary"
-                  href="student-dashboard.html#dashboard-booking"
-                  data-requires-auth="true"
-                  >Book Appointment</a
-                >
-                <a
-                  class="btn btn--pill btn--ghost"
-                  href="student-dashboard.html#dashboard-inquiry"
-                  data-requires-auth="true"
-                  >Send Inquiry</a
-                >
-
-                <p class="counselor-card__note">
-                  <span aria-hidden="true">🛡</span> Confidential support. For
-                  emergencies, contact local hotlines or school authorities.
-                </p>
-              </div>
-            </article>
-
-            <aside class="office-card" aria-label="Office contact details">
-              <div class="office-card__section">
-                <h3 class="office-card__title">Contact</h3>
-                <div class="office-row">
-                  <span class="office-row__label">Email</span>
-                  <a
-                    class="office-row__value"
-                    href="mailto:guidance@example.com"
-                    >guidance@example.com</a
-                  >
-                </div>
-                <div class="office-row">
-                  <span class="office-row__label">Phone</span>
-                  <a class="office-row__value" href="tel:+630000000000"
-                    >+63 000 000 0000</a
-                  >
-                </div>
-                <div class="office-row">
-                  <span class="office-row__label">Response</span>
-                  <span class="office-row__value">Within 1–2 school days</span>
-                </div>
-              </div>
-
-              <div class="office-card__divider" aria-hidden="true"></div>
-
-              <div class="office-card__section">
-                <h3 class="office-card__title">Office Hours</h3>
-                <div class="office-row">
-                  <span class="office-row__label">Mon–Fri</span>
-                  <span class="office-row__value">8:00 AM – 5:00 PM</span>
-                </div>
-                <div class="office-row">
-                  <span class="office-row__label">Sat–Sun</span>
-                  <span class="office-row__value">Closed</span>
-                </div>
-              </div>
-
-              <div class="office-card__divider" aria-hidden="true"></div>
-
-              <div class="office-card__section">
-                <h3 class="office-card__title">Location</h3>
-                <p class="office-card__text">
-                  Building Name, Room 000<br />
-                  School Address Line 1<br />
-                  City, Province
-                </p>
-
-                <div class="map-preview">
-                  <div class="map-preview__box" aria-hidden="true">
-                    Map Preview (placeholder)
-                  </div>
-                  <a
-                    class="map-preview__link"
-                    href="#"
-                    target="_blank"
-                    rel="noopener"
-                  >
-                    View on Google Maps <span aria-hidden="true">→</span>
-                  </a>
-                </div>
-              </div>
-            </aside>
-          </div>
+    <div class="auth-modal__dialog" role="dialog" aria-modal="true" aria-labelledby="authTitle">
+      <div class="auth-modal__head">
+        <div class="auth-modal__titles">
+          <p class="auth-modal__eyebrow">GUIDANCE SYSTEM</p>
+          <h2 class="auth-modal__title" id="authTitle">Login</h2>
+          <p class="auth-modal__subtitle" id="authSubtitle">
+            Choose your account type and enter your credentials.
+          </p>
+          <p class="auth-error" id="authError" role="alert" aria-live="polite"></p>
         </div>
-      </section>
 
-      <section id="login" class="section-placeholder"></section>
+        <button class="auth-modal__close" type="button" aria-label="Close" data-auth-close>
+          ✕
+        </button>
+      </div>
 
-      <footer class="footer" aria-label="Site footer">
-        <div class="footer__inner">
-          <div class="footer__top">
-            <div class="footer__col footer__brand">
-              <a
-                class="footer-brand"
-                href="#top"
-                aria-label="Guidance System Home"
-              >
-                <span class="footer-brand__logo" aria-hidden="true"></span>
-                <span class="footer-brand__text">Guidance System</span>
-              </a>
-
-              <p class="footer__desc">
-                Supporting student mental wellness through accessible,
-                confidential counseling services.
-              </p>
-            </div>
-
-            <div class="footer__col">
-              <h3 class="footer__title">Quick Links</h3>
-              <ul class="footer__list">
-                <li><a class="footer__link" href="#home">Home</a></li>
-                <li><a class="footer__link" href="#services">Services</a></li>
-                <li><a class="footer__link" href="#about">About Us</a></li>
-                <li><a class="footer__link" href="#contact">Contact</a></li>
-              </ul>
-            </div>
-
-            <div class="footer__col">
-              <h3 class="footer__title">Resources</h3>
-              <ul class="footer__list">
-                <li>
-                  <a class="footer__link" href="privacy.html">Privacy Policy</a>
-                </li>
-                <li>
-                  <a class="footer__link" href="terms.html">Terms of Use</a>
-                </li>
-                <li><a class="footer__link" href="faq.html">FAQ</a></li>
-                <li><a class="footer__link" href="support.html">Support</a></li>
-              </ul>
-            </div>
-
-            <div class="footer__col">
-              <h3 class="footer__title">Connect With Us</h3>
-              <div class="footer__social">
-                <a class="social-btn" href="#" aria-label="Facebook"
-                  ><span aria-hidden="true">f</span></a
-                >
-                <a class="social-btn" href="#" aria-label="Twitter / X"
-                  ><span aria-hidden="true">x</span></a
-                >
-                <a class="social-btn" href="#" aria-label="Instagram"
-                  ><span aria-hidden="true">⌁</span></a
-                >
-                <a class="social-btn" href="#" aria-label="LinkedIn"
-                  ><span aria-hidden="true">in</span></a
-                >
-              </div>
-            </div>
-          </div>
-
-          <div class="footer__divider" aria-hidden="true"></div>
-
-          <div class="footer__bottom">
-            <p class="footer__copyright">
-              © 2025 School Guidance System. All rights reserved.
-            </p>
-            <p class="footer__credit">Powered by KTech Solutions</p>
-          </div>
-        </div>
-      </footer>
-    </main>
-
-    <!-- AUTH MODAL -->
-    <div class="auth-modal" id="authModal" aria-hidden="true">
-      <div class="auth-modal__overlay" data-auth-close></div>
-
-      <div
-        class="auth-modal__dialog"
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="authTitle"
-      >
-        <div class="auth-modal__head">
-          <div class="auth-modal__titles">
-            <p class="auth-modal__eyebrow">GUIDANCE SYSTEM</p>
-            <h2 class="auth-modal__title" id="authTitle">Login</h2>
-            <p class="auth-modal__subtitle" id="authSubtitle">
-              Choose your account type and enter your credentials.
-            </p>
-            <p
-              class="auth-error"
-              id="authError"
-              role="alert"
-              aria-live="polite"
-            ></p>
-          </div>
-
-          <button
-            class="auth-modal__close"
-            type="button"
-            aria-label="Close"
-            data-auth-close
-          >
-            ✕
+      <!-- LOGIN VIEW -->
+      <div class="auth-view is-active" data-auth-view="login">
+        <div class="auth-role">
+          <button class="auth-role__btn is-active" type="button" data-role="student">
+            Student
+          </button>
+          <button class="auth-role__btn" type="button" data-role="admin">
+            Admin
           </button>
         </div>
 
-        <!-- LOGIN VIEW -->
-        <div class="auth-view is-active" data-auth-view="login">
-          <div class="auth-role">
-            <button
-              class="auth-role__btn is-active"
-              type="button"
-              data-role="student"
-            >
-              Student
-            </button>
-            <button class="auth-role__btn" type="button" data-role="admin">
-              Admin
+        <form class="auth-form" id="loginForm">
+          <input type="hidden" name="role" id="loginRole" value="student" />
+
+          <div class="auth-field">
+            <label class="auth-label" for="loginEmail">Email Address</label>
+            <input class="auth-input" id="loginEmail" name="email" type="email" placeholder="you@school.edu" required />
+          </div>
+
+          <div class="auth-field">
+            <label class="auth-label" for="loginPassword">Password</label>
+            <input class="auth-input" id="loginPassword" name="password" type="password" placeholder="••••••••"
+              required />
+          </div>
+
+          <div class="auth-extra">
+            <button class="auth-link auth-link--sm" type="button" data-auth-switch="forgot-password">
+              Forgot Password?
             </button>
           </div>
 
-          <form class="auth-form" id="loginForm">
-            <input type="hidden" name="role" id="loginRole" value="student" />
+          <button class="btn btn--pill btn--primary auth-submit" type="submit">
+            Login <span class="btn__icon" aria-hidden="true">→</span>
+          </button>
 
-            <div class="auth-field">
-              <label class="auth-label" for="loginEmail">Email Address</label>
-              <input
-                class="auth-input"
-                id="loginEmail"
-                name="email"
-                type="email"
-                placeholder="you@school.edu"
-                required
-              />
-            </div>
-
-            <div class="auth-field">
-              <label class="auth-label" for="loginPassword">Password</label>
-              <input
-                class="auth-input"
-                id="loginPassword"
-                name="password"
-                type="password"
-                placeholder="••••••••"
-                required
-              />
-            </div>
-
-            <div class="auth-extra">
-              <button class="auth-link auth-link--sm" type="button" data-auth-switch="forgot-password">
-                Forgot Password?
-              </button>
-            </div>
-
-            <button
-              class="btn btn--pill btn--primary auth-submit"
-              type="submit"
-            >
-              Login <span class="btn__icon" aria-hidden="true">→</span>
+          <p class="auth-switch">
+            No account?
+            <button class="auth-link" type="button" data-auth-switch="register">
+              Register here
             </button>
+          </p>
+        </form>
+      </div>
 
-            <p class="auth-switch">
-              No account?
-              <button
-                class="auth-link"
-                type="button"
-                data-auth-switch="register"
-              >
-                Register here
-              </button>
-            </p>
-          </form>
-        </div>
+      <!-- FORGOT PASSWORD VIEW -->
+      <div class="auth-view" data-auth-view="forgot-password">
+        <form class="auth-form" id="forgotPasswordForm">
+          <div class="auth-field">
+            <label class="auth-label" for="forgotEmail">Email Address</label>
+            <input class="auth-input" id="forgotEmail" name="email" type="email" placeholder="you@school.edu"
+              required />
+          </div>
 
-        <!-- FORGOT PASSWORD VIEW -->
-        <div class="auth-view" data-auth-view="forgot-password">
-          <form class="auth-form" id="forgotPasswordForm">
-            <div class="auth-field">
-              <label class="auth-label" for="forgotEmail">Email Address</label>
-              <input
-                class="auth-input"
-                id="forgotEmail"
-                name="email"
-                type="email"
-                placeholder="you@school.edu"
-                required
-              />
-            </div>
+          <button class="btn btn--pill btn--primary auth-submit" type="submit">
+            Send Reset Link <span class="btn__icon" aria-hidden="true">→</span>
+          </button>
 
-            <button
-              class="btn btn--pill btn--primary auth-submit"
-              type="submit"
-            >
-              Send Reset Link <span class="btn__icon" aria-hidden="true">→</span>
+          <p class="auth-switch">
+            Remembered?
+            <button class="auth-link" type="button" data-auth-switch="login">
+              Back to Login
             </button>
+          </p>
+        </form>
+      </div>
 
-            <p class="auth-switch">
-              Remembered?
-              <button class="auth-link" type="button" data-auth-switch="login">
-                Back to Login
-              </button>
-            </p>
-          </form>
-        </div>
+      <!-- REGISTER VIEW -->
+      <div class="auth-view" data-auth-view="register">
+        <form class="auth-form" id="registerForm">
+          <p class="auth-success" id="authSuccess" role="status" aria-live="polite"></p>
+          <div class="auth-field">
+            <label class="auth-label" for="regEmail">Email Address</label>
+            <input class="auth-input" id="regEmail" name="email" type="email" placeholder="you@school.edu" required />
+          </div>
 
-        <!-- REGISTER VIEW -->
-        <div class="auth-view" data-auth-view="register">
-          <form class="auth-form" id="registerForm">
-            <p
-              class="auth-success"
-              id="authSuccess"
-              role="status"
-              aria-live="polite"
-            ></p>
-            <div class="auth-field">
-              <label class="auth-label" for="regEmail">Email Address</label>
-              <input
-                class="auth-input"
-                id="regEmail"
-                name="email"
-                type="email"
-                placeholder="you@school.edu"
-                required
-              />
-            </div>
+          <div class="auth-field">
+            <label class="auth-label" for="regName">Full Name</label>
+            <input class="auth-input" id="regName" name="name" type="text" placeholder="Juan Dela Cruz" required />
+          </div>
 
-            <div class="auth-field">
-              <label class="auth-label" for="regName">Full Name</label>
-              <input
-                class="auth-input"
-                id="regName"
-                name="name"
-                type="text"
-                placeholder="Juan Dela Cruz"
-                required
-              />
-            </div>
+          <div class="auth-field">
+            <label class="auth-label" for="regStudentNo">Student No.</label>
+            <input class="auth-input" id="regStudentNo" name="studentNo" type="text" placeholder="2023-00000"
+              required />
+          </div>
 
-            <div class="auth-field">
-              <label class="auth-label" for="regStudentNo">Student No.</label>
-              <input
-                class="auth-input"
-                id="regStudentNo"
-                name="studentNo"
-                type="text"
-                placeholder="2023-00000"
-                required
-              />
-            </div>
+          <div class="auth-field">
+            <label class="auth-label" for="regYearLevel">Year Level</label>
+            <select class="auth-input" id="regYearLevel" name="yearLevel" required>
+              <option value="" disabled selected>Select year level</option>
+              <option value="1st Year">1st Year</option>
+              <option value="2nd Year">2nd Year</option>
+              <option value="3rd Year">3rd Year</option>
+              <option value="4th Year">4th Year</option>
+              <option value="Irregular">Irregular</option>
+            </select>
+          </div>
 
-            <div class="auth-field">
-              <label class="auth-label" for="regYearLevel">Year Level</label>
-              <select
-                class="auth-input"
-                id="regYearLevel"
-                name="yearLevel"
-                required
-              >
-                <option value="" disabled selected>Select year level</option>
-                <option value="1st Year">1st Year</option>
-                <option value="2nd Year">2nd Year</option>
-                <option value="3rd Year">3rd Year</option>
-                <option value="4th Year">4th Year</option>
-                <option value="Irregular">Irregular</option>
-              </select>
-            </div>
+          <div class="auth-field">
+            <label class="auth-label" for="regProgram">Program</label>
+            <select class="auth-input" id="regProgram" name="program" required>
+              <option value="" disabled selected>Select program</option>
+              <option value="BIT CPT">BIT CPT</option>
+              <option value="BTVTED CP">BTVTED CP</option>
+              <option value="BTVTED MT">BTVTED MT</option>
+              <option value="BTVTED CT">BTVTED CT</option>
+              <option value="BTVTED FSM">BTVTED FSM</option>
+              <option value="BTVTED AT">BTVTED AT</option>
+              <option value="BTVTED ELX/ELT">BTVTED ELX/ELT</option>
+            </select>
+          </div>
 
-            <div class="auth-field">
-              <label class="auth-label" for="regProgram">Program</label>
-              <select
-                class="auth-input"
-                id="regProgram"
-                name="program"
-                required
-              >
-                <option value="" disabled selected>Select program</option>
-                <option value="BIT CPT">BIT CPT</option>
-                <option value="BTVTED CP">BTVTED CP</option>
-                <option value="BTVTED MT">BTVTED MT</option>
-                <option value="BTVTED CT">BTVTED CT</option>
-                <option value="BTVTED FSM">BTVTED FSM</option>
-                <option value="BTVTED AT">BTVTED AT</option>
-                <option value="BTVTED ELX/ELT">BTVTED ELX/ELT</option>
-              </select>
-            </div>
+          <div class="auth-field">
+            <label class="auth-label" for="regPassword">Password</label>
+            <input class="auth-input" id="regPassword" name="password" type="password" placeholder="Create a password"
+              required />
+          </div>
 
-            <div class="auth-field">
-              <label class="auth-label" for="regPassword">Password</label>
-              <input
-                class="auth-input"
-                id="regPassword"
-                name="password"
-                type="password"
-                placeholder="Create a password"
-                required
-              />
-            </div>
+          <button class="btn btn--pill btn--primary auth-submit" type="submit">
+            Create Account <span class="btn__icon" aria-hidden="true">→</span>
+          </button>
 
-            <button
-              class="btn btn--pill btn--primary auth-submit"
-              type="submit"
-            >
-              Create Account <span class="btn__icon" aria-hidden="true">→</span>
+          <p class="auth-switch">
+            Already have an account?
+            <button class="auth-link" type="button" data-auth-switch="login">
+              Login here
             </button>
+          </p>
 
-            <p class="auth-switch">
-              Already have an account?
-              <button class="auth-link" type="button" data-auth-switch="login">
-                Login here
-              </button>
-            </p>
-
-            <p class="auth-note">
-              Note: Student registration only. Admin accounts will be provided
-              by the Guidance Office.
-            </p>
-          </form>
-        </div>
+          <p class="auth-note">
+            Note: Student registration only. Admin accounts will be provided
+            by the Guidance Office.
+          </p>
+        </form>
       </div>
     </div>
+  </div>
 
-    <!-- IMPORTANT: script.js is a module because it uses imports -->
-    <script type="module" src="script.js"></script>
-  </body>
+  <!-- IMPORTANT: script.js is a module because it uses imports -->
+  <script type="module" src="script.js"></script>
+  <script type="module" src="chatbot.js"></script>
+</body>
+
 </html>

@@ -1,0 +1,62 @@
+{
+  "system_name": "Guidance Counseling Management System",
+  "mission": "Supporting student mental wellness through accessible, organized, and stress-free counseling services. Providing a safe, supportive, and confidential environment.",
+  "key_features": [
+    {
+      "name": "Easy Scheduling",
+      "description": "Book counseling appointments online by choosing preferred time slots with instant confirmation."
+    },
+    {
+      "name": "Private Inquiries",
+      "description": "Submit confidential questions or concerns. Responses usually within 1–2 school days."
+    },
+    {
+      "name": "History Monitoring",
+      "description": "Track counseling journey, session history, progress notes, and wellness recommendations."
+    }
+  ],
+  "process_steps": [
+    "1. Create Account: Sign up with school credentials.",
+    "2. Choose Schedule: Select date and time from available slots.",
+    "3. Intake Form: Fill out a brief form to help the counselor prepare.",
+    "4. Attend Session: Meet with the counselor."
+  ],
+  "counselor_info": {
+    "role": "Guidance Counselor",
+    "areas_of_support": ["Academic", "Personal", "Career", "Wellness"],
+    "confidentiality": "100% Confidential. Only authorized guidance personnel can access records."
+  },
+  "contact": {
+    "email": "guidance@example.com",
+    "phone": "+63 000 000 0000",
+    "hours": "Mon–Fri, 8:00 AM – 5:00 PM",
+    "location": "Building Name, Room 000"
+  },
+  "frequently_asked_questions": [
+    {
+      "question": "How do I book an appointment?",
+      "answer": "Go to the Student Dashboard, select 'Book Appointment', fill in the reason (Academic, Personal, Career, Mental Wellness), choose Session Type (In-Person or Online), pick a date and time, and submit."
+    },
+    {
+      "question": "Is this for emergencies?",
+      "answer": "No. For urgent help, contact school authorities or local emergency hotlines immediately."
+    },
+    {
+      "question": "Who can see my records?",
+      "answer": "Only authorized guidance personnel and required admins can access counseling-related records."
+    },
+    {
+      "question": "How do I cancel or reschedule?",
+      "answer": "You can manage your appointments through the Dashboard. Please cancel or reschedule as early as possible."
+    }
+  ],
+  "support_topics": {
+    "account_help": ["Login issues", "Password reset", "Profile updates"],
+    "technical_issues": ["Page not loading", "Submission errors", "Browser compatibility"]
+  },
+  "dashboard_features": {
+    "profile": "Update full name, student number, year level, program, and contact info.",
+    "history": "View sessions completed and overall improvement stats calculated by the counselor.",
+    "inquiry_history": "Track sent messages and counselor responses."
+  }
+}
