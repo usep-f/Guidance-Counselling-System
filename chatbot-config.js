@@ -1,6 +1,7 @@
 /**
  * Chatbot Configuration
  * Store your Gemini API key here.
+ * Just for demo purposes onlyy
  */
 
 export const CHATBOT_CONFIG = {
