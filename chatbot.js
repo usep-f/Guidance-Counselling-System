@@ -171,8 +171,11 @@ class GuidanceChatbot {
         // to keep it secure. For this implementation, we assume the key might be provided
         // or we use a placeholder.
 
-        if (!this.apiKey) {
-            return "Note: No API key configured. I'm a simple assistant here to guide you through the Guidance Counseling System. (You can set the API key in chatbot.js or provide it via a secure method).";
+        if (!this.apiKey || this.apiKey === "YOUR_NEW_GEMINI_API_KEY_HERE") {
+            const errorMsg = "Chatbot Error: No valid Gemini API key configured.";
+            console.error(errorMsg);
+            console.warn("SECURITY WARNING: Directly using your API key in chatbot_config.js exposes it to anyone visiting your site. For production, please use a backend proxy.");
+            return "I'm currently in a limited mode because my AI configuration is missing. Please contact the administrator.";
         }
 
         const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${this.apiKey}`;
