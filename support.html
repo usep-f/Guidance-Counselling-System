@@ -1,185 +1,163 @@
 <!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Support | Guidance System</title>
-    <link rel="stylesheet" href="style.css" />
-  </head>
 
-  <body>
-    <!-- NAVBAR -->
-    <header class="site-header" id="top">
-      <nav class="navbar">
-        <a
-          class="brand"
-          href="index.html#top"
-          aria-label="Guidance System Home"
-        >
-          <span class="brand__logo" aria-hidden="true"></span>
-          <span class="brand__text">Guidance System</span>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Support | Guidance System</title>
+  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="chatbot.css" />
+</head>
+
+<body>
+  <!-- NAVBAR -->
+  <header class="site-header" id="top">
+    <nav class="navbar">
+      <a class="brand" href="index.html#top" aria-label="Guidance System Home">
+        <span class="brand__logo" aria-hidden="true"></span>
+        <span class="brand__text">Guidance System</span>
+      </a>
+
+      <button class="nav-toggle" type="button" aria-label="Toggle navigation" aria-expanded="false">
+        <span class="nav-toggle__bar"></span>
+        <span class="nav-toggle__bar"></span>
+        <span class="nav-toggle__bar"></span>
+      </button>
+
+      <div class="nav-links" data-nav>
+        <a class="nav-link nav-link--dashboard" data-dashboard-link href="#">
+          Dashboard
         </a>
+        <a class="nav-link" href="index.html#home">Home</a>
+        <a class="nav-link" href="index.html#about">About Us</a>
+        <a class="nav-link" href="index.html#services">Services</a>
+        <a class="nav-link" href="index.html#how">How it Works</a>
+        <a class="nav-link" href="index.html#contact">Contact</a>
+      </div>
 
-        <button
-          class="nav-toggle"
-          type="button"
-          aria-label="Toggle navigation"
-          aria-expanded="false"
-        >
-          <span class="nav-toggle__bar"></span>
-          <span class="nav-toggle__bar"></span>
-          <span class="nav-toggle__bar"></span>
-        </button>
+      <a class="btn btn--pill btn--primary nav-cta" href="index.html#login">
+        Login / Register
+        <span class="btn__icon" aria-hidden="true">→</span>
+      </a>
 
-        <div class="nav-links" data-nav>
-          <a class="nav-link nav-link--dashboard" data-dashboard-link href="#">
-            Dashboard
+      <button class="btn btn--pill btn--ghost" id="logoutBtn" type="button" style="display: none">
+        Logout
+      </button>
+    </nav>
+  </header>
+
+  <main class="page">
+    <section class="page-hero">
+      <h1 class="page-title">Support</h1>
+      <p class="page-subtitle">
+        Help with accounts, appointments, and technical issues.
+      </p>
+    </section>
+
+    <section class="page-card support-grid">
+      <div class="support-box">
+        <h2>Account Help</h2>
+        <ul>
+          <li>Login issues</li>
+          <li>Password reset</li>
+          <li>Profile updates</li>
+        </ul>
+      </div>
+
+      <div class="support-box">
+        <h2>Appointments</h2>
+        <ul>
+          <li>Booking and rescheduling</li>
+          <li>Slot availability</li>
+          <li>No-show guidance</li>
+        </ul>
+      </div>
+
+      <div class="support-box">
+        <h2>Technical Issues</h2>
+        <ul>
+          <li>Page not loading</li>
+          <li>Submission errors</li>
+          <li>Browser compatibility</li>
+        </ul>
+      </div>
+
+      <div class="support-note">
+        If you need direct help, contact the Guidance Office using the
+        email/phone listed on the home page.
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer" aria-label="Site footer">
+    <div class="footer__inner">
+      <div class="footer__top">
+        <div class="footer__col footer__brand">
+          <a class="footer-brand" href="index.html#top" aria-label="Guidance System Home">
+            <span class="footer-brand__logo" aria-hidden="true"></span>
+            <span class="footer-brand__text">Guidance System</span>
           </a>
-          <a class="nav-link" href="index.html#home">Home</a>
-          <a class="nav-link" href="index.html#about">About Us</a>
-          <a class="nav-link" href="index.html#services">Services</a>
-          <a class="nav-link" href="index.html#how">How it Works</a>
-          <a class="nav-link" href="index.html#contact">Contact</a>
-        </div>
 
-        <a class="btn btn--pill btn--primary nav-cta" href="index.html#login">
-          Login / Register
-          <span class="btn__icon" aria-hidden="true">→</span>
-        </a>
-
-        <button
-          class="btn btn--pill btn--ghost"
-          id="logoutBtn"
-          type="button"
-          style="display: none"
-        >
-          Logout
-        </button>
-      </nav>
-    </header>
-
-    <main class="page">
-      <section class="page-hero">
-        <h1 class="page-title">Support</h1>
-        <p class="page-subtitle">
-          Help with accounts, appointments, and technical issues.
-        </p>
-      </section>
-
-      <section class="page-card support-grid">
-        <div class="support-box">
-          <h2>Account Help</h2>
-          <ul>
-            <li>Login issues</li>
-            <li>Password reset</li>
-            <li>Profile updates</li>
-          </ul>
-        </div>
-
-        <div class="support-box">
-          <h2>Appointments</h2>
-          <ul>
-            <li>Booking and rescheduling</li>
-            <li>Slot availability</li>
-            <li>No-show guidance</li>
-          </ul>
-        </div>
-
-        <div class="support-box">
-          <h2>Technical Issues</h2>
-          <ul>
-            <li>Page not loading</li>
-            <li>Submission errors</li>
-            <li>Browser compatibility</li>
-          </ul>
-        </div>
-
-        <div class="support-note">
-          If you need direct help, contact the Guidance Office using the
-          email/phone listed on the home page.
-        </div>
-      </section>
-    </main>
-
-    <footer class="footer" aria-label="Site footer">
-      <div class="footer__inner">
-        <div class="footer__top">
-          <div class="footer__col footer__brand">
-            <a
-              class="footer-brand"
-              href="index.html#top"
-              aria-label="Guidance System Home"
-            >
-              <span class="footer-brand__logo" aria-hidden="true"></span>
-              <span class="footer-brand__text">Guidance System</span>
-            </a>
-
-            <p class="footer__desc">
-              Supporting student mental wellness through accessible,
-              confidential counseling services.
-            </p>
-          </div>
-
-          <div class="footer__col">
-            <h3 class="footer__title">Quick Links</h3>
-            <ul class="footer__list">
-              <li><a class="footer__link" href="index.html#home">Home</a></li>
-              <li>
-                <a class="footer__link" href="index.html#services">Services</a>
-              </li>
-              <li>
-                <a class="footer__link" href="index.html#about">About Us</a>
-              </li>
-              <li>
-                <a class="footer__link" href="index.html#contact">Contact</a>
-              </li>
-            </ul>
-          </div>
-
-          <div class="footer__col">
-            <h3 class="footer__title">Resources</h3>
-            <ul class="footer__list">
-              <li>
-                <a class="footer__link" href="privacy.html">Privacy Policy</a>
-              </li>
-              <li>
-                <a class="footer__link" href="terms.html">Terms of Use</a>
-              </li>
-              <li><a class="footer__link" href="faq.html">FAQ</a></li>
-              <li><a class="footer__link" href="support.html">Support</a></li>
-            </ul>
-          </div>
-
-          <div class="footer__col">
-            <h3 class="footer__title">Connect With Us</h3>
-            <div class="footer__social">
-              <a class="social-btn" href="#" aria-label="Facebook"
-                ><span aria-hidden="true">f</span></a
-              >
-              <a class="social-btn" href="#" aria-label="Twitter / X"
-                ><span aria-hidden="true">x</span></a
-              >
-              <a class="social-btn" href="#" aria-label="Instagram"
-                ><span aria-hidden="true">⌁</span></a
-              >
-              <a class="social-btn" href="#" aria-label="LinkedIn"
-                ><span aria-hidden="true">in</span></a
-              >
-            </div>
-          </div>
-        </div>
-
-        <div class="footer__divider" aria-hidden="true"></div>
-
-        <div class="footer__bottom">
-          <p class="footer__copyright">
-            © 2025 School Guidance System. All rights reserved.
+          <p class="footer__desc">
+            Supporting student mental wellness through accessible,
+            confidential counseling services.
           </p>
-          <p class="footer__credit">Powered by Readdy</p>
+        </div>
+
+        <div class="footer__col">
+          <h3 class="footer__title">Quick Links</h3>
+          <ul class="footer__list">
+            <li><a class="footer__link" href="index.html#home">Home</a></li>
+            <li>
+              <a class="footer__link" href="index.html#services">Services</a>
+            </li>
+            <li>
+              <a class="footer__link" href="index.html#about">About Us</a>
+            </li>
+            <li>
+              <a class="footer__link" href="index.html#contact">Contact</a>
+            </li>
+          </ul>
+        </div>
+
+        <div class="footer__col">
+          <h3 class="footer__title">Resources</h3>
+          <ul class="footer__list">
+            <li>
+              <a class="footer__link" href="privacy.html">Privacy Policy</a>
+            </li>
+            <li>
+              <a class="footer__link" href="terms.html">Terms of Use</a>
+            </li>
+            <li><a class="footer__link" href="faq.html">FAQ</a></li>
+            <li><a class="footer__link" href="support.html">Support</a></li>
+          </ul>
+        </div>
+
+        <div class="footer__col">
+          <h3 class="footer__title">Connect With Us</h3>
+          <div class="footer__social">
+            <a class="social-btn" href="#" aria-label="Facebook"><span aria-hidden="true">f</span></a>
+            <a class="social-btn" href="#" aria-label="Twitter / X"><span aria-hidden="true">x</span></a>
+            <a class="social-btn" href="#" aria-label="Instagram"><span aria-hidden="true">⌁</span></a>
+            <a class="social-btn" href="#" aria-label="LinkedIn"><span aria-hidden="true">in</span></a>
+          </div>
         </div>
       </div>
-    </footer>
 
-    <script type="module" src="site-auth-ui.js"></script>
-  </body>
+      <div class="footer__divider" aria-hidden="true"></div>
+
+      <div class="footer__bottom">
+        <p class="footer__copyright">
+          © 2025 School Guidance System. All rights reserved.
+        </p>
+        <p class="footer__credit">Powered by Readdy</p>
+      </div>
+    </div>
+  </footer>
+
+  <script type="module" src="site-auth-ui.js"></script>
+  <script type="module" src="chatbot.js"></script>
+</body>
+
 </html>
