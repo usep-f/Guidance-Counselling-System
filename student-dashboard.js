@@ -14,6 +14,7 @@ import {
   orderBy,
   onSnapshot
 } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
+import { generateDocumentPDF } from "./assets/js/pdf-generator.js";
 
 // Shared auth user for the whole file (booking + dashboard)
 let currentUser = null;
@@ -1128,6 +1129,134 @@ let currentUser = null;
     });
   });
 
+  /* Document Request Management */
+  (function documentManagement() {
+    const form = document.getElementById("documentRequestForm");
+    const hint = document.getElementById("documentRequestHint");
+    const list = document.getElementById("myDocumentRequestsList");
+
+    if (!form || !list) return;
+
+    let myRequests = [];
+    let unsubscribeRequests = null;
+
+    function subscribeMyRequests(user) {
+      if (unsubscribeRequests) unsubscribeRequests();
+      if (!user) return;
+
+      const q = query(
+        collection(db, "document_requests"),
+        where("studentId", "==", user.uid),
+        orderBy("createdAt", "desc")
+      );
+
+      unsubscribeRequests = onSnapshot(q, (snap) => {
+        myRequests = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+        renderRequests();
+      }, (err) => {
+        console.error("Error fetching my document requests:", err);
+        list.innerHTML = `<p class="admin-empty">Could not load your requests.</p>`;
+      });
+    }
+
+    function renderRequests() {
+      if (myRequests.length === 0) {
+        list.innerHTML = `<p class="admin-empty">You haven't requested any documents yet.</p>`;
+        return;
+      }
+
+      list.innerHTML = myRequests.map(req => {
+        const date = req.createdAt?.toDate ? req.createdAt.toDate() : new Date();
+        const dateStr = date.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+        const status = req.status || "Pending Approval";
+        const isApproved = status === "Approved";
+        const variant = isApproved ? "done" : (status === "Rejected" ? "bad" : "warn");
+
+        return `
+          <article class="dash-item">
+            <div class="dash-item__content">
+              <p class="dash-item__title">${escapeHtml(req.type)}</p>
+              <p class="dash-item__meta">Requested on ${dateStr}</p>
+              <p class="dash-item__preview">Reason: ${escapeHtml(req.reason)}</p>
+              
+              <div class="dash-item__actions" style="margin-top: 12px;">
+                ${isApproved ? `
+                  <button class="btn btn--sm btn--primary btn--pill" data-download-doc="${req.id}">
+                    Download PDF
+                  </button>
+                ` : `
+                  <button class="btn btn--sm btn--ghost btn--pill" disabled>
+                    ${status === "Rejected" ? "Rejected" : "Awaiting Approval"}
+                  </button>
+                `}
+              </div>
+            </div>
+            <span class="dash-pill" data-variant="${variant}">${escapeHtml(status)}</span>
+          </article>
+        `;
+      }).join("");
+    }
+
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      if (!currentUser) return;
+
+      const type = document.getElementById("documentType").value;
+      const reason = document.getElementById("documentReason").value;
+
+      if (!type || !reason) {
+        alert("Please fill in all fields.");
+        return;
+      }
+
+      try {
+        const studentSnap = await getDoc(doc(db, "students", currentUser.uid));
+        const studentData = studentSnap.exists() ? studentSnap.data() : {};
+
+        await addDoc(collection(db, "document_requests"), {
+          studentId: currentUser.uid,
+          studentName: studentData.name || currentUser.displayName || "Student",
+          studentNo: studentData.studentNo || "",
+          program: studentData.program || "",
+          type,
+          reason,
+          status: "Pending Approval",
+          createdAt: serverTimestamp(),
+          updatedAt: serverTimestamp()
+        });
+
+        hint.textContent = "Request submitted! A counselor will review it soon.";
+        hint.style.color = "var(--color-primary)";
+        form.reset();
+        setTimeout(() => { hint.textContent = ""; }, 5000);
+      } catch (err) {
+        console.error("Error submitting document request:", err);
+        alert("Unable to submit request. Please try again.");
+      }
+    });
+
+    list.addEventListener("click", async (e) => {
+      const btn = e.target.closest("[data-download-doc]");
+      if (btn) {
+        const reqId = btn.dataset.downloadDoc;
+        const req = myRequests.find(r => r.id === reqId);
+        if (req && req.status === "Approved") {
+          const studentSnap = await getDoc(doc(db, "students", currentUser.uid));
+          const studentData = studentSnap.exists() ? studentSnap.data() : {};
+          generateDocumentPDF(req.type, {
+            name: studentData.name || currentUser.displayName || "Student",
+            studentNo: studentData.studentNo || "",
+            program: studentData.program || "",
+            reason: req.reason
+          });
+        }
+      }
+    });
+
+    // Export subscription
+    window.subscribeDocumentRequests = subscribeMyRequests;
+  })();
+
   // ✅ Single source of truth for currentUser
   onAuthStateChanged(auth, (user) => {
     currentUser = user;
@@ -1135,5 +1264,6 @@ let currentUser = null;
     subscribePendingAppointments(user);
     subscribeMyInquiries(user);
     subscribeSessionRecords(user);
+    if (window.subscribeDocumentRequests) window.subscribeDocumentRequests(user);
   });
 })();

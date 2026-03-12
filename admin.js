@@ -64,6 +64,16 @@ function showToast(message, type = 'info', title = '', duration = 3500) {
   }
 }
 
+function escapeHtml(str = "") {
+  return String(str).replace(/[&<>"']/g, (m) => ({
+    "&": "&amp;",
+    "<": "&lt;",
+    ">": "&gt;",
+    '"': "&quot;",
+    "'": "&#39;"
+  }[m]));
+}
+
 (function adminDashboard() {
   const tabs = Array.from(document.querySelectorAll("[data-dashboard-tab]"));
   if (tabs.length) {
@@ -1881,6 +1891,93 @@ function showToast(message, type = 'info', title = '', duration = 3500) {
   // Template view: Save template
   btnSaveTemplate?.addEventListener("click", saveWeeklyTemplate);
 
+  // ============================
+  // ✅ DOCUMENT REQUESTS (Firestore)
+  // ============================
+  let documentRequests = [];
+  let unsubscribeDocumentRequests = null;
+
+  function subscribeDocumentRequests() {
+    if (unsubscribeDocumentRequests) unsubscribeDocumentRequests();
+
+    const q = query(collection(db, "document_requests"), orderBy("createdAt", "desc"));
+    unsubscribeDocumentRequests = onSnapshot(
+      q,
+      (snap) => {
+        documentRequests = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+        renderAdminDocumentRequests();
+      },
+      (err) => {
+        console.error("Error fetching document requests:", err);
+      }
+    );
+  }
+
+  function renderAdminDocumentRequests() {
+    const list = document.getElementById("adminDocumentRequestList");
+    if (!list) return;
+
+    if (documentRequests.length === 0) {
+      list.innerHTML = `<p class="admin-empty">No document requests found.</p>`;
+      return;
+    }
+
+    list.innerHTML = documentRequests
+      .map((req) => {
+        const date = req.createdAt?.toDate ? req.createdAt.toDate() : new Date();
+        const dateStr = date.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+        const status = req.status || "Pending Approval";
+        const variant = status === "Approved" ? "done" : (status === "Rejected" ? "bad" : "warn");
+
+        const isPending = status === "Pending Approval";
+
+        return `
+          <article class="admin-item">
+            <div class="admin-item__main">
+              <h3 class="admin-item__title">${escapeHtml(req.studentName)} (${escapeHtml(req.studentNo)})</h3>
+              <p class="admin-item__meta"><strong>Document:</strong> ${escapeHtml(req.type)}</p>
+              <p class="admin-item__meta"><strong>Reason:</strong> ${escapeHtml(req.reason)}</p>
+              <p class="admin-item__meta">Requested on ${dateStr}</p>
+            </div>
+            <div class="admin-item__actions">
+              <span class="admin-pill" data-variant="${variant}">${status}</span>
+              ${isPending ? `
+                <button class="btn btn--sm btn--pill btn--primary" data-approve-doc="${req.id}">Approve</button>
+                <button class="btn btn--sm btn--pill btn--ghost" data-reject-doc="${req.id}">Reject</button>
+              ` : ""}
+            </div>
+          </article>
+        `;
+      })
+      .join("");
+  }
+
+  async function updateDocumentRequestStatus(id, newStatus) {
+    try {
+      await updateDoc(doc(db, "document_requests", id), {
+        status: newStatus,
+        updatedAt: serverTimestamp()
+      });
+      showToast(`Document request ${newStatus.toLowerCase()}.`, 'success', 'Request Updated');
+    } catch (err) {
+      console.error("Error updating document request:", err);
+      showToast("Failed to update request.", 'error', 'Error');
+    }
+  }
+
+  document.addEventListener("click", (e) => {
+    const approveBtn = e.target.closest("[data-approve-doc]");
+    const rejectBtn = e.target.closest("[data-reject-doc]");
+
+    if (approveBtn) {
+      updateDocumentRequestStatus(approveBtn.dataset.approveDoc, "Approved");
+    } else if (rejectBtn) {
+      if (confirm("Are you sure you want to reject this request?")) {
+        updateDocumentRequestStatus(rejectBtn.dataset.rejectDoc, "Rejected");
+      }
+    }
+  });
+
 
   onAuthStateChanged(auth, async (user) => {
     if (user) {
@@ -1900,6 +1997,7 @@ function showToast(message, type = 'info', title = '', duration = 3500) {
         subscribeSessionRecords();
         subscribeCounselorSchedules();
         subscribeWeeklyTemplate(); // ✅ NEW: Subscribe to weekly template
+        subscribeDocumentRequests(); // ✅ NEW: Subscribe to document requests
       } catch (err) {
         console.error("Error verifying admin status:", err);
         window.location.href = "index.html";

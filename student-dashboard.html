@@ -13,6 +13,7 @@
       visibility: hidden;
     }
   </style>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script type="module" src="student-dashboard.js"></script>
   <script type="module" src="site-auth-ui.js"></script>
   <script type="module" src="chatbot.js"></script>
@@ -73,6 +74,10 @@
         <span class="mobile-nav-icon" aria-hidden="true">💬</span>
         <span class="mobile-nav-label">Inquiry</span>
       </a>
+      <a class="mobile-nav-item" href="#dashboard-documents" data-dashboard-tab role="tab" aria-selected="false">
+        <span class="mobile-nav-icon" aria-hidden="true">📄</span>
+        <span class="mobile-nav-label">Documents</span>
+      </a>
       <a class="mobile-nav-item" href="#dashboard-history" data-dashboard-tab role="tab" aria-selected="false">
         <span class="mobile-nav-icon" aria-hidden="true">🗂</span>
         <span class="mobile-nav-label">History</span>
@@ -83,6 +88,7 @@
       <a class="dashboard-tab is-active" href="#dashboard-profile" data-dashboard-tab>Profile</a>
       <a class="dashboard-tab" href="#dashboard-booking" data-dashboard-tab>Book Appointment</a>
       <a class="dashboard-tab" href="#dashboard-inquiry" data-dashboard-tab>Send Inquiry</a>
+      <a class="dashboard-tab" href="#dashboard-documents" data-dashboard-tab>Documents</a>
       <a class="dashboard-tab" href="#dashboard-history" data-dashboard-tab>History</a>
     </nav>
 
@@ -526,6 +532,57 @@
         </footer>
       </div>
     </div>
+
+    <section class="page dashboard-section" id="dashboard-documents">
+      <header class="page-hero">
+        <h2 class="page-title">Documents & Records</h2>
+        <p class="page-subtitle">
+          Request official documents and download approved soft-copies.
+        </p>
+      </header>
+
+      <div class="page-card">
+        <div class="inquiry-grid">
+          <!-- Request Form -->
+          <aside class="support-box">
+            <h2>Request a Document</h2>
+            <form id="documentRequestForm" class="inq-form">
+              <div class="inq-grid">
+                <div class="inq-field">
+                  <label class="inq-label" for="documentType">Document Type</label>
+                  <select class="inq-control" id="documentType" name="documentType" required>
+                    <option value="" selected disabled>Select document</option>
+                    <option value="Good Moral Certificate">Good Moral Certificate</option>
+                    <option value="Admission Slip (Late)">Admission Slip (Late)</option>
+                    <option value="Admission Slip (Absence)">Admission Slip (Absence)</option>
+                  </select>
+                </div>
+                <div class="inq-field inq-field--full">
+                  <label class="inq-label" for="documentReason">Reason for Request</label>
+                  <textarea class="inq-control inq-textarea" id="documentReason" name="reason" rows="4"
+                    placeholder="Provide a brief reason for your request..." required></textarea>
+                </div>
+              </div>
+              <div class="inq-actions">
+                <button class="btn btn--pill btn--primary" type="submit">
+                  Submit Request
+                  <span class="btn__icon" aria-hidden="true">→</span>
+                </button>
+              </div>
+              <p class="inq-hint" id="documentRequestHint" aria-live="polite"></p>
+            </form>
+          </aside>
+
+          <!-- Request History -->
+          <section class="support-box" aria-label="My document requests">
+            <h2>My Requests</h2>
+            <div class="dash-list" id="myDocumentRequestsList">
+              <p class="admin-empty">Loading your requests...</p>
+            </div>
+          </section>
+        </div>
+      </div>
+    </section>
 
     <section class="page dashboard-section" id="dashboard-history">
       <header class="page-hero">

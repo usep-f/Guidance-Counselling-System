@@ -13,6 +13,10 @@
     {
       "name": "History Monitoring",
       "description": "Track counseling journey, session history, progress notes, and wellness recommendations."
+    },
+    {
+      "name": "Student Records & Documents",
+      "description": "Request official documents like Good Moral Certificates or Admission Slips and download approved soft-copies."
     }
   ],
   "process_steps": [
@@ -57,6 +61,7 @@
   "dashboard_features": {
     "profile": "Update full name, student number, year level, program, and contact info.",
     "history": "View sessions completed and overall improvement stats calculated by the counselor.",
-    "inquiry_history": "Track sent messages and counselor responses."
+    "inquiry_history": "Track sent messages and counselor responses.",
+    "documents": "Request official document soft-copies and tracking status of requests."
   }
 }
