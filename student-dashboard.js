@@ -1135,7 +1135,41 @@ let currentUser = null;
     const hint = document.getElementById("documentRequestHint");
     const list = document.getElementById("myDocumentRequestsList");
 
+    // Dynamic fields
+    const typeSelect = document.getElementById("documentType");
+    const instructorField = document.getElementById("instructorNameField");
+    const schoolYearField = document.getElementById("schoolYearField");
+    const reasonField = document.getElementById("reasonField");
+    const reasonInput = document.getElementById("documentReason");
+
     if (!form || !list) return;
+
+    // Handle form logic based on type
+    typeSelect.addEventListener("change", (e) => {
+      const type = e.target.value;
+
+      // Reset visibility and required attributes
+      instructorField.style.display = "none";
+      document.getElementById("instructorName").required = false;
+
+      schoolYearField.style.display = "none";
+      document.getElementById("schoolYear").required = false;
+
+      reasonField.style.display = "block";
+      reasonInput.required = true;
+
+      if (type && type.startsWith("Admission Slip")) {
+        instructorField.style.display = "block";
+        document.getElementById("instructorName").required = true;
+
+        reasonField.style.display = "none";
+        reasonInput.required = false;
+        reasonInput.value = ""; // Clear reason since not used
+      } else if (type === "Good Moral Certificate") {
+        schoolYearField.style.display = "block";
+        document.getElementById("schoolYear").required = true;
+      }
+    });
 
     let myRequests = [];
     let unsubscribeRequests = null;
@@ -1202,28 +1236,29 @@ let currentUser = null;
       if (!currentUser) return;
 
       const type = document.getElementById("documentType").value;
-      const reason = document.getElementById("documentReason").value;
-
-      if (!type || !reason) {
-        alert("Please fill in all fields.");
-        return;
-      }
+      const reason = document.getElementById("documentReason").value || "";
+      const instructorName = document.getElementById("instructorName").value || "";
+      const schoolYear = document.getElementById("schoolYear").value || "";
 
       try {
         const studentSnap = await getDoc(doc(db, "students", currentUser.uid));
         const studentData = studentSnap.exists() ? studentSnap.data() : {};
 
-        await addDoc(collection(db, "document_requests"), {
+        const payload = {
           studentId: currentUser.uid,
           studentName: studentData.name || currentUser.displayName || "Student",
           studentNo: studentData.studentNo || "",
           program: studentData.program || "",
           type,
           reason,
+          instructorName,
+          schoolYear,
           status: "Pending Approval",
           createdAt: serverTimestamp(),
           updatedAt: serverTimestamp()
-        });
+        };
+
+        await addDoc(collection(db, "document_requests"), payload);
 
         hint.textContent = "Request submitted! A counselor will review it soon.";
         hint.style.color = "var(--color-primary)";
@@ -1247,7 +1282,10 @@ let currentUser = null;
             name: studentData.name || currentUser.displayName || "Student",
             studentNo: studentData.studentNo || "",
             program: studentData.program || "",
-            reason: req.reason
+            reason: req.reason,
+            instructorName: req.instructorName,
+            schoolYear: req.schoolYear,
+            createdAt: req.createdAt
           });
         }
       }

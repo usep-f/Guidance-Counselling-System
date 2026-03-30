@@ -557,7 +557,19 @@
                     <option value="Admission Slip (Absence)">Admission Slip (Absence)</option>
                   </select>
                 </div>
-                <div class="inq-field inq-field--full">
+
+                <!-- Dynamic Fields Based on Document Type -->
+                <div class="inq-field" id="instructorNameField" style="display: none;">
+                  <label class="inq-label" for="instructorName">Instructor Name (To:)</label>
+                  <input type="text" class="inq-control" id="instructorName" name="instructorName" placeholder="Dr. John Doe">
+                </div>
+
+                <div class="inq-field" id="schoolYearField" style="display: none;">
+                  <label class="inq-label" for="schoolYear">School Year</label>
+                  <input type="text" class="inq-control" id="schoolYear" name="schoolYear" placeholder="e.g., 2023-2024">
+                </div>
+
+                <div class="inq-field inq-field--full" id="reasonField">
                   <label class="inq-label" for="documentReason">Reason for Request</label>
                   <textarea class="inq-control inq-textarea" id="documentReason" name="reason" rows="4"
                     placeholder="Provide a brief reason for your request..." required></textarea>
