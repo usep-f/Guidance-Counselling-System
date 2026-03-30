@@ -610,6 +610,40 @@
         </div>
       </div>
 
+      <div class="admin-modal" id="processDocumentModal" aria-hidden="true">
+        <div class="admin-modal__overlay" data-modal-close></div>
+        <div class="admin-modal__panel admin-modal__panel--sm" role="dialog" aria-modal="true">
+          <header class="admin-modal__head">
+            <h2 class="admin-modal__title" id="processDocumentTitle">Process Document Request</h2>
+            <button class="admin-modal__close" type="button" data-modal-close aria-label="Close">✕</button>
+          </header>
+          <div class="admin-modal__body">
+            <div class="inq-field" style="margin-bottom: 12px;">
+              <label class="admin-label" for="docRequestStatus">Status</label>
+              <select class="admin-control" id="docRequestStatus" required>
+                <option value="Approved">Approve</option>
+                <option value="Rejected">Reject</option>
+              </select>
+            </div>
+            <div class="inq-field" id="admissionDecisionContainer" style="display: none; margin-bottom: 12px;">
+              <label class="admin-label" for="docAdmissionDecision">Admission Decision</label>
+              <select class="admin-control" id="docAdmissionDecision">
+                <option value="Accept">Accept</option>
+                <option value="Do Not Accept">Do Not Accept</option>
+              </select>
+            </div>
+            <div class="inq-field inq-field--full" style="margin-bottom: 12px;">
+              <label class="admin-label" for="docAdminReason">Reason / Notes</label>
+              <textarea class="admin-control" style="width: 100%; border: 1px solid rgba(0,0,0,0.1); border-radius: 6px; padding: 8px;" id="docAdminReason" rows="3" placeholder="Enter reason (will be visible on slip)..." required></textarea>
+            </div>
+          </div>
+          <footer class="admin-modal__footer">
+            <button class="btn btn--pill btn--ghost" type="button" data-modal-close>Cancel</button>
+            <button class="btn btn--pill btn--primary" id="btnConfirmProcessDoc" type="button">Save</button>
+          </footer>
+        </div>
+      </div>
+
       <!-- TOAST NOTIFICATION -->
       <div class="toast-container" id="toastContainer" aria-live="polite" aria-atomic="true"></div>
     </main>

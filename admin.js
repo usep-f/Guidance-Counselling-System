@@ -1410,6 +1410,8 @@ function escapeHtml(str = "") {
       closeModal(appointmentModal);
       closeModal(inquiryModal);
       closeModal(confirmAcceptModal);
+      const processDocumentModal = document.getElementById("processDocumentModal");
+      if (processDocumentModal) closeModal(processDocumentModal);
     });
   });
 
@@ -1942,8 +1944,7 @@ function escapeHtml(str = "") {
             <div class="admin-item__actions">
               <span class="admin-pill" data-variant="${variant}">${status}</span>
               ${isPending ? `
-                <button class="btn btn--sm btn--pill btn--primary" data-approve-doc="${req.id}">Approve</button>
-                <button class="btn btn--sm btn--pill btn--ghost" data-reject-doc="${req.id}">Reject</button>
+                <button class="btn btn--sm btn--pill btn--primary" data-process-doc="${req.id}">Process</button>
               ` : ""}
             </div>
           </article>
@@ -1952,31 +1953,71 @@ function escapeHtml(str = "") {
       .join("");
   }
 
-  async function updateDocumentRequestStatus(id, newStatus) {
-    try {
-      await updateDoc(doc(db, "document_requests", id), {
-        status: newStatus,
-        updatedAt: serverTimestamp()
-      });
-      showToast(`Document request ${newStatus.toLowerCase()}.`, 'success', 'Request Updated');
-    } catch (err) {
-      console.error("Error updating document request:", err);
-      showToast("Failed to update request.", 'error', 'Error');
-    }
-  }
+  let currentProcessingDocId = null;
+  const processDocumentModal = document.getElementById("processDocumentModal");
+  const docRequestStatus = document.getElementById("docRequestStatus");
+  const admissionDecisionContainer = document.getElementById("admissionDecisionContainer");
+  const docAdmissionDecision = document.getElementById("docAdmissionDecision");
+  const docAdminReason = document.getElementById("docAdminReason");
+  const btnConfirmProcessDoc = document.getElementById("btnConfirmProcessDoc");
 
   document.addEventListener("click", (e) => {
-    const approveBtn = e.target.closest("[data-approve-doc]");
-    const rejectBtn = e.target.closest("[data-reject-doc]");
+    const processBtn = e.target.closest("[data-process-doc]");
+    if (processBtn) {
+      if (!processDocumentModal) return;
+      const docId = processBtn.dataset.processDoc;
+      const req = documentRequests.find(r => r.id === docId);
+      if (!req) return;
 
-    if (approveBtn) {
-      updateDocumentRequestStatus(approveBtn.dataset.approveDoc, "Approved");
-    } else if (rejectBtn) {
-      if (confirm("Are you sure you want to reject this request?")) {
-        updateDocumentRequestStatus(rejectBtn.dataset.rejectDoc, "Rejected");
+      currentProcessingDocId = docId;
+      docRequestStatus.value = "Approved";
+      docAdminReason.value = "";
+      
+      if (req.type.includes("Admission Slip")) {
+        admissionDecisionContainer.style.display = "block";
+        docAdmissionDecision.value = "Accept";
+      } else {
+        admissionDecisionContainer.style.display = "none";
       }
+
+      processDocumentModal.classList.add("is-open");
+      processDocumentModal.setAttribute("aria-hidden", "false");
     }
   });
+
+  if (btnConfirmProcessDoc) {
+    btnConfirmProcessDoc.addEventListener("click", async () => {
+      if (!currentProcessingDocId) return;
+      
+      const req = documentRequests.find(r => r.id === currentProcessingDocId);
+      const newStatus = docRequestStatus.value;
+      const adminReason = docAdminReason.value.trim();
+      let admissionDecision = "Accept";
+
+      if (req?.type.includes("Admission Slip")) {
+        admissionDecision = docAdmissionDecision.value;
+      }
+
+      if (!adminReason) {
+        showToast("Please provide a reason or note.", "error", "Missing Input");
+        return;
+      }
+
+      try {
+        await updateDoc(doc(db, "document_requests", currentProcessingDocId), {
+          status: newStatus,
+          adminReason,
+          admissionDecision,
+          updatedAt: serverTimestamp()
+        });
+        showToast(`Document request ${newStatus.toLowerCase()}.`, 'success', 'Request Updated');
+        if (processDocumentModal) closeModal(processDocumentModal);
+      } catch (err) {
+        console.error("Error updating document request:", err);
+        showToast("Failed to update request.", 'error', 'Error');
+      }
+    });
+  }
 
 
   onAuthStateChanged(auth, async (user) => {

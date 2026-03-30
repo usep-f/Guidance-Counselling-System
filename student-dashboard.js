@@ -1180,7 +1180,7 @@ let currentUser = null;
               <p class="dash-item__preview">Reason: ${escapeHtml(req.reason)}</p>
               
               <div class="dash-item__actions" style="margin-top: 12px;">
-                ${isApproved ? `
+                ${(isApproved || (status === "Rejected" && req.type.includes("Admission Slip"))) ? `
                   <button class="btn btn--sm btn--primary btn--pill" data-download-doc="${req.id}">
                     Download PDF
                   </button>
@@ -1197,12 +1197,40 @@ let currentUser = null;
       }).join("");
     }
 
+    const docTypeSelect = document.getElementById("documentType");
+    const docSchoolYearField = document.getElementById("docSchoolYearField");
+    const docProfessorField = document.getElementById("docProfessorField");
+    const docSchoolYearInput = document.getElementById("docSchoolYear");
+    const docProfessorNameInput = document.getElementById("docProfessorName");
+
+    docTypeSelect.addEventListener("change", () => {
+      const type = docTypeSelect.value;
+      if (type === "Good Moral Certificate") {
+        docSchoolYearField.style.display = "block";
+        docSchoolYearInput.setAttribute("required", "true");
+        docProfessorField.style.display = "none";
+        docProfessorNameInput.removeAttribute("required");
+      } else if (type.includes("Admission Slip")) {
+        docSchoolYearField.style.display = "none";
+        docSchoolYearInput.removeAttribute("required");
+        docProfessorField.style.display = "block";
+        docProfessorNameInput.setAttribute("required", "true");
+      } else {
+        docSchoolYearField.style.display = "none";
+        docSchoolYearInput.removeAttribute("required");
+        docProfessorField.style.display = "none";
+        docProfessorNameInput.removeAttribute("required");
+      }
+    });
+
     form.addEventListener("submit", async (e) => {
       e.preventDefault();
       if (!currentUser) return;
 
-      const type = document.getElementById("documentType").value;
+      const type = docTypeSelect.value;
       const reason = document.getElementById("documentReason").value;
+      const schoolYear = docSchoolYearInput.value || "";
+      const professorName = docProfessorNameInput.value || "";
 
       if (!type || !reason) {
         alert("Please fill in all fields.");
@@ -1220,6 +1248,8 @@ let currentUser = null;
           program: studentData.program || "",
           type,
           reason,
+          schoolYear,
+          professorName,
           status: "Pending Approval",
           createdAt: serverTimestamp(),
           updatedAt: serverTimestamp()
@@ -1240,14 +1270,18 @@ let currentUser = null;
       if (btn) {
         const reqId = btn.dataset.downloadDoc;
         const req = myRequests.find(r => r.id === reqId);
-        if (req && req.status === "Approved") {
+        if (req && (req.status === "Approved" || (req.status === "Rejected" && req.type.includes("Admission Slip")))) {
           const studentSnap = await getDoc(doc(db, "students", currentUser.uid));
           const studentData = studentSnap.exists() ? studentSnap.data() : {};
           generateDocumentPDF(req.type, {
             name: studentData.name || currentUser.displayName || "Student",
             studentNo: studentData.studentNo || "",
             program: studentData.program || "",
-            reason: req.reason
+            reason: req.reason,
+            schoolYear: req.schoolYear || "",
+            professorName: req.professorName || "",
+            adminReason: req.adminReason || "",
+            admissionDecision: req.admissionDecision || (req.status === "Approved" ? "Accept" : "Do Not Accept")
           });
         }
       }
