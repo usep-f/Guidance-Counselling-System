@@ -1,6 +1,6 @@
 import "./site-auth-ui.js";
 import { db } from "./firebase-config.js";
-import { collection, getCountFromServer, getDocs } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
+import { collection, getCountFromServer, getDocs, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
 
 // Metrics Configuration
 const currentSatisfactionRate = "98%";
@@ -403,43 +403,24 @@ async function initMetrics() {
   const studentCountEl = document.getElementById("studentCount");
   const satisfactionRateEl = document.getElementById("satisfactionRate");
 
-  // 1. Fetch Student Count
-  if (studentCountEl) {
-    try {
-      const snapshot = await getCountFromServer(collection(db, "students"));
-      const count = snapshot.data().count;
-      studentCountEl.textContent = `${count}+`;
-    } catch (err) {
-      console.error("Error fetching student count:", err);
-    }
-  }
-
-  // 2. Fetch Satisfaction Rate
-  if (satisfactionRateEl) {
-    try {
-      const evalSnap = await getDocs(collection(db, "evaluations"));
-      if (evalSnap.empty) {
-        satisfactionRateEl.textContent = "0%"; // Placeholder for empty evaluations
-        return;
+  // 1. Fetch Shared Stats (Student Count & Satisfaction from metadata)
+  try {
+    const statsSnap = await getDoc(doc(db, "metadata", "stats"));
+    if (statsSnap.exists()) {
+      const stats = statsSnap.data();
+      if (studentCountEl && stats.studentCount !== undefined) {
+        studentCountEl.textContent = `${stats.studentCount || 0}+`;
       }
-
-      let totalStars = 0;
-      let count = 0;
-
-      evalSnap.forEach((doc) => {
-        const data = doc.data();
-        if (data.rating) {
-          totalStars += data.rating;
-          count++;
-        }
-      });
-
-      const percentage = Math.round((totalStars / (count * 5)) * 100);
-      satisfactionRateEl.textContent = `${percentage}%`;
-    } catch (err) {
-      console.error("Error fetching satisfaction rate:", err);
-      satisfactionRateEl.textContent = "0%"; // Fallback on error
+      if (satisfactionRateEl && stats.averageSatisfaction !== undefined) {
+        satisfactionRateEl.textContent = `${stats.averageSatisfaction}%`;
+      }
+    } else {
+      // Fallback if stats document doesn't exist yet
+      if (studentCountEl) studentCountEl.textContent = "0+";
+      if (satisfactionRateEl) satisfactionRateEl.textContent = "100%"; // Default
     }
+  } catch (err) {
+    console.error("Error fetching site stats:", err);
   }
 }
 

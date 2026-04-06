@@ -16,7 +16,8 @@ import {
 import {
   doc,
   setDoc,
-  serverTimestamp
+  serverTimestamp,
+  increment
 } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
 
 /**
@@ -73,6 +74,18 @@ export async function registerStudent({ email, password, name, studentNo, gradeL
     program,
     createdAt: serverTimestamp()
   });
+
+  // Increment public student count
+  try {
+    const statsRef = doc(db, "metadata", "stats");
+    await setDoc(statsRef, { 
+      studentCount: increment(1) 
+    }, { merge: true });
+  } catch (err) {
+    console.error("Error updating public student count:", err);
+    // Non-blocking
+  }
+
   return cred.user;
 }
 

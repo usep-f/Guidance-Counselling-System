@@ -88,5 +88,11 @@ service cloud.firestore {
       allow update: if false;
       allow delete: if isAdmin();
     }
+
+    match /metadata/{document=**} {
+      allow read: if true;
+      allow write: if signedIn() || isAdmin();
+    }
   }
 }
+

@@ -2163,6 +2163,9 @@ function escapeHtml(str = "") {
         subscribeCounselorSchedules();
         subscribeWeeklyTemplate(); // ✅ NEW: Subscribe to weekly template
         subscribeDocumentRequests(); // ✅ NEW: Subscribe to document requests
+        
+        // Final sync of public metrics for the homepage
+        syncPublicStats();
       } catch (err) {
         console.error("Error verifying admin status:", err);
         window.location.href = "index.html";
@@ -2178,4 +2181,49 @@ function escapeHtml(str = "") {
       update();
     }
   });
+  /**
+   * Name: syncPublicStats
+   * Description: Recalculates total student count and satisfaction rate 
+   * from live data and updates the public metadata/stats document.
+   */
+  async function syncPublicStats() {
+    try {
+      // 1. Get real student count
+      const studentSnap = await getDocs(collection(db, "students"));
+      const studentCount = studentSnap.size;
+
+      // 2. Calculate Satisfaction Rate from evaluations
+      const evalSnap = await getDocs(collection(db, "evaluations"));
+      let averageSatisfaction = 100; // Default fallback
+      
+      if (!evalSnap.empty) {
+        let totalStars = 0;
+        let count = 0;
+        evalSnap.forEach((doc) => {
+          const data = doc.data();
+          if (data.rating) {
+            totalStars += data.rating;
+            count++;
+          }
+        });
+        if (count > 0) {
+          averageSatisfaction = Math.round((totalStars / (count * 5)) * 100);
+        }
+      }
+
+      // 3. Update the public stats document
+      const statsRef = doc(db, "metadata", "stats");
+      await setDoc(statsRef, {
+        studentCount,
+        averageSatisfaction,
+        updatedAt: serverTimestamp()
+      }, { merge: true });
+
+      console.log("Public stats synchronized by Admin.");
+    } catch (err) {
+      console.error("Error syncing public stats:", err);
+    }
+  }
+
 })();
+
