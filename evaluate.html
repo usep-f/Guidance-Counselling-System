@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Rate Your Experience | Guidance System</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    .eval-container {
+      max-width: 600px;
+      margin: 80px auto;
+      padding: 40px;
+      background: var(--card);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-soft);
+      text-align: center;
+    }
+
+    .eval-title {
+      font-family: Georgia, serif;
+      font-size: 32px;
+      margin-bottom: 15px;
+      color: var(--text);
+    }
+
+    .eval-subtitle {
+      color: var(--muted);
+      font-size: 15px;
+      margin-bottom: 30px;
+      line-height: 1.6;
+    }
+
+    .star-rating {
+      display: flex;
+      flex-direction: row-reverse;
+      justify-content: center;
+      gap: 10px;
+      margin-bottom: 30px;
+    }
+
+    .star-rating input {
+      display: none;
+    }
+
+    .star-rating label {
+      font-size: 40px;
+      color: #ddd;
+      cursor: pointer;
+      transition: color 0.2s ease;
+    }
+
+    .star-rating label:hover,
+    .star-rating label:hover ~ label,
+    .star-rating input:checked ~ label {
+      color: #ffcc00;
+    }
+
+    .eval-field {
+      text-align: left;
+      margin-bottom: 25px;
+    }
+
+    .eval-label {
+      display: block;
+      font-weight: 700;
+      font-size: 14px;
+      margin-bottom: 8px;
+    }
+
+    .eval-input {
+      width: 100%;
+      padding: 15px;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      font-size: 14px;
+      resize: vertical;
+      min-height: 120px;
+    }
+
+    .eval-input:focus {
+      outline: none;
+      border-color: var(--primary);
+    }
+
+    .eval-actions {
+      display: flex;
+      gap: 15px;
+      justify-content: center;
+    }
+
+    .eval-success {
+      display: none;
+    }
+
+    .eval-success.is-active {
+      display: block;
+    }
+
+    .eval-form.is-hidden {
+      display: none;
+    }
+
+    .loader {
+      display: none;
+      border: 3px solid #f3f3f3;
+      border-radius: 50%;
+      border-top: 3px solid var(--primary);
+      width: 20px;
+      height: 20px;
+      animation: spin 1s linear infinite;
+      margin: 0 auto;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="eval-container">
+    <div id="evalFormContainer">
+      <h1 class="eval-title">How was your session?</h1>
+      <p class="eval-subtitle">Your feedback helps us improve our counseling services and better support your wellness journey.</p>
+
+      <form id="evaluationForm" class="eval-form">
+        <div class="star-rating">
+          <input type="radio" id="star5" name="rating" value="5" required /><label for="star5" title="5 stars">★</label>
+          <input type="radio" id="star4" name="rating" value="4" /><label for="star4" title="4 stars">★</label>
+          <input type="radio" id="star3" name="rating" value="3" /><label for="star3" title="3 stars">★</label>
+          <input type="radio" id="star2" name="rating" value="2" /><label for="star2" title="2 stars">★</label>
+          <input type="radio" id="star1" name="rating" value="1" /><label for="star1" title="1 star">★</label>
+        </div>
+
+        <div class="eval-field">
+          <label class="eval-label" for="comments">Additional Comments (Optional)</label>
+          <textarea class="eval-input" id="comments" name="comments" placeholder="Describe your experience..."></textarea>
+        </div>
+
+        <div class="eval-actions">
+          <button type="submit" class="btn btn--pill btn--primary" id="submitBtn">
+            Submit Evaluation
+          </button>
+          <a href="student-dashboard.html" class="btn btn--pill btn--ghost">Cancel</a>
+        </div>
+        <div id="loading" class="loader"></div>
+      </form>
+    </div>
+
+    <div id="successMessage" class="eval-success">
+      <div style="font-size: 60px; margin-bottom: 20px;">🎉</div>
+      <h1 class="eval-title">Thank You!</h1>
+      <p class="eval-subtitle">Your feedback has been submitted successfully. We appreciate your time!</p>
+      <a href="student-dashboard.html" class="btn btn--pill btn--primary">Back to Dashboard</a>
+    </div>
+  </div>
+
+  <script type="module" src="evaluate.js"></script>
+</body>
+
+</html>

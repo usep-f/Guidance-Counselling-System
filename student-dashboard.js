@@ -846,13 +846,25 @@ let currentUser = null;
             ? `<p class="dash-item__detail"><strong>Student:</strong> ${escapeHtml(studentNo)} ${studentName ? `· ${escapeHtml(studentName)}` : ""}</p>`
             : ""}
             
-            ${canCancel ? `
-              <div class="dash-item__actions" style="margin-top: 12px;">
+            <div class="dash-item__actions" style="margin-top: 12px; display: flex; gap: 8px;">
+              ${canCancel ? `
                 <button class="btn btn--sm btn--pill btn--ghost" type="button" data-cancel-appt="${item.id}">
                   Cancel Appointment
                 </button>
-              </div>
-            ` : ""}
+              ` : ""}
+
+              ${status.toLowerCase() === "completed" && !item.isEvaluated ? `
+                <a class="btn btn--sm btn--pill btn--primary" href="evaluate.html?id=${item.id}">
+                  Rate Experience
+                </a>
+              ` : ""}
+              
+              ${status.toLowerCase() === "completed" && item.isEvaluated ? `
+                <span class="admin-tag" style="background: rgba(31, 185, 129, 0.1); color: var(--primary); font-size: 11px; padding: 4px 10px; border-radius: 99px;">
+                  Already Evaluated
+                </span>
+              ` : ""}
+            </div>
           </div>
 
           <span class="dash-pill" data-variant="${statusVariant(status)}">${escapeHtml(status)}</span>
@@ -935,36 +947,29 @@ let currentUser = null;
   const stInquiryModalBody = document.getElementById("stInquiryModalBody");
   const stInquiryModalEyebrow = document.getElementById("stInquiryModalEyebrow");
 
-  function subscribeMyInquiries(user) {
-    if (unsubscribeInquiries) unsubscribeInquiries();
-    if (!user || !myInquiryList) return;
-
-    const q = query(
-      collection(db, "inquiries"),
-      where("studentId", "==", user.uid),
-      orderBy("createdAt", "desc")
-    );
-
-    unsubscribeInquiries = onSnapshot(q, (snap) => {
-      myInquiries = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-      renderInquiryHistory();
-    }, (err) => {
-      console.error("Error fetching my inquiries:", err);
-      if (myInquiryList) {
-        myInquiryList.innerHTML = `<p class="admin-empty">Could not load your inquiries.</p>`;
-      }
-    });
-  }
+  let inquiryCurrentPage = 1;
+  const inquiryPaginationControls = document.getElementById("inquiryPaginationControls");
+  const inquiryPrevPageBtn = document.getElementById("inquiryPrevPageBtn");
+  const inquiryNextPageBtn = document.getElementById("inquiryNextPageBtn");
+  const inquiryPageIndicator = document.getElementById("inquiryPageIndicator");
 
   function renderInquiryHistory() {
     if (!myInquiryList) return;
 
     if (myInquiries.length === 0) {
       myInquiryList.innerHTML = `<p class="admin-empty">You haven't submitted any inquiries yet.</p>`;
+      if (inquiryPaginationControls) inquiryPaginationControls.hidden = true;
       return;
     }
 
-    myInquiryList.innerHTML = myInquiries.map(inq => {
+    const totalPages = Math.ceil(myInquiries.length / itemsPerPage) || 1;
+    if (inquiryCurrentPage > totalPages) inquiryCurrentPage = totalPages;
+    if (inquiryCurrentPage < 1) inquiryCurrentPage = 1;
+
+    const startIndex = (inquiryCurrentPage - 1) * itemsPerPage;
+    const pagedItems = myInquiries.slice(startIndex, startIndex + itemsPerPage);
+
+    myInquiryList.innerHTML = pagedItems.map(inq => {
       const date = inq.createdAt?.toDate ? inq.createdAt.toDate() : new Date();
       const dateStr = date.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
 
@@ -987,6 +992,53 @@ let currentUser = null;
         </article>
       `;
     }).join("");
+
+    if (inquiryPaginationControls) {
+      inquiryPaginationControls.hidden = false;
+      inquiryPageIndicator.textContent = `Page ${inquiryCurrentPage} of ${totalPages}`;
+      if (inquiryPrevPageBtn) inquiryPrevPageBtn.disabled = inquiryCurrentPage === 1;
+      if (inquiryNextPageBtn) inquiryNextPageBtn.disabled = inquiryCurrentPage === totalPages;
+    }
+  }
+
+  if (inquiryPrevPageBtn) {
+    inquiryPrevPageBtn.addEventListener("click", () => {
+      if (inquiryCurrentPage > 1) {
+        inquiryCurrentPage--;
+        renderInquiryHistory();
+      }
+    });
+  }
+
+  if (inquiryNextPageBtn) {
+    inquiryNextPageBtn.addEventListener("click", () => {
+      const totalPages = Math.ceil(myInquiries.length / itemsPerPage) || 1;
+      if (inquiryCurrentPage < totalPages) {
+        inquiryCurrentPage++;
+        renderInquiryHistory();
+      }
+    });
+  }
+
+  function subscribeMyInquiries(user) {
+    if (unsubscribeInquiries) unsubscribeInquiries();
+    if (!user || !myInquiryList) return;
+
+    const q = query(
+      collection(db, "inquiries"),
+      where("studentId", "==", user.uid),
+      orderBy("createdAt", "desc")
+    );
+
+    unsubscribeInquiries = onSnapshot(q, (snap) => {
+      myInquiries = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      renderInquiryHistory();
+    }, (err) => {
+      console.error("Error fetching my inquiries:", err);
+      if (myInquiryList) {
+        myInquiryList.innerHTML = `<p class="admin-empty">Could not load your inquiries.</p>`;
+      }
+    });
   }
 
   function openInquiryDetail(inqId) {
@@ -1033,6 +1085,12 @@ let currentUser = null;
   /* Session Records / History Monitoring */
   let myRecords = [];
   let unsubscribeRecords = null;
+
+  let historyCurrentPage = 1;
+  const historyPaginationControls = document.getElementById("historyPaginationControls");
+  const historyPrevPageBtn = document.getElementById("historyPrevPageBtn");
+  const historyNextPageBtn = document.getElementById("historyNextPageBtn");
+  const historyPageIndicator = document.getElementById("historyPageIndicator");
 
   function subscribeSessionRecords(user) {
     if (unsubscribeRecords) unsubscribeRecords();
@@ -1100,25 +1158,58 @@ let currentUser = null;
 
     // 5. Session History List
     if (historyListEl) {
-      historyListEl.innerHTML = myRecords.map((rec, idx) => {
+      const totalPages = Math.ceil(myRecords.length / itemsPerPage) || 1;
+      if (historyCurrentPage > totalPages) historyCurrentPage = totalPages;
+      if (historyCurrentPage < 1) historyCurrentPage = 1;
+
+      const startIndex = (historyCurrentPage - 1) * itemsPerPage;
+      const pagedItems = myRecords.slice(startIndex, startIndex + itemsPerPage);
+
+      historyListEl.innerHTML = pagedItems.map((rec, idx) => {
+        const actualIdx = myRecords.indexOf(rec);
         const d = rec.timestamp?.toDate ? rec.timestamp.toDate() : new Date();
         const dateStr = d.toLocaleDateString("en-US", { month: 'short', day: 'numeric', year: 'numeric' });
 
-        // Find appointment mode if possible (or just use "Counseling Session")
         const type = "Counseling Session";
         const status = rec.status || "Stable";
 
         return `
           <article class="session-item">
             <div>
-              <p class="session-item__title">Session #${myRecords.length - idx}</p>
+              <p class="session-item__title">Session #${myRecords.length - actualIdx}</p>
               <p class="session-item__meta">${dateStr} · ${type}</p>
             </div>
             <span class="tag">${status}</span>
           </article>
         `;
       }).join("");
+
+      if (historyPaginationControls) {
+        historyPaginationControls.hidden = myRecords.length <= itemsPerPage;
+        historyPageIndicator.textContent = `Page ${historyCurrentPage} of ${totalPages}`;
+        if (historyPrevPageBtn) historyPrevPageBtn.disabled = historyCurrentPage === 1;
+        if (historyNextPageBtn) historyNextPageBtn.disabled = historyCurrentPage === totalPages;
+      }
     }
+  }
+
+  if (historyPrevPageBtn) {
+    historyPrevPageBtn.addEventListener("click", () => {
+      if (historyCurrentPage > 1) {
+        historyCurrentPage--;
+        renderHistoryMonitoring();
+      }
+    });
+  }
+
+  if (historyNextPageBtn) {
+    historyNextPageBtn.addEventListener("click", () => {
+      const totalPages = Math.ceil(myRecords.length / itemsPerPage) || 1;
+      if (historyCurrentPage < totalPages) {
+        historyCurrentPage++;
+        renderHistoryMonitoring();
+      }
+    });
   }
 
   // Simplified modal close for student side (if not globally handled)
@@ -1139,6 +1230,12 @@ let currentUser = null;
 
     let myRequests = [];
     let unsubscribeRequests = null;
+
+    let docCurrentPage = 1;
+    const docPaginationControls = document.getElementById("docPaginationControls");
+    const docPrevPageBtn = document.getElementById("docPrevPageBtn");
+    const docNextPageBtn = document.getElementById("docNextPageBtn");
+    const docPageIndicator = document.getElementById("docPageIndicator");
 
     function subscribeMyRequests(user) {
       if (unsubscribeRequests) unsubscribeRequests();
@@ -1162,10 +1259,18 @@ let currentUser = null;
     function renderRequests() {
       if (myRequests.length === 0) {
         list.innerHTML = `<p class="admin-empty">You haven't requested any documents yet.</p>`;
+        if (docPaginationControls) docPaginationControls.hidden = true;
         return;
       }
 
-      list.innerHTML = myRequests.map(req => {
+      const totalPages = Math.ceil(myRequests.length / itemsPerPage) || 1;
+      if (docCurrentPage > totalPages) docCurrentPage = totalPages;
+      if (docCurrentPage < 1) docCurrentPage = 1;
+
+      const startIndex = (docCurrentPage - 1) * itemsPerPage;
+      const pagedItems = myRequests.slice(startIndex, startIndex + itemsPerPage);
+
+      list.innerHTML = pagedItems.map(req => {
         const date = req.createdAt?.toDate ? req.createdAt.toDate() : new Date();
         const dateStr = date.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
         const status = req.status || "Pending Approval";
@@ -1195,6 +1300,32 @@ let currentUser = null;
           </article>
         `;
       }).join("");
+
+      if (docPaginationControls) {
+        docPaginationControls.hidden = false;
+        docPageIndicator.textContent = `Page ${docCurrentPage} of ${totalPages}`;
+        if (docPrevPageBtn) docPrevPageBtn.disabled = docCurrentPage === 1;
+        if (docNextPageBtn) docNextPageBtn.disabled = docCurrentPage === totalPages;
+      }
+    }
+
+    if (docPrevPageBtn) {
+      docPrevPageBtn.addEventListener("click", () => {
+        if (docCurrentPage > 1) {
+          docCurrentPage--;
+          renderRequests();
+        }
+      });
+    }
+
+    if (docNextPageBtn) {
+      docNextPageBtn.addEventListener("click", () => {
+        const totalPages = Math.ceil(myRequests.length / itemsPerPage) || 1;
+        if (docCurrentPage < totalPages) {
+          docCurrentPage++;
+          renderRequests();
+        }
+      });
     }
 
     const docTypeSelect = document.getElementById("documentType");

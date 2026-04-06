@@ -126,7 +126,7 @@
   color: rgba(15, 47, 42, 0.95);
 }
 
-@media (max-width: 720px) {
+@media (max-width: 900px) {
   .dashboard-tabs {
     display: none;
   }
@@ -134,12 +134,34 @@
   .mobile-dashboard-nav {
     display: flex;
     flex-wrap: wrap;
+    justify-content: center;
     gap: 10px;
   }
 
   .mobile-nav-item {
-    margin-right: 6px;
-    padding: 8px 14px;
+    margin: 0;
+    padding: 10px 14px;
+    flex: 1 1 calc(33.333% - 10px); /* 3 per row by default on small tablets */
+    min-width: 100px;
+  }
+}
+
+@media (max-width: 500px) {
+  .mobile-dashboard-nav {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+  }
+
+  .mobile-nav-item {
+    width: 100%;
+    margin: 0;
+    flex: none;
+  }
+
+  /* Make the last item (History) span 2 columns if it's odd, or just leave it */
+  .mobile-nav-item:last-child:nth-child(odd) {
+    grid-column: span 2;
   }
 }
 
@@ -412,11 +434,11 @@
 
 /* Pagination */
 .dash-pagination {
-  margin: 0 0 16px;
+  margin: 20px 0 8px;
   display: flex;
   align-items: center;
   justify-content: flex-start;
-  gap: 12px;
+  gap: 24px;
 }
 
 .dash-pagination[hidden] {

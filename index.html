@@ -14,7 +14,7 @@
   <header class="site-header" id="top">
     <nav class="navbar">
       <a class="brand" href="#top" aria-label="Guidance System Home">
-        <span class="brand__logo" aria-hidden="true"></span>
+        <img src="assets/guidance-logo.png" alt="Guidance System Logo" class="brand__logo">
         <span class="brand__text">Guidance System</span>
       </a>
 
@@ -49,11 +49,21 @@
   <!-- HERO -->
   <main id="home">
     <section class="hero">
+
+      <!-- Ambient blur layer (C option: blurred image mimicking current slide) -->
+      <div class="hero__ambient" aria-hidden="true">
+        <img class="hero__ambient-img is-active" src="assets/hero-page-image.webp"   alt="">
+        <img class="hero__ambient-img"            src="assets/hero-page-image-2.webp" alt="">
+        <img class="hero__ambient-img"            src="assets/hero-page-image-3.webp" alt="">
+        <img class="hero__ambient-img"            src="assets/hero-page-image-4.webp" alt="">
+        <img class="hero__ambient-img"            src="assets/hero-page-image-5.webp" alt="">
+      </div>
+
       <div class="hero__inner">
         <div class="hero__left">
           <h1 class="hero__title">
             Your Mental<br />
-            Wellness<br />
+            <span class="hero__accent">Wellness</span><br />
             Matters
           </h1>
 
@@ -83,7 +93,20 @@
 
         <div class="hero__right">
           <div class="hero-card">
-            <img class="hero-card__img" src="assets\hero-page-image.webp" alt="Hero placeholder" />
+            <img class="hero-card__img is-active" src="assets/hero-page-image.webp"   alt="Student wellness" />
+            <img class="hero-card__img"            src="assets/hero-page-image-2.webp" alt="Student wellness" />
+            <img class="hero-card__img"            src="assets/hero-page-image-3.webp" alt="Student wellness" />
+            <img class="hero-card__img"            src="assets/hero-page-image-4.webp" alt="Student wellness" />
+            <img class="hero-card__img"            src="assets/hero-page-image-5.webp" alt="Student wellness" />
+
+            <!-- Dot indicators -->
+            <div class="hero-card__dots" aria-label="Slideshow position">
+              <button class="hero-dot is-active" data-index="0" aria-label="Slide 1"></button>
+              <button class="hero-dot"           data-index="1" aria-label="Slide 2"></button>
+              <button class="hero-dot"           data-index="2" aria-label="Slide 3"></button>
+              <button class="hero-dot"           data-index="3" aria-label="Slide 4"></button>
+              <button class="hero-dot"           data-index="4" aria-label="Slide 5"></button>
+            </div>
           </div>
         </div>
       </div>
@@ -125,14 +148,14 @@
 
           <div class="about__stats">
             <div class="about-stat">
-              <p class="about-stat__num">500+</p>
+              <p class="about-stat__num" id="studentCount"></p>
               <p class="about-stat__label">Students Helped</p>
             </div>
 
             <span class="about__divider" aria-hidden="true"></span>
 
             <div class="about-stat">
-              <p class="about-stat__num">98%</p>
+              <p class="about-stat__num" id="satisfactionRate"></p>
               <p class="about-stat__label">Satisfaction Rate</p>
             </div>
 
@@ -277,13 +300,17 @@
             </div>
 
             <div class="counselor-card__body">
-              <h3 class="counselor-card__name">Guidance Counselor Name</h3>
+              <h3 class="counselor-card__name">Joanna Rodessa R. Capilitan, RGC</h3>
               <p class="counselor-card__role">Guidance Counselor</p>
 
               <p class="counselor-card__bio">
-                A brief background about the counselor goes here. Keep it
-                short, friendly, and reassuring. Mention how students can
-                approach and what support is available.
+                With a deep commitment to student wellness and academic
+                success, Ms. Capilitan provides a safe, welcoming, and
+                confidential environment for all students. She specializes
+                in helping students navigate personal challenges, career
+                decisions, and academic goals. Whether you need a listening
+                ear or professional guidance, her office is always open for
+                your support and growth.
               </p>
 
               <div class="counselor-card__tags" aria-label="Areas of support">
@@ -293,10 +320,12 @@
                 <span class="tag">Wellness</span>
               </div>
 
-              <a class="btn btn--pill btn--primary" href="student-dashboard.html#dashboard-booking"
-                data-requires-auth="true">Book Appointment</a>
-              <a class="btn btn--pill btn--ghost" href="student-dashboard.html#dashboard-inquiry"
-                data-requires-auth="true">Send Inquiry</a>
+              <div class="counselor-card__actions">
+                <a class="btn btn--pill btn--primary" href="student-dashboard.html#dashboard-booking"
+                  data-requires-auth="true">Book Appointment</a>
+                <a class="btn btn--pill btn--ghost" href="student-dashboard.html#dashboard-inquiry"
+                  data-requires-auth="true">Send Inquiry</a>
+              </div>
 
               <p class="counselor-card__note">
                 <span aria-hidden="true">🛡</span> Confidential support. For
@@ -310,11 +339,12 @@
               <h3 class="office-card__title">Contact</h3>
               <div class="office-row">
                 <span class="office-row__label">Email</span>
-                <a class="office-row__value" href="mailto:guidance@example.com">guidance@example.com</a>
+                <a class="office-row__value" href="mailto:slsu_guidanceoffice@slsu.edu.ph
+                ">slsu_guidanceoffice@slsu.edu.ph</a>
               </div>
               <div class="office-row">
                 <span class="office-row__label">Phone</span>
-                <a class="office-row__value" href="tel:+630000000000">+63 000 000 0000</a>
+                <a class="office-row__value" href="tel:0915 016 8438">0915 016 8438</a>
               </div>
               <div class="office-row">
                 <span class="office-row__label">Response</span>
@@ -346,14 +376,6 @@
                 City, Province
               </p>
 
-              <div class="map-preview">
-                <div class="map-preview__box" aria-hidden="true">
-                  Map Preview (placeholder)
-                </div>
-                <a class="map-preview__link" href="#" target="_blank" rel="noopener">
-                  View on Google Maps <span aria-hidden="true">→</span>
-                </a>
-              </div>
             </div>
           </aside>
         </div>
@@ -367,7 +389,7 @@
         <div class="footer__top">
           <div class="footer__col footer__brand">
             <a class="footer-brand" href="#top" aria-label="Guidance System Home">
-              <span class="footer-brand__logo" aria-hidden="true"></span>
+              <img src="assets/guidance-logo.png" alt="Guidance System Logo" class="footer-brand__logo">
               <span class="footer-brand__text">Guidance System</span>
             </a>
 
@@ -414,12 +436,6 @@
 
         <div class="footer__divider" aria-hidden="true"></div>
 
-        <div class="footer__bottom">
-          <p class="footer__copyright">
-            © 2025 School Guidance System. All rights reserved.
-          </p>
-          <p class="footer__credit">Powered by KTech Solutions</p>
-        </div>
       </div>
     </footer>
   </main>
@@ -585,6 +601,7 @@
   <!-- IMPORTANT: script.js is a module because it uses imports -->
   <script type="module" src="script.js"></script>
   <script type="module" src="chatbot.js"></script>
+  <script src="hero-slideshow.js"></script>
 </body>
 
 </html>

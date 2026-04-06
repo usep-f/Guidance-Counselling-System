@@ -1,4 +1,9 @@
 import "./site-auth-ui.js";
+import { db } from "./firebase-config.js";
+import { collection, getCountFromServer, getDocs } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
+
+// Metrics Configuration
+const currentSatisfactionRate = "98%";
 
 import {
   loginWithEmail,
@@ -389,3 +394,54 @@ watchAuthState((user) => {
     openAuthModal("login");
   }
 });
+
+/**
+ * Name: initMetrics
+ * Description: Fetches the student count and updates the About Us section metrics.
+ */
+async function initMetrics() {
+  const studentCountEl = document.getElementById("studentCount");
+  const satisfactionRateEl = document.getElementById("satisfactionRate");
+
+  // 1. Fetch Student Count
+  if (studentCountEl) {
+    try {
+      const snapshot = await getCountFromServer(collection(db, "students"));
+      const count = snapshot.data().count;
+      studentCountEl.textContent = `${count}+`;
+    } catch (err) {
+      console.error("Error fetching student count:", err);
+    }
+  }
+
+  // 2. Fetch Satisfaction Rate
+  if (satisfactionRateEl) {
+    try {
+      const evalSnap = await getDocs(collection(db, "evaluations"));
+      if (evalSnap.empty) {
+        satisfactionRateEl.textContent = "0%"; // Placeholder for empty evaluations
+        return;
+      }
+
+      let totalStars = 0;
+      let count = 0;
+
+      evalSnap.forEach((doc) => {
+        const data = doc.data();
+        if (data.rating) {
+          totalStars += data.rating;
+          count++;
+        }
+      });
+
+      const percentage = Math.round((totalStars / (count * 5)) * 100);
+      satisfactionRateEl.textContent = `${percentage}%`;
+    } catch (err) {
+      console.error("Error fetching satisfaction rate:", err);
+      satisfactionRateEl.textContent = "0%"; // Fallback on error
+    }
+  }
+}
+
+// Initialize metrics on page load
+initMetrics();

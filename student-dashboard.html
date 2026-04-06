@@ -24,7 +24,7 @@
   <header class="site-header" id="top">
     <nav class="navbar">
       <a class="brand" href="index.html#top" aria-label="Guidance System Home">
-        <span class="brand__logo" aria-hidden="true"></span>
+        <img src="assets/guidance-logo.png" alt="Guidance System Logo" class="brand__logo">
         <span class="brand__text">Guidance System</span>
       </a>
 
@@ -504,6 +504,16 @@
         <div class="dash-list" id="myInquiryList">
           <p class="admin-empty">Loading your inquiries...</p>
         </div>
+
+        <div class="dash-pagination" id="inquiryPaginationControls" hidden>
+          <button class="btn btn--sm btn--pill btn--ghost" id="inquiryPrevPageBtn" disabled>
+            ← Previous
+          </button>
+          <span class="dash-pagination__info" id="inquiryPageIndicator">Page 1</span>
+          <button class="btn btn--sm btn--pill btn--ghost" id="inquiryNextPageBtn">
+            Next →
+          </button>
+        </div>
       </div>
     </section>
 
@@ -586,6 +596,16 @@
             <h2>My Requests</h2>
             <div class="dash-list" id="myDocumentRequestsList">
               <p class="admin-empty">Loading your requests...</p>
+            </div>
+
+            <div class="dash-pagination" id="docPaginationControls" hidden>
+              <button class="btn btn--sm btn--pill btn--ghost" id="docPrevPageBtn" disabled>
+                ← Previous
+              </button>
+              <span class="dash-pagination__info" id="docPageIndicator">Page 1</span>
+              <button class="btn btn--sm btn--pill btn--ghost" id="docNextPageBtn">
+                Next →
+              </button>
             </div>
           </section>
         </div>
@@ -672,6 +692,16 @@
             <p class="admin-empty">Your session history will appear here.</p>
           </div>
 
+          <div class="dash-pagination" id="historyPaginationControls" hidden>
+            <button class="btn btn--sm btn--pill btn--ghost" id="historyPrevPageBtn" disabled>
+              ← Previous
+            </button>
+            <span class="dash-pagination__info" id="historyPageIndicator">Page 1</span>
+            <button class="btn btn--sm btn--pill btn--ghost" id="historyNextPageBtn">
+              Next →
+            </button>
+          </div>
+
           <div style="
                 margin-top: 14px;
                 display: flex;
@@ -695,7 +725,7 @@
       <div class="footer__top">
         <div class="footer__col footer__brand">
           <a class="footer-brand" href="index.html#top" aria-label="Guidance System Home">
-            <span class="footer-brand__logo" aria-hidden="true"></span>
+            <img src="assets/guidance-logo.png" alt="Guidance System Logo" class="footer-brand__logo">
             <span class="footer-brand__text">Guidance System</span>
           </a>
 
@@ -748,12 +778,6 @@
 
       <div class="footer__divider" aria-hidden="true"></div>
 
-      <div class="footer__bottom">
-        <p class="footer__copyright">
-          © 2025 School Guidance System. All rights reserved.
-        </p>
-        <p class="footer__credit">Powered by Readdy</p>
-      </div>
     </div>
   </footer>
   <script type="module">
