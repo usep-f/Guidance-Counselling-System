@@ -846,13 +846,25 @@ let currentUser = null;
             ? `<p class="dash-item__detail"><strong>Student:</strong> ${escapeHtml(studentNo)} ${studentName ? `· ${escapeHtml(studentName)}` : ""}</p>`
             : ""}
             
-            ${canCancel ? `
-              <div class="dash-item__actions" style="margin-top: 12px;">
+            <div class="dash-item__actions" style="margin-top: 12px; display: flex; gap: 8px;">
+              ${canCancel ? `
                 <button class="btn btn--sm btn--pill btn--ghost" type="button" data-cancel-appt="${item.id}">
                   Cancel Appointment
                 </button>
-              </div>
-            ` : ""}
+              ` : ""}
+
+              ${status.toLowerCase() === "completed" && !item.isEvaluated ? `
+                <a class="btn btn--sm btn--pill btn--primary" href="evaluate.html?id=${item.id}">
+                  Rate Experience
+                </a>
+              ` : ""}
+              
+              ${status.toLowerCase() === "completed" && item.isEvaluated ? `
+                <span class="admin-tag" style="background: rgba(31, 185, 129, 0.1); color: var(--primary); font-size: 11px; padding: 4px 10px; border-radius: 99px;">
+                  Already Evaluated
+                </span>
+              ` : ""}
+            </div>
           </div>
 
           <span class="dash-pill" data-variant="${statusVariant(status)}">${escapeHtml(status)}</span>
