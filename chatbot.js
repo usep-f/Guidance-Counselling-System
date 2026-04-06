@@ -175,15 +175,23 @@ class GuidanceChatbot {
             return "Note: No API key configured. I'm a simple assistant here to guide you through the Guidance Counseling System. (You can set the API key in chatbot.js or provide it via a secure method).";
         }
 
-        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${this.apiKey}`;
+        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${this.apiKey}`;
 
         const systemInstruction = `
-            You are a helpful guidance counselor assistant for the Guidance Counseling Management System. 
+            You are a helpful guidance counselor assistant for the Guidance Counseling Management System at SLSU Lucban. 
             Use the following system knowledge to guide the user. Answer questions about the website, services, and how to use the system. 
-            If you don't know the answer, refer the user to the contact information: guidance@example.com.
+            If you don't know the answer, refer the user to the contact information: ${this.knowledge.contact.email} or ${this.knowledge.contact.phone}.
+            
+            Key Information:
+            - Location: SLSU Lucban Campus.
+            - Counselor: ${this.knowledge.counselor_info.name}.
+            - Documents: Explain the request process clearly. Approval typically takes 1–3 business days. For Admission Slips, mention that "School Year" and "Professor's Name" are required.
+            - Wellness & Study: You are encouraged to provide direct, helpful wellness tips and study habits from the knowledge base when asked.
+            - Emergency: For urgent help, use the Philippine National Emergency Hotline (911) or contact SLSU security/authorities.
+            - Booking: Explain steps (Dashboard > Book Appointment > Topic > Mode > Date/Time).
+            
             Be friendly, empathetic, and professional. 
             DO NOT handle or ask for personal sensitive data. 
-            If a user asks to book an appointment, explain the steps in the dashboard.
             Knowledge Base: ${JSON.stringify(this.knowledge)}
         `;
 
