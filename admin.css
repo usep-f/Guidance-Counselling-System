@@ -81,10 +81,9 @@ img {
 }
 
 .brand__logo {
-  width: 34px;
-  height: 34px;
-  border-radius: 10px;
-  background: linear-gradient(135deg, rgba(31, 185, 129, 1), rgba(31, 185, 129, 0.45));
+  width: 32px;
+  height: 32px;
+  object-fit: contain;
   display: inline-block;
 }
 
@@ -1164,8 +1163,7 @@ img {
 .footer-brand__logo {
   width: 34px;
   height: 34px;
-  border-radius: 10px;
-  background: linear-gradient(135deg, rgba(31, 185, 129, 0.95), rgba(31, 185, 129, 0.35));
+  object-fit: contain;
   display: inline-block;
 }
 
