@@ -49,11 +49,21 @@
   <!-- HERO -->
   <main id="home">
     <section class="hero">
+
+      <!-- Ambient blur layer (C option: blurred image mimicking current slide) -->
+      <div class="hero__ambient" aria-hidden="true">
+        <img class="hero__ambient-img is-active" src="assets/hero-page-image.webp"   alt="">
+        <img class="hero__ambient-img"            src="assets/hero-page-image-2.webp" alt="">
+        <img class="hero__ambient-img"            src="assets/hero-page-image-3.webp" alt="">
+        <img class="hero__ambient-img"            src="assets/hero-page-image-4.webp" alt="">
+        <img class="hero__ambient-img"            src="assets/hero-page-image-5.webp" alt="">
+      </div>
+
       <div class="hero__inner">
         <div class="hero__left">
           <h1 class="hero__title">
             Your Mental<br />
-            Wellness<br />
+            <span class="hero__accent">Wellness</span><br />
             Matters
           </h1>
 
@@ -83,7 +93,20 @@
 
         <div class="hero__right">
           <div class="hero-card">
-            <img class="hero-card__img" src="assets\hero-page-image.webp" alt="Hero placeholder" />
+            <img class="hero-card__img is-active" src="assets/hero-page-image.webp"   alt="Student wellness" />
+            <img class="hero-card__img"            src="assets/hero-page-image-2.webp" alt="Student wellness" />
+            <img class="hero-card__img"            src="assets/hero-page-image-3.webp" alt="Student wellness" />
+            <img class="hero-card__img"            src="assets/hero-page-image-4.webp" alt="Student wellness" />
+            <img class="hero-card__img"            src="assets/hero-page-image-5.webp" alt="Student wellness" />
+
+            <!-- Dot indicators -->
+            <div class="hero-card__dots" aria-label="Slideshow position">
+              <button class="hero-dot is-active" data-index="0" aria-label="Slide 1"></button>
+              <button class="hero-dot"           data-index="1" aria-label="Slide 2"></button>
+              <button class="hero-dot"           data-index="2" aria-label="Slide 3"></button>
+              <button class="hero-dot"           data-index="3" aria-label="Slide 4"></button>
+              <button class="hero-dot"           data-index="4" aria-label="Slide 5"></button>
+            </div>
           </div>
         </div>
       </div>
@@ -321,7 +344,7 @@
               </div>
               <div class="office-row">
                 <span class="office-row__label">Phone</span>
-                <a class="office-row__value" href="tel:+630000000000">+63 000 000 0000</a>
+                <a class="office-row__value" href="tel:0915 016 8438">0915 016 8438</a>
               </div>
               <div class="office-row">
                 <span class="office-row__label">Response</span>
@@ -578,6 +601,7 @@
   <!-- IMPORTANT: script.js is a module because it uses imports -->
   <script type="module" src="script.js"></script>
   <script type="module" src="chatbot.js"></script>
+  <script src="hero-slideshow.js"></script>
 </body>
 
 </html>

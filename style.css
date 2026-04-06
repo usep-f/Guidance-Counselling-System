@@ -31,8 +31,25 @@ html {
 body {
   margin: 0;
   font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
-  background: var(--bg);
+  background-color: #f4f8f6;
+  background-image:
+    radial-gradient(ellipse 80% 55% at 0% 0%, rgba(31, 185, 129, 0.08) 0%, transparent 60%),
+    radial-gradient(ellipse 60% 45% at 100% 35%, rgba(15, 180, 210, 0.06) 0%, transparent 55%),
+    radial-gradient(ellipse 70% 50% at 25% 100%, rgba(31, 185, 129, 0.05) 0%, transparent 60%);
   color: var(--text);
+}
+
+/* C — Noise texture overlay */
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  opacity: 0.035;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-size: 200px 200px;
+  background-repeat: repeat;
 }
 
 a {
@@ -208,16 +225,57 @@ section[id] {
 
 /* Hero */
 .hero {
-  padding: 38px 18px 60px;
+  padding: 60px 18px 70px;
+  min-height: calc(100vh - var(--nav-h));
+  display: flex;
+  align-items: center;
+  position: relative;
+  /* anchor the ambient layer */
+  /* overflow: hidden removed — ambient bleeds upward behind the navbar */
+  background: radial-gradient(ellipse 70% 60% at 15% 50%, rgba(31, 185, 129, 0.09) 0%, transparent 70%);
+}
+
+/* ── Ambient blur background (mirrors the current hero image) ── */
+.hero__ambient {
+  position: absolute;
+  /* Extend far upward so the glow bleeds behind the sticky navbar */
+  top: -160px;
+  left: -40px;
+  right: -40px;
+  bottom: -40px;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.hero__ambient-img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  filter: blur(60px) saturate(2.4) brightness(1.08);
+  transform: scale(1.1);
+  /* ensure blurred edges don't peek */
+  opacity: 0;
+  transition: opacity 1.4s ease;
+}
+
+.hero__ambient-img.is-active {
+  opacity: 0.33;
+  /* −15% from 0.50 */
 }
 
 .hero__inner {
   max-width: var(--container);
+  width: 100%;
   margin: 0 auto;
   display: grid;
   grid-template-columns: 1fr 1.35fr;
   gap: 40px;
   align-items: center;
+  position: relative;
+  /* sit above the ambient layer */
+  z-index: 1;
 }
 
 .hero__title {
@@ -226,33 +284,61 @@ section[id] {
   font-size: 58px;
   line-height: 1.02;
   letter-spacing: -0.5px;
+  animation: heroFadeUp 0.65s ease both;
+  text-shadow: 0 2px 18px rgba(0, 0, 0, 0.12), 0 1px 4px rgba(0, 0, 0, 0.08);
+}
+
+.hero__accent {
+  background: linear-gradient(135deg, #1fb981 0%, #0fa8d6 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
 .hero__desc {
   margin: 0 0 22px;
   max-width: 420px;
   color: var(--muted);
-  font-size: 14px;
+  font-size: 15px;
+  font-weight: 500;
   line-height: 1.7;
+  animation: heroFadeUp 0.65s 0.1s ease both;
+  text-shadow: 0 1px 8px rgba(0, 0, 0, 0.10);
 }
 
 .hero__actions {
   margin-bottom: 18px;
 }
 
+.hero__left>.btn {
+  animation: heroFadeUp 0.65s 0.2s ease both;
+}
+
 .hero__meta {
   display: flex;
-  gap: 18px;
+  gap: 10px;
   flex-wrap: wrap;
-  margin-top: 10px;
+  margin-top: 16px;
+  animation: heroFadeUp 0.65s 0.3s ease both;
 }
 
 .meta-item {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  color: rgba(15, 47, 42, 0.75);
-  font-size: 12px;
+  background: rgba(31, 185, 129, 0.08);
+  border: 1px solid rgba(31, 185, 129, 0.22);
+  border-radius: 999px;
+  padding: 7px 14px;
+  font-size: 13px;
+  font-weight: 600;
+  color: rgba(15, 47, 42, 0.80);
+  transition: background 150ms ease, border-color 150ms ease;
+}
+
+.meta-item:hover {
+  background: rgba(31, 185, 129, 0.14);
+  border-color: rgba(31, 185, 129, 0.38);
 }
 
 .meta-item__icon {
@@ -266,15 +352,81 @@ section[id] {
 /* Hero image card */
 .hero-card {
   position: relative;
+  height: 480px;
+  /* explicit height — children are absolute */
+  border-radius: 18px;
+  overflow: hidden;
+  /* clips the stacked images to the rounded card */
+  box-shadow: 0 30px 60px rgba(0, 0, 0, 0.16);
+  animation: heroFadeUp 0.65s 0.15s ease both;
 }
 
+/* Stacked crossfade images */
 .hero-card__img {
+  position: absolute;
+  inset: 0;
   width: 100%;
-  height: 480px;
+  height: 100%;
   object-fit: cover;
-  border-radius: 18px;
   background: #dbe7e3;
-  box-shadow: 0 30px 60px rgba(0, 0, 0, 0.16);
+  opacity: 0;
+  transition: opacity 1.2s ease;
+}
+
+.hero-card__img.is-active {
+  opacity: 1;
+}
+
+/* Dot indicators */
+.hero-card__dots {
+  position: absolute;
+  bottom: 14px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 7px;
+  z-index: 2;
+}
+
+.hero-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  border: none;
+  background: rgba(255, 255, 255, 0.50);
+  cursor: pointer;
+  padding: 0;
+  transition: background 300ms ease, transform 300ms ease, width 300ms ease;
+}
+
+.hero-dot.is-active {
+  background: #ffffff;
+  width: 22px;
+  /* pill shape on active */
+}
+
+/* Hero entry animations */
+@keyframes heroFadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(22px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+
+  .hero__title,
+  .hero__desc,
+  .hero__left>.btn,
+  .hero__meta,
+  .hero-card {
+    animation: none;
+  }
 }
 
 /* Placeholder sections (temporary) */
@@ -284,6 +436,11 @@ section[id] {
 
 /* Responsive */
 @media (max-width: 960px) {
+  .hero {
+    min-height: auto;
+    padding: 48px 18px 60px;
+  }
+
   .hero__inner {
     grid-template-columns: 1fr 1.15fr;
     gap: 30px;
@@ -293,12 +450,13 @@ section[id] {
     font-size: 46px;
   }
 
-  .hero-card__img {
+  .hero-card {
     height: 400px;
   }
 }
 
-@media (max-width: 780px) {
+/* ── Navbar burger: switches at 1000px ───────────────────────── */
+@media (max-width: 1000px) {
 
   /* keep top row layout: logo left, hamburger right */
   .navbar {
@@ -325,40 +483,33 @@ section[id] {
     justify-content: center;
     gap: 5px;
     margin-left: 0;
-    /* important: don't auto-push weirdly */
   }
 
   .nav-toggle__bar {
     margin: 0;
-    /* gap controls spacing */
   }
 
-  /* Hide desktop CTA on mobile (keep your current behavior) */
+  /* Hide desktop CTA — shown inside dropdown instead */
   .nav-cta {
     display: none;
   }
 
-  /* Dropdown menu (W3Schools-style: vertical list under top bar) */
+  /* Dropdown menu */
   .nav-links {
     display: none;
-    /* hidden by default */
     position: absolute;
     top: calc(100% + 10px);
-    /* dropdown below navbar */
     left: 0;
     right: 0;
     z-index: 99;
 
-
     flex-direction: column;
     align-items: stretch;
-    /* full-width clickable items */
     gap: 6px;
 
     padding: 10px;
     border-radius: 16px;
 
-    /* match your navbar "floating" look */
     background: rgba(255, 255, 255, 0.92);
     border: 1px solid var(--border);
     box-shadow: var(--shadow-nav);
@@ -381,13 +532,21 @@ section[id] {
   .nav-link {
     width: 100%;
     text-align: left;
-    /* like W3Schools */
     padding: 12px 12px;
     border-radius: 12px;
   }
 
   .nav-link--dashboard.is-visible {
     display: block;
+  }
+}
+
+/* ── Hero single-column reflow: stays at 780px ───────────────── */
+@media (max-width: 780px) {
+  .hero {
+    min-height: auto;
+    padding: 36px 18px 48px;
+    background: radial-gradient(ellipse 100% 50% at 50% 0%, rgba(31, 185, 129, 0.08) 0%, transparent 70%);
   }
 
   .hero__inner {
@@ -398,20 +557,31 @@ section[id] {
     font-size: 44px;
   }
 
-  .hero-card__img {
-    height: 380px;
+  .hero-card {
+    height: 360px;
   }
 }
 
 @media (max-width: 420px) {
   .hero__title {
-    font-size: 38px;
+    font-size: 36px;
+  }
+
+  .hero-card {
+    height: 280px;
+  }
+
+  .meta-item {
+    padding: 6px 11px;
+    font-size: 12px;
   }
 }
 
 /* ABOUT */
+/* B — soft mint tint; body mesh gradient bleeds through */
 .about {
   padding: 56px 18px 70px;
+  background: rgba(238, 247, 243, 0.82);
 }
 
 .about__inner {
@@ -486,7 +656,8 @@ section[id] {
   display: flex;
   align-items: center;
   gap: 18px;
-  flex-wrap: nowrap; /* Keep items in one line */
+  flex-wrap: nowrap;
+  /* Keep items in one line */
 }
 
 .about-stat {
@@ -515,7 +686,7 @@ section[id] {
   .about__stats {
     gap: 12px;
   }
-  
+
   .about-stat {
     min-width: 70px;
   }
@@ -589,8 +760,10 @@ section[id] {
 }
 
 /* SERVICES */
+/* B — pure white layer for contrast break */
 .services {
   padding: 56px 18px 72px;
+  background: rgba(255, 255, 255, 0.88);
 }
 
 .services__inner {
@@ -700,8 +873,10 @@ section[id] {
 }
 
 /* HOW IT WORKS */
+/* B — deeper green tint; creates a calming mid-page moment */
 .how {
   padding: 56px 18px 76px;
+  background: rgba(232, 248, 240, 0.78);
 }
 
 .how__inner {
@@ -902,8 +1077,10 @@ section[id] {
 }
 
 /* CONTACT (Meet the Counselor) */
+/* B — back to near-white for a fresh, clean close */
 .contact {
   padding: 56px 18px 76px;
+  background: rgba(255, 255, 255, 0.88);
 }
 
 .contact__inner {
@@ -1126,7 +1303,7 @@ section[id] {
       grid-template-columns: 1fr 1fr;
       gap: 10px;
     }
-    
+
     .tag {
       justify-content: center;
       text-align: center;
