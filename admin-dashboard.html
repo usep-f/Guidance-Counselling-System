@@ -63,6 +63,34 @@
         </p>
       </header>
 
+      <!-- MOBILE DASHBOARD NAVIGATION -->
+      <nav class="mobile-dashboard-nav" role="tablist" aria-label="Mobile dashboard navigation">
+        <a class="mobile-nav-item is-active" href="#admin-analytics" data-dashboard-tab role="tab" aria-selected="true">
+          <span class="mobile-nav-icon" aria-hidden="true">📊</span>
+          <span class="mobile-nav-label">Analytics</span>
+        </a>
+        <a class="mobile-nav-item" href="#admin-users" data-dashboard-tab role="tab" aria-selected="false">
+          <span class="mobile-nav-icon" aria-hidden="true">👥</span>
+          <span class="mobile-nav-label">Users</span>
+        </a>
+        <a class="mobile-nav-item" href="#admin-appointments" data-dashboard-tab role="tab" aria-selected="false">
+          <span class="mobile-nav-icon" aria-hidden="true">🗓️</span>
+          <span class="mobile-nav-label">Schedule</span>
+        </a>
+        <a class="mobile-nav-item" href="#admin-inquiries" data-dashboard-tab role="tab" aria-selected="false">
+          <span class="mobile-nav-icon" aria-hidden="true">💬</span>
+          <span class="mobile-nav-label">Inquiries</span>
+        </a>
+        <a class="mobile-nav-item" href="#admin-documents" data-dashboard-tab role="tab" aria-selected="false">
+          <span class="mobile-nav-icon" aria-hidden="true">📄</span>
+          <span class="mobile-nav-label">Docs</span>
+        </a>
+        <a class="mobile-nav-item" href="#admin-availability" data-dashboard-tab role="tab" aria-selected="false">
+          <span class="mobile-nav-icon" aria-hidden="true">🕒</span>
+          <span class="mobile-nav-label">Avail</span>
+        </a>
+      </nav>
+
       <div class="dashboard-tabs" role="tablist" aria-label="Admin dashboard tabs">
         <a class="dashboard-tab is-active" href="#admin-analytics" data-dashboard-tab>Analytics</a>
         <a class="dashboard-tab" href="#admin-users" data-dashboard-tab>Enrolled Users</a>
@@ -247,6 +275,12 @@
           </div>
 
           <div class="admin-list" id="enrolledList" aria-live="polite"></div>
+
+          <div class="admin-pagination" id="userPaginationControls" hidden>
+            <button class="btn btn--sm btn--pill btn--ghost" id="userPrevPageBtn" disabled type="button">← Previous</button>
+            <span class="admin-pagination__info" id="userPageIndicator">Page 1</span>
+            <button class="btn btn--sm btn--pill btn--ghost" id="userNextPageBtn" type="button">Next →</button>
+          </div>
         </section>
 
         <section class="dashboard-section" id="admin-appointments" aria-label="Appointments">
@@ -292,6 +326,12 @@
           <div class="admin-list" id="inquiryList" aria-live="polite">
             <p class="admin-empty">Loading inquiries...</p>
           </div>
+
+          <div class="admin-pagination" id="inquiryPaginationControls" hidden>
+            <button class="btn btn--sm btn--pill btn--ghost" id="inquiryPrevPageBtn" disabled type="button">← Previous</button>
+            <span class="admin-pagination__info" id="inquiryPageIndicator">Page 1</span>
+            <button class="btn btn--sm btn--pill btn--ghost" id="inquiryNextPageBtn" type="button">Next →</button>
+          </div>
         </section>
 
         <!-- Document Requests Section -->
@@ -305,6 +345,12 @@
 
           <div class="admin-list" id="adminDocumentRequestList" aria-live="polite">
             <p class="admin-empty">Loading document requests...</p>
+          </div>
+
+          <div class="admin-pagination" id="docPaginationControls" hidden>
+            <button class="btn btn--sm btn--pill btn--ghost" id="docPrevPageBtn" disabled type="button">← Previous</button>
+            <span class="admin-pagination__info" id="docPageIndicator">Page 1</span>
+            <button class="btn btn--sm btn--pill btn--ghost" id="docNextPageBtn" type="button">Next →</button>
           </div>
         </section>
 

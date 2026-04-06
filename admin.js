@@ -148,6 +148,25 @@ function escapeHtml(str = "") {
   const nextPageBtn = document.getElementById("nextPageBtn");
   const pageIndicator = document.getElementById("pageIndicator");
 
+  const userPaginationControls = document.getElementById("userPaginationControls");
+  const userPrevPageBtn = document.getElementById("userPrevPageBtn");
+  const userNextPageBtn = document.getElementById("userNextPageBtn");
+  const userPageIndicator = document.getElementById("userPageIndicator");
+
+  const inquiryPaginationControls = document.getElementById("inquiryPaginationControls");
+  const inquiryPrevPageBtn = document.getElementById("inquiryPrevPageBtn");
+  const inquiryNextPageBtn = document.getElementById("inquiryNextPageBtn");
+  const inquiryPageIndicator = document.getElementById("inquiryPageIndicator");
+
+  const docPaginationControls = document.getElementById("docPaginationControls");
+  const docPrevPageBtn = document.getElementById("docPrevPageBtn");
+  const docNextPageBtn = document.getElementById("docNextPageBtn");
+  const docPageIndicator = document.getElementById("docPageIndicator");
+
+  let userCurrentPage = 1;
+  let inquiryCurrentPage = 1;
+  let docCurrentPage = 1;
+
   // If we are not on admin.html, do nothing
   if (!emotionsEl || !triggersEl || !tableEl) return;
 
@@ -428,10 +447,18 @@ function escapeHtml(str = "") {
 
     if (inquiries.length === 0) {
       inquiryList.innerHTML = `<p class="admin-empty">No inquiries found.</p>`;
+      if (inquiryPaginationControls) inquiryPaginationControls.hidden = true;
       return;
     }
 
-    inquiryList.innerHTML = inquiries
+    const totalPages = Math.ceil(inquiries.length / itemsPerPage) || 1;
+    if (inquiryCurrentPage > totalPages) inquiryCurrentPage = totalPages;
+    if (inquiryCurrentPage < 1) inquiryCurrentPage = 1;
+
+    const startIndex = (inquiryCurrentPage - 1) * itemsPerPage;
+    const pagedItems = inquiries.slice(startIndex, startIndex + itemsPerPage);
+
+    inquiryList.innerHTML = pagedItems
       .map((inq) => {
         const date = inq.createdAt?.toDate ? inq.createdAt.toDate() : new Date();
         const dateStr = date.toLocaleDateString("en-US", {
@@ -471,6 +498,13 @@ function escapeHtml(str = "") {
       `;
       })
       .join("");
+
+    if (inquiryPaginationControls) {
+      inquiryPaginationControls.hidden = false;
+      inquiryPageIndicator.textContent = `Page ${inquiryCurrentPage} of ${totalPages}`;
+      if (inquiryPrevPageBtn) inquiryPrevPageBtn.disabled = inquiryCurrentPage === 1;
+      if (inquiryNextPageBtn) inquiryNextPageBtn.disabled = inquiryCurrentPage === totalPages;
+    }
   }
 
   let activeInquiryId = null;
@@ -598,10 +632,18 @@ function escapeHtml(str = "") {
 
     if (!rows.length) {
       enrolledList.innerHTML = `<p class="admin-empty">No enrolled users found.</p>`;
+      if (userPaginationControls) userPaginationControls.hidden = true;
       return;
     }
 
-    enrolledList.innerHTML = rows
+    const totalPages = Math.ceil(rows.length / itemsPerPage) || 1;
+    if (userCurrentPage > totalPages) userCurrentPage = totalPages;
+    if (userCurrentPage < 1) userCurrentPage = 1;
+
+    const startIndex = (userCurrentPage - 1) * itemsPerPage;
+    const pagedItems = rows.slice(startIndex, startIndex + itemsPerPage);
+
+    enrolledList.innerHTML = pagedItems
       .map((user) => {
         // Find recent appointments for this student
         const userAppts = appointments
@@ -637,6 +679,13 @@ function escapeHtml(str = "") {
         `;
       })
       .join("");
+
+    if (userPaginationControls) {
+      userPaginationControls.hidden = false;
+      userPageIndicator.textContent = `Page ${userCurrentPage} of ${totalPages}`;
+      if (userPrevPageBtn) userPrevPageBtn.disabled = userCurrentPage === 1;
+      if (userNextPageBtn) userNextPageBtn.disabled = userCurrentPage === totalPages;
+    }
   }
 
   function openUserModal(userId) {
@@ -1356,14 +1405,18 @@ function escapeHtml(str = "") {
   });
 
   // User list filter listeners
+  const onUserFilterChange = () => {
+    userCurrentPage = 1;
+    renderUserList();
+  };
   if (userSearch) {
-    userSearch.addEventListener("input", renderUserList);
+    userSearch.addEventListener("input", onUserFilterChange);
   }
   if (userYear) {
-    userYear.addEventListener("change", renderUserList);
+    userYear.addEventListener("change", onUserFilterChange);
   }
   if (userCourse) {
-    userCourse.addEventListener("change", renderUserList);
+    userCourse.addEventListener("change", onUserFilterChange);
   }
 
   // Pagination event listeners
@@ -1391,6 +1444,62 @@ function escapeHtml(str = "") {
       if (currentPage < totalPages) {
         currentPage++;
         renderAppointments();
+      }
+    });
+  }
+
+  // Pagination event listeners for User, Inquiry, and Docs
+  if (userPrevPageBtn) {
+    userPrevPageBtn.addEventListener("click", () => {
+      if (userCurrentPage > 1) {
+        userCurrentPage--;
+        renderUserList();
+      }
+    });
+  }
+  if (userNextPageBtn) {
+    userNextPageBtn.addEventListener("click", () => {
+      const rows = students.filter(matchesUserFilters);
+      const totalPages = Math.ceil(rows.length / itemsPerPage) || 1;
+      if (userCurrentPage < totalPages) {
+        userCurrentPage++;
+        renderUserList();
+      }
+    });
+  }
+  
+  if (inquiryPrevPageBtn) {
+    inquiryPrevPageBtn.addEventListener("click", () => {
+      if (inquiryCurrentPage > 1) {
+        inquiryCurrentPage--;
+        renderInquiryList();
+      }
+    });
+  }
+  if (inquiryNextPageBtn) {
+    inquiryNextPageBtn.addEventListener("click", () => {
+      const totalPages = Math.ceil(inquiries.length / itemsPerPage) || 1;
+      if (inquiryCurrentPage < totalPages) {
+        inquiryCurrentPage++;
+        renderInquiryList();
+      }
+    });
+  }
+  
+  if (docPrevPageBtn) {
+    docPrevPageBtn.addEventListener("click", () => {
+      if (docCurrentPage > 1) {
+        docCurrentPage--;
+        renderAdminDocumentRequests();
+      }
+    });
+  }
+  if (docNextPageBtn) {
+    docNextPageBtn.addEventListener("click", () => {
+      const totalPages = Math.ceil(documentRequests.length / itemsPerPage) || 1;
+      if (docCurrentPage < totalPages) {
+        docCurrentPage++;
+        renderAdminDocumentRequests();
       }
     });
   }
@@ -1921,10 +2030,18 @@ function escapeHtml(str = "") {
 
     if (documentRequests.length === 0) {
       list.innerHTML = `<p class="admin-empty">No document requests found.</p>`;
+      if (docPaginationControls) docPaginationControls.hidden = true;
       return;
     }
 
-    list.innerHTML = documentRequests
+    const totalPages = Math.ceil(documentRequests.length / itemsPerPage) || 1;
+    if (docCurrentPage > totalPages) docCurrentPage = totalPages;
+    if (docCurrentPage < 1) docCurrentPage = 1;
+
+    const startIndex = (docCurrentPage - 1) * itemsPerPage;
+    const pagedItems = documentRequests.slice(startIndex, startIndex + itemsPerPage);
+
+    list.innerHTML = pagedItems
       .map((req) => {
         const date = req.createdAt?.toDate ? req.createdAt.toDate() : new Date();
         const dateStr = date.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
@@ -1951,6 +2068,13 @@ function escapeHtml(str = "") {
         `;
       })
       .join("");
+
+    if (docPaginationControls) {
+      docPaginationControls.hidden = false;
+      docPageIndicator.textContent = `Page ${docCurrentPage} of ${totalPages}`;
+      if (docPrevPageBtn) docPrevPageBtn.disabled = docCurrentPage === 1;
+      if (docNextPageBtn) docNextPageBtn.disabled = docCurrentPage === totalPages;
+    }
   }
 
   let currentProcessingDocId = null;
